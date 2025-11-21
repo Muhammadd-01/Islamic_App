@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class NotificationItem {
   final String id;
@@ -147,6 +148,10 @@ class NotificationsScreen extends ConsumerWidget {
                           .markAsRead(notification.id);
                     },
                   ),
+                ).animate().fade().slideX(
+                  begin: 0.1,
+                  end: 0,
+                  delay: Duration(milliseconds: index * 100),
                 );
               },
             ),

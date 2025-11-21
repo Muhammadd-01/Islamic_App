@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
@@ -39,37 +40,49 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
               radius: 50,
               backgroundColor: AppColors.primary,
               child: Icon(Icons.person, size: 50, color: Colors.white),
-            ),
+            ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
             const SizedBox(height: 16),
             Text(
               user?.displayName ?? 'Muhammad Affan', // Mock name if null
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
+            ).animate().fade().slideY(begin: 0.5, end: 0, delay: 100.ms),
             Text(
               user?.email ?? 'affan@example.com',
               style: TextStyle(color: Colors.grey[600], fontSize: 16),
-            ),
+            ).animate().fade().slideY(begin: 0.5, end: 0, delay: 200.ms),
             const SizedBox(height: 32),
-            _buildStatsCard(totalBookmarks, lastReadSurah, lastReadAyah),
+            _buildStatsCard(
+              totalBookmarks,
+              lastReadSurah,
+              lastReadAyah,
+            ).animate().fade().slideX(begin: 0.2, end: 0, delay: 300.ms),
             const SizedBox(height: 32),
-            _buildMenuButton(
-              icon: Icons.notifications,
-              title: 'Notifications',
-              onTap: () => context.push('/notifications'),
-            ),
-            _buildMenuButton(
-              icon: Icons.bookmark,
-              title: 'Bookmarks',
-              onTap: () => context.push('/bookmarks'),
-            ),
-            _buildMenuButton(
-              icon: Icons.logout,
-              title: 'Logout',
-              isDestructive: true,
-              onTap: () async {
-                await ref.read(authRepositoryProvider).signOut();
-                if (context.mounted) context.go('/login');
-              },
+            Column(
+              children:
+                  [
+                        _buildMenuButton(
+                          icon: Icons.notifications,
+                          title: 'Notifications',
+                          onTap: () => context.push('/notifications'),
+                        ),
+                        _buildMenuButton(
+                          icon: Icons.bookmark,
+                          title: 'Bookmarks',
+                          onTap: () => context.push('/bookmarks'),
+                        ),
+                        _buildMenuButton(
+                          icon: Icons.logout,
+                          title: 'Logout',
+                          isDestructive: true,
+                          onTap: () async {
+                            await ref.read(authRepositoryProvider).signOut();
+                            if (context.mounted) context.go('/login');
+                          },
+                        ),
+                      ]
+                      .animate(interval: 100.ms)
+                      .fade()
+                      .slideX(begin: 0.1, end: 0, delay: 400.ms),
             ),
           ],
         ),
@@ -78,19 +91,27 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   }
 
   Widget _buildStatsCard(int bookmarks, String surah, int ayah) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildStatItem('Bookmarks', bookmarks.toString()),
-            Container(width: 1, height: 40, color: Colors.grey[300]),
-            _buildStatItem('Last Read', '$surah : $ayah'),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildStatItem('Bookmarks', bookmarks.toString()),
+          Container(width: 1, height: 40, color: Colors.grey[300]),
+          _buildStatItem('Last Read', '$surah : $ayah'),
+        ],
       ),
     );
   }
@@ -118,12 +139,23 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     required VoidCallback onTap,
     bool isDestructive = false,
   }) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.05)),
+      ),
       child: ListTile(
         leading: Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
             color: isDestructive
                 ? Colors.red.withValues(alpha: 0.1)
@@ -133,6 +165,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           child: Icon(
             icon,
             color: isDestructive ? Colors.red : AppColors.primary,
+            size: 20,
           ),
         ),
         title: Text(
@@ -140,14 +173,16 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
           style: TextStyle(
             fontWeight: FontWeight.w600,
             color: isDestructive ? Colors.red : null,
+            fontSize: 15,
           ),
         ),
-        trailing: const Icon(
+        trailing: Icon(
           Icons.arrow_forward_ios,
-          size: 16,
-          color: Colors.grey,
+          size: 14,
+          color: Colors.grey[400],
         ),
         onTap: onTap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }

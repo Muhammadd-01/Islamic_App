@@ -24,23 +24,19 @@ class ArticlesListScreen extends ConsumerWidget {
               margin: const EdgeInsets.only(bottom: 16),
               clipBehavior: Clip.antiAlias,
               child: InkWell(
-                onTap: () {
-                  context.push('/articles/${article.id}', extra: article);
-                },
+                onTap: () =>
+                    context.go('/articles/${article.id}', extra: article),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Image.network(
-                      article.image,
+                    Container(
                       height: 150,
                       width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        height: 150,
-                        color: Colors.grey[300],
-                        child: const Center(
-                          child: Icon(Icons.image_not_supported),
-                        ),
+                      color: Colors.grey[300],
+                      child: const Icon(
+                        Icons.image,
+                        size: 50,
+                        color: Colors.grey,
                       ),
                     ),
                     Padding(
@@ -48,7 +44,20 @@ class ArticlesListScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Text(
+                            article.title,
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            article.summary,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 8),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(
@@ -70,7 +79,6 @@ class ArticlesListScreen extends ConsumerWidget {
                                   ),
                                 ),
                               ),
-                              const Spacer(),
                               Text(
                                 article.date,
                                 style: TextStyle(
@@ -79,24 +87,6 @@ class ArticlesListScreen extends ConsumerWidget {
                                 ),
                               ),
                             ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            article.title,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            article.summary,
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 14,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),

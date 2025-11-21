@@ -1,0 +1,42 @@
+[
+    {
+        "id": "1",
+        "title": "The Sealed Nectar",
+        "author": "Safiur Rahman Mubarakpuri",
+        "description": "A complete authoritative book on the life of Prophet Muhammad (S). It was honored by the World Muslim League as first prize winner book.",
+        "coverUrl": "https://images-na.ssl-images-amazon.com/images/I/51+8-wKkLcL._SX331_BO1,204,203,200_.jpg",
+        "price": 0.0,
+        "isFree": true,
+        "rating": 4.9
+    },
+    {
+        "id": "2",
+        "title": "Reclaim Your Heart",
+        "author": "Yasmin Mogahed",
+        "description": "A manual of the journey of the heart in and out of the ocean of this life. It is about how to keep your heart from sinking to the depths of that ocean.",
+        "coverUrl": "https://m.media-amazon.com/images/I/71Jg+K-O4EL._AC_UF1000,1000_QL80_.jpg",
+        "price": 12.99,
+        "isFree": false,
+        "rating": 4.8
+    },
+    {
+        "id": "3",
+        "title": "Don't Be Sad",
+        "author": "Aaidh ibn Abdullah al-Qarni",
+        "description": "At a time in which the Muslims are beset with trials from every periphery and within, comes this heartening book rooted in the commandments of Allah.",
+        "coverUrl": "https://m.media-amazon.com/images/I/51Jj1+M-k+L.jpg",
+        "price": 15.50,
+        "isFree": false,
+        "rating": 4.7
+    },
+    {
+        "id": "4",
+        "title": "Fortress of the Muslim",
+        "author": "Sa'id bin Wahf Al-Qahtani",
+        "description": "Invocations from the Quran and Sunnah. Translation of Hisnul-Muslim.",
+        "coverUrl": "https://m.media-amazon.com/images/I/51+8-wKkLcL._SX331_BO1,204,203,200_.jpg",
+        "price": 0.0,
+        "isFree": true,
+        "rating": 5.0
+    }
+]

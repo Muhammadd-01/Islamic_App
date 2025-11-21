@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:islamic_app/presentation/quran_audio/mini_player.dart';
 
 class ScaffoldWithNavBar extends StatelessWidget {
   final Widget child;
@@ -10,29 +11,35 @@ class ScaffoldWithNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _calculateSelectedIndex(context),
-        onDestinationSelected: (int index) => _onItemTapped(index, context),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.chat_bubble_outline),
-            selectedIcon: Icon(Icons.chat_bubble),
-            label: 'Q&A',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.book_outlined),
-            selectedIcon: Icon(Icons.book),
-            label: 'Quran',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.access_time_outlined),
-            selectedIcon: Icon(Icons.access_time_filled),
-            label: 'Prayer',
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const MiniPlayer(),
+          NavigationBar(
+            selectedIndex: _calculateSelectedIndex(context),
+            onDestinationSelected: (int index) => _onItemTapped(index, context),
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                selectedIcon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.chat_bubble_outline),
+                selectedIcon: Icon(Icons.chat_bubble),
+                label: 'Q&A',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.book_outlined),
+                selectedIcon: Icon(Icons.book),
+                label: 'Quran',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.access_time_outlined),
+                selectedIcon: Icon(Icons.access_time_filled),
+                label: 'Prayer',
+              ),
+            ],
           ),
         ],
       ),

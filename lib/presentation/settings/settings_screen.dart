@@ -32,7 +32,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
             child: Column(
               children: [
-                SwitchListTile(
+                SwitchListTile.adaptive(
                   title: const Text('Dark Mode'),
                   secondary: const Icon(
                     Icons.dark_mode,
@@ -40,7 +40,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   value: isDarkMode,
                   onChanged: (value) {
-                    ref.read(themeProvider.notifier).toggleTheme();
+                    ref
+                        .read(themeProvider.notifier)
+                        .setTheme(value ? ThemeMode.dark : ThemeMode.light);
                   },
                 ),
                 const Divider(height: 1),

@@ -75,6 +75,8 @@ flutter:
     - assets/api/articles/
     - assets/api/dua/
     - assets/api/calendar/
+    - assets/api/scholars/
+    - assets/api/library/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

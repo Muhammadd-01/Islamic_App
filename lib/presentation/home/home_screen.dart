@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -54,87 +55,147 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 24),
 
             // Next Prayer Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, AppColors.secondary],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.3),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Column(
+            ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            AppColors.primary,
+                            Color(0xFF00695C), // Teal-ish
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.1),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.4),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Next Prayer',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.access_time,
+                                        color: AppColors.neonGreen.withValues(
+                                          alpha: 0.8,
+                                        ),
+                                        size: 16,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      const Text(
+                                        'Next Prayer',
+                                        style: TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'Maghrib',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 32,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.1),
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.nights_stay_outlined,
+                                  color: AppColors.neonBlue,
+                                  size: 28,
+                                ),
+                              ),
+                            ],
                           ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Maghrib',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                          const SizedBox(height: 24),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text(
+                                  'Time Remaining:',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                nextPrayerAsync.when(
+                                  data: (time) => Text(
+                                    time,
+                                    style: const TextStyle(
+                                      color: AppColors.neonGreen,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      fontFeatures: [
+                                        FontFeature.tabularFigures(),
+                                      ],
+                                    ),
+                                  ),
+                                  loading: () => const Text(
+                                    'Loading...',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  error: (_, __) => const Text(
+                                    '--:--',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.nights_stay_outlined,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  nextPrayerAsync.when(
-                    data: (time) => Text(
-                      '- $time',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        fontFeatures: [FontFeature.tabularFigures()],
-                      ),
-                    ),
-                    loading: () => const Text(
-                      'Loading...',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    error: (_, __) => const Text(
-                      '--:--:--',
-                      style: TextStyle(color: Colors.white),
                     ),
                   ),
-                ],
-              ),
-            ).animate().fade().slideY(begin: 0.2, end: 0),
+                )
+                .animate()
+                .fade(duration: 600.ms)
+                .slideY(begin: 0.2, end: 0, curve: Curves.easeOutBack),
 
             const SizedBox(height: 24),
 
@@ -150,80 +211,78 @@ class HomeScreen extends ConsumerWidget {
               crossAxisCount: 4,
               mainAxisSpacing: 16,
               crossAxisSpacing: 16,
-              children: [
-                _QuickAction(
-                  icon: Icons.book,
-                  label: 'Quran',
-                  color: const Color(0xFF10B981),
-                  onTap: () => context.go('/quran'),
-                ),
-                _QuickAction(
-                  icon: Icons.menu_book,
-                  label: 'Hadith',
-                  color: const Color(0xFF3B82F6),
-                  onTap: () => context.push('/hadith'),
-                ),
-                _QuickAction(
-                  icon: Icons.article,
-                  label: 'Articles',
-                  color: const Color(0xFFF59E0B),
-                  onTap: () => context.push('/articles'),
-                ),
-                _QuickAction(
-                  icon: Icons.volunteer_activism,
-                  label: 'Dua',
-                  color: const Color(0xFFEC4899),
-                  onTap: () => context.push('/duas'),
-                ),
-                _QuickAction(
-                  icon: Icons.calendar_month,
-                  label: 'Calendar',
-                  color: const Color(0xFF10B981),
-                  onTap: () => context.push('/calendar'),
-                ),
-                _QuickAction(
-                  icon: Icons.chat_bubble_outline,
-                  label: 'Q&A',
-                  color: const Color(0xFF8B5CF6),
-                  onTap: () => context.go('/qa'),
-                ),
-                _QuickAction(
-                  icon: Icons.access_time_filled,
-                  label: 'Prayer',
-                  color: Colors.orange,
-                  onTap: () => context.go('/prayer'),
-                ),
-                _QuickAction(
-                  icon: Icons.volunteer_activism,
-                  label: 'Dua',
-                  color: Colors.purple,
-                  onTap: () {}, // TODO: Implement Dua
-                ),
-                _QuickAction(
-                  icon: Icons.fingerprint,
-                  label: 'Tasbeeh',
-                  color: Colors.teal,
-                  onTap: () => context.go('/tasbeeh'),
-                ),
-                _QuickAction(
-                  icon: Icons.menu_book,
-                  label: 'Hadith',
-                  color: Colors.brown,
-                  onTap: () {}, // TODO: Implement Hadith
-                ),
-                _QuickAction(
-                  icon: Icons.article,
-                  label: 'Articles',
-                  color: Colors.indigo,
-                  onTap: () {}, // TODO: Implement Articles
-                ),
-                _QuickAction(
-                  icon: Icons.settings,
-                  label: 'Settings',
-                  color: Colors.grey,
-                  onTap: () {},
-                ),
-              ],
+              children:
+                  [
+                        _QuickAction(
+                          icon: Icons.book,
+                          label: 'Quran',
+                          color: const Color(0xFF10B981),
+                          onTap: () => context.go('/quran'),
+                        ),
+                        _QuickAction(
+                          icon: Icons.menu_book,
+                          label: 'Hadith',
+                          color: const Color(0xFF3B82F6),
+                          onTap: () => context.push('/hadith'),
+                        ),
+                        _QuickAction(
+                          icon: Icons.article,
+                          label: 'Articles',
+                          color: const Color(0xFFF59E0B),
+                          onTap: () => context.push('/articles'),
+                        ),
+                        _QuickAction(
+                          icon: Icons.volunteer_activism,
+                          label: 'Dua',
+                          color: const Color(0xFFEC4899),
+                          onTap: () => context.push('/duas'),
+                        ),
+                        _QuickAction(
+                          icon: Icons.calendar_month,
+                          label: 'Calendar',
+                          color: const Color(0xFF10B981),
+                          onTap: () => context.push('/calendar'),
+                        ),
+                        _QuickAction(
+                          icon: Icons.chat_bubble_outline,
+                          label: 'Q&A',
+                          color: const Color(0xFF8B5CF6),
+                          onTap: () => context.go('/qa'),
+                        ),
+                        _QuickAction(
+                          icon: Icons.access_time_filled,
+                          label: 'Prayer',
+                          color: Colors.orange,
+                          onTap: () => context.go('/prayer'),
+                        ),
+                        _QuickAction(
+                          icon: Icons.fingerprint,
+                          label: 'Tasbeeh',
+                          color: Colors.teal,
+                          onTap: () => context.go('/tasbeeh'),
+                        ),
+                        _QuickAction(
+                          icon: Icons.school,
+                          label: 'Scholars',
+                          color: const Color(0xFF7C3AED),
+                          onTap: () => context.push('/scholars'),
+                        ),
+                        _QuickAction(
+                          icon: Icons.library_books,
+                          label: 'Library',
+                          color: const Color(0xFFEA580C),
+                          onTap: () => context.push('/library'),
+                        ),
+                        _QuickAction(
+                          icon: Icons.settings,
+                          label: 'Settings',
+                          color: Colors.grey,
+                          onTap: () => context.push('/settings'),
+                        ),
+                      ]
+                      .animate(interval: 50.ms)
+                      .fade()
+                      .scale(curve: Curves.easeOutBack),
             ),
 
             const SizedBox(height: 24),

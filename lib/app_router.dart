@@ -23,12 +23,19 @@ import 'package:islamic_app/presentation/auth/signup_screen.dart';
 import 'package:islamic_app/presentation/settings/settings_screen.dart';
 import 'package:islamic_app/presentation/notifications/notifications_screen.dart';
 import 'package:islamic_app/presentation/quran_audio/reciter_selection_screen.dart';
+import 'package:islamic_app/presentation/quran_audio/surah_audio_screen.dart';
 import 'package:islamic_app/presentation/splash/splash_screen.dart';
 import 'package:islamic_app/presentation/onboarding/onboarding_screen.dart';
 import 'package:islamic_app/domain/entities/surah.dart';
 import 'package:islamic_app/domain/entities/hadith.dart';
 import 'package:islamic_app/domain/entities/article.dart';
 import 'package:islamic_app/domain/entities/dua.dart';
+import 'package:islamic_app/domain/entities/scholar.dart';
+import 'package:islamic_app/domain/entities/book.dart';
+import 'package:islamic_app/presentation/scholars/scholars_list_screen.dart';
+import 'package:islamic_app/presentation/scholars/scholar_detail_screen.dart';
+import 'package:islamic_app/presentation/library/library_screen.dart';
+import 'package:islamic_app/presentation/library/book_detail_screen.dart';
 
 final goRouter = GoRouter(
   initialLocation: '/',
@@ -151,6 +158,40 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/reciters',
       builder: (context, state) => const ReciterSelectionScreen(),
+    ),
+    GoRoute(
+      path: '/scholars',
+      builder: (context, state) => const ScholarsListScreen(),
+      routes: [
+        GoRoute(
+          path: ':id',
+          builder: (context, state) {
+            final scholar = state.extra as Scholar;
+            return ScholarDetailScreen(scholar: scholar);
+          },
+        ),
+      ],
+    ),
+    GoRoute(
+      path: '/library',
+      builder: (context, state) => const LibraryScreen(),
+      routes: [
+        GoRoute(
+          path: ':id',
+          builder: (context, state) {
+            final book = state.extra as Book;
+            return BookDetailScreen(book: book);
+          },
+        ),
+      ],
+    ),
+    GoRoute(
+      path: '/surah-audio/:surahId',
+      builder: (context, state) {
+        final surahId = state.pathParameters['surahId']!;
+        final surahName = state.extra as String;
+        return SurahAudioScreen(surahId: surahId, surahName: surahName);
+      },
     ),
     GoRoute(path: '/splash', builder: (context, state) => const SplashScreen()),
     GoRoute(

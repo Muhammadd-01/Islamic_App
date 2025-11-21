@@ -1,0 +1,38 @@
+[
+    {
+        "id": "1",
+        "name": "Dr. Omar Suleiman",
+        "specialty": "Islamic Theology",
+        "bio": "Dr. Omar Suleiman is a world-renowned Islamic scholar and civil rights leader. He is the Founder and President of the Yaqeen Institute for Islamic Research.",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Omar_Suleiman_2018.jpg/800px-Omar_Suleiman_2018.jpg",
+        "isAvailableFor1on1": true,
+        "consultationFee": 50.0
+    },
+    {
+        "id": "2",
+        "name": "Mufti Menk",
+        "specialty": "General Guidance",
+        "bio": "Ismail ibn Musa Menk, also known as Mufti Menk, is a Muslim cleric and Grand Mufti of Zimbabwe. He is known for his humorous and engaging lectures.",
+        "imageUrl": "https://pbs.twimg.com/profile_images/1410962237/menk_400x400.jpg",
+        "isAvailableFor1on1": false,
+        "consultationFee": 0.0
+    },
+    {
+        "id": "3",
+        "name": "Yasmin Mogahed",
+        "specialty": "Spiritual Development",
+        "bio": "Yasmin Mogahed is known for her gift of captivating an entire audience with her thoughts and reflections. She is a specialist in spirituality and personal development.",
+        "imageUrl": "https://www.yasminmogahed.com/wp-content/uploads/2012/05/yasmin-mogahed-2.jpg",
+        "isAvailableFor1on1": true,
+        "consultationFee": 75.0
+    },
+    {
+        "id": "4",
+        "name": "Nouman Ali Khan",
+        "specialty": "Quranic Tafseer",
+        "bio": "Nouman Ali Khan is the founder and CEO of Bayyinah Institute and is one of the most influential Islamic speakers in the West.",
+        "imageUrl": "https://i1.sndcdn.com/avatars-000326646612-1j2j2j-t500x500.jpg",
+        "isAvailableFor1on1": true,
+        "consultationFee": 100.0
+    }
+]

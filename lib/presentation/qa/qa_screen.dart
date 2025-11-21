@@ -40,80 +40,96 @@ class _QAScreenState extends ConsumerState<QAScreen> {
     // Scroll to bottom when messages change
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Islamic AI Assistant'),
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: messages.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.chat_bubble_outline,
-                          size: 64,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Ask any religious question',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ).animate().fade().scale(),
-                  )
-                : ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.all(16),
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      final message = messages[index];
-                      return _MessageBubble(message: message);
-                    },
-                  ),
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Islamic Assistant'),
+          centerTitle: true,
+          bottom: const TabBar(
+            tabs: [
+              Tab(text: 'AI Chat'),
+              Tab(text: 'Community Q&A'),
+            ],
           ),
-          if (ref.watch(qaLoadingProvider))
-            Padding(
-              padding: const EdgeInsets.only(left: 16, bottom: 8),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+        ),
+        body: TabBarView(
+          children: [
+            Column(
+              children: [
+                Expanded(
+                  child: messages.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 64,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Ask any religious question',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ).animate().fade().scale(),
+                        )
+                      : ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(16),
+                          itemCount: messages.length,
+                          itemBuilder: (context, index) {
+                            final message = messages[index];
+                            return _MessageBubble(message: message);
+                          },
+                        ),
+                ),
+                if (ref.watch(qaLoadingProvider))
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16, bottom: 8),
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const SizedBox(
-                          width: 12,
-                          height: 12,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Thinking...',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                        ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(
+                                width: 12,
+                                height: 12,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Thinking...',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ).animate().fade().scale(),
                       ],
                     ),
-                  ).animate().fade().scale(),
-                ],
-              ),
+                  ),
+                _buildInputArea(),
+              ],
             ),
-          _buildInputArea(),
-        ],
+            _CommunityQA(),
+          ],
+        ),
       ),
     );
   }
@@ -170,6 +186,113 @@ class _QAScreenState extends ConsumerState<QAScreen> {
       ref.read(qaProvider.notifier).sendMessage(text);
       _controller.clear();
     }
+  }
+}
+
+class _CommunityQA extends StatelessWidget {
+  const _CommunityQA();
+
+  @override
+  Widget build(BuildContext context) {
+    final questions = [
+      {
+        'question': 'What is the best time for Tahajjud?',
+        'answers': 12,
+        'author': 'Ahmed K.',
+        'time': '2h ago',
+      },
+      {
+        'question': 'How to calculate Zakat on gold?',
+        'answers': 8,
+        'author': 'Sarah M.',
+        'time': '5h ago',
+      },
+      {
+        'question': 'Can I combine prayers when traveling?',
+        'answers': 24,
+        'author': 'Bilal Y.',
+        'time': '1d ago',
+      },
+      {
+        'question': 'Meaning of Surah Al-Ikhlas?',
+        'answers': 15,
+        'author': 'Fatima R.',
+        'time': '2d ago',
+      },
+    ];
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: questions.length,
+      itemBuilder: (context, index) {
+        final q = questions[index];
+        return Card(
+          margin: const EdgeInsets.only(bottom: 16),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                      child: Text(
+                        (q['author'] as String)[0],
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      q['author'] as String,
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
+                    const Spacer(),
+                    Text(
+                      q['time'] as String,
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  q['question'] as String,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.chat_bubble_outline,
+                      size: 16,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${q['answers']} Answers',
+                      style: const TextStyle(color: Colors.grey),
+                    ),
+                    const Spacer(),
+                    TextButton(onPressed: () {}, child: const Text('Answer')),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ).animate().fade().slideY(
+          begin: 0.1,
+          end: 0,
+          delay: Duration(milliseconds: index * 100),
+        );
+      },
+    );
   }
 }
 

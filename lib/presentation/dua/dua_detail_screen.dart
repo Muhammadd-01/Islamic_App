@@ -98,7 +98,8 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
                   final url = widget.dua.audio.isNotEmpty
                       ? widget.dua.audio
                       : 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
-                  await audioService.play(url);
+                  await audioService.setPlaylist([url]);
+                  await audioService.play();
                   // Reset state when finished (simple implementation)
                   // In real app, listen to playerStateStream
                   setState(() => _isPlaying = false);

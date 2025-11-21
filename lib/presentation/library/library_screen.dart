@@ -13,7 +13,11 @@ class LibraryScreen extends ConsumerWidget {
     final booksAsync = ref.watch(booksListProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Islamic Library'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Islamic Library'),
+        centerTitle: true,
+        leading: const BackButton(),
+      ),
       body: booksAsync.when(
         data: (books) => GridView.builder(
           padding: const EdgeInsets.all(16),

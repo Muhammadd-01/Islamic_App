@@ -36,6 +36,8 @@ import 'package:islamic_app/presentation/scholars/scholars_list_screen.dart';
 import 'package:islamic_app/presentation/scholars/scholar_detail_screen.dart';
 import 'package:islamic_app/presentation/library/library_screen.dart';
 import 'package:islamic_app/presentation/library/book_detail_screen.dart';
+import 'package:islamic_app/presentation/courses/courses_screen.dart';
+import 'package:islamic_app/presentation/library/book_reader_screen.dart';
 
 final goRouter = GoRouter(
   initialLocation: '/',
@@ -197,6 +199,17 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/onboarding',
       builder: (context, state) => const OnboardingScreen(),
+    ),
+    GoRoute(
+      path: '/courses',
+      builder: (context, state) => const CoursesScreen(),
+    ),
+    GoRoute(
+      path: '/book-reader',
+      builder: (context, state) {
+        final book = state.extra as Book;
+        return BookReaderScreen(book: book);
+      },
     ),
   ],
 );

@@ -46,6 +46,7 @@ dependencies:
   flutter_animate: ^4.5.2
   just_audio: ^0.10.5
   audio_service: ^0.18.18
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
@@ -77,6 +78,7 @@ flutter:
     - assets/api/calendar/
     - assets/api/scholars/
     - assets/api/library/
+    - assets/api/courses/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

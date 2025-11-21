@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/core/theme/theme_provider.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
+import 'package:islamic_app/core/providers/language_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -13,8 +14,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  String _selectedLanguage = 'English';
-
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
@@ -49,19 +48,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ListTile(
                   title: const Text('Language'),
                   leading: const Icon(Icons.language, color: AppColors.primary),
-                  trailing: DropdownButton<String>(
-                    value: _selectedLanguage,
-                    underline: const SizedBox(),
-                    items: ['English', 'Urdu', 'Arabic'].map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
+                  trailing: Consumer(
+                    builder: (context, ref, child) {
+                      final locale = ref.watch(languageProvider);
+                      final String currentLanguage = locale.languageCode == 'ur'
+                          ? 'Urdu'
+                          : locale.languageCode == 'ar'
+                          ? 'Arabic'
+                          : 'English';
+
+                      return DropdownButton<String>(
+                        value: currentLanguage,
+                        underline: const SizedBox(),
+                        items: ['English', 'Urdu', 'Arabic'].map((
+                          String value,
+                        ) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (newValue) {
+                          if (newValue != null) {
+                            final code = newValue == 'Urdu'
+                                ? 'ur'
+                                : newValue == 'Arabic'
+                                ? 'ar'
+                                : 'en';
+                            ref
+                                .read(languageProvider.notifier)
+                                .setLanguage(code);
+                          }
+                        },
                       );
-                    }).toList(),
-                    onChanged: (newValue) {
-                      if (newValue != null) {
-                        setState(() => _selectedLanguage = newValue);
-                      }
                     },
                   ),
                 ),

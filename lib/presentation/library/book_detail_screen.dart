@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/domain/entities/book.dart';
+import 'package:islamic_app/data/repositories/bookmark_repository.dart';
+import 'package:islamic_app/domain/entities/bookmark.dart';
 
 class BookDetailScreen extends ConsumerWidget {
   final Book book;
@@ -14,7 +17,45 @@ class BookDetailScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Book Details'),
-        actions: [IconButton(icon: const Icon(Icons.share), onPressed: () {})],
+        actions: [
+          Consumer(
+            builder: (context, ref, child) {
+              final bookmarksAsync = ref.watch(bookmarksProvider);
+              final isBookmarked = bookmarksAsync.maybeWhen(
+                data: (bookmarks) =>
+                    bookmarks.any((b) => b.id == book.id && b.type == 'book'),
+                orElse: () => false,
+              );
+
+              return IconButton(
+                icon: Icon(
+                  isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                  color: isBookmarked ? AppColors.primary : null,
+                ),
+                onPressed: () async {
+                  final repo = ref.read(bookmarkRepositoryProvider);
+                  if (isBookmarked) {
+                    await repo.removeBookmark(book.id, 'book');
+                  } else {
+                    await repo.addBookmark(
+                      Bookmark(
+                        id: book.id,
+                        type: 'book',
+                        title: book.title,
+                        subtitle: book.author,
+                        route: '/library/${book.id}',
+                        timestamp: DateTime.now(),
+                      ),
+                    );
+                  }
+                  // ignore: unused_result
+                  ref.refresh(bookmarksProvider);
+                },
+              );
+            },
+          ),
+          IconButton(icon: const Icon(Icons.share), onPressed: () {}),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -128,10 +169,7 @@ class BookDetailScreen extends ConsumerWidget {
 
   void _handleAction(BuildContext context) {
     if (book.isFree) {
-      // Open reader (mock)
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Opening book reader...')));
+      context.push('/book-reader', extra: book);
     } else {
       // Show payment dialog (mock)
       showDialog(

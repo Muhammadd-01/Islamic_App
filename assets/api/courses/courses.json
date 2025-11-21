@@ -1,0 +1,32 @@
+[
+    {
+        "id": "1",
+        "title": "Islamic Studies Diploma",
+        "university": "Islamic Online University",
+        "description": "A comprehensive diploma covering Aqeedah, Fiqh, Seerah, and Tafseer.",
+        "imageUrl": "https://iou.edu.gm/wp-content/uploads/2023/01/iou-logo.png",
+        "affiliationUrl": "https://iou.edu.gm",
+        "duration": "2 Years",
+        "level": "Beginner"
+    },
+    {
+        "id": "2",
+        "title": "Bachelor in Sharia",
+        "university": "Al-Azhar University",
+        "description": "An in-depth study of Islamic Law and Jurisprudence from one of the oldest universities.",
+        "imageUrl": "https://upload.wikimedia.org/wikipedia/en/thumb/a/a4/Al-Azhar_University_logo.png/220px-Al-Azhar_University_logo.png",
+        "affiliationUrl": "http://www.azhar.edu.eg",
+        "duration": "4 Years",
+        "level": "Advanced"
+    },
+    {
+        "id": "3",
+        "title": "Quranic Arabic Course",
+        "university": "Bayyinah Institute",
+        "description": "Master the language of the Quran to understand its meaning directly.",
+        "imageUrl": "https://yt3.googleusercontent.com/ytc/AIdro_k5q5q5q5q5q5q5q5q5q5q5q5q5q5q5q5q5=s900-c-k-c0x00ffffff-no-rj",
+        "affiliationUrl": "https://bayyinah.com",
+        "duration": "6 Months",
+        "level": "Intermediate"
+    }
+]

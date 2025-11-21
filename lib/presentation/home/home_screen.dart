@@ -19,7 +19,7 @@ class HomeScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
+            onPressed: () => context.push('/notifications'),
           ),
           IconButton(
             icon: const Icon(Icons.person),
@@ -272,6 +272,12 @@ class HomeScreen extends ConsumerWidget {
                           label: 'Library',
                           color: const Color(0xFFEA580C),
                           onTap: () => context.push('/library'),
+                        ),
+                        _QuickAction(
+                          icon: Icons.school_outlined,
+                          label: 'Courses',
+                          color: const Color(0xFF059669),
+                          onTap: () => context.push('/courses'),
                         ),
                         _QuickAction(
                           icon: Icons.settings,

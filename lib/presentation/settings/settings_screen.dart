@@ -116,6 +116,94 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onTap: () => context.push('/notifications'),
             ),
           ),
+          const SizedBox(height: 24),
+          _buildSectionHeader('Support'),
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                ListTile(
+                  title: const Text('Help & Support'),
+                  leading: const Icon(
+                    Icons.help_outline,
+                    color: AppColors.primary,
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    // Mock Help Center
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Opening Help Center...')),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: const Text('Privacy Policy'),
+                  leading: const Icon(
+                    Icons.privacy_tip_outlined,
+                    color: AppColors.primary,
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    // Mock Privacy Policy
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Opening Privacy Policy...'),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: const Text('About App'),
+                  leading: const Icon(
+                    Icons.info_outline,
+                    color: AppColors.primary,
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () {
+                    showAboutDialog(
+                      context: context,
+                      applicationName: 'Islamic App',
+                      applicationVersion: '1.0.0',
+                      applicationIcon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.mosque, color: Colors.white),
+                      ),
+                      children: [
+                        const Text(
+                          'A comprehensive Islamic application featuring Quran, Hadith, Prayer Times, and more.',
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ListTile(
+              title: const Text('Share App'),
+              leading: const Icon(Icons.share, color: AppColors.primary),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                // Mock Share
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Sharing app link...')),
+                );
+              },
+            ),
+          ),
           const SizedBox(height: 40),
           SizedBox(
             width: double.infinity,

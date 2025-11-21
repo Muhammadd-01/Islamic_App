@@ -199,6 +199,46 @@ class HomeScreen extends ConsumerWidget {
 
             const SizedBox(height: 24),
 
+            // Featured Section
+            const Text(
+              'Featured',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 180,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _FeaturedCard(
+                    title: 'Riyad as-Salihin',
+                    subtitle: 'Book of Virtues',
+                    imageColor: Colors.blueAccent,
+                    icon: Icons.menu_book,
+                    onTap: () => context.push('/library'),
+                  ),
+                  const SizedBox(width: 16),
+                  _FeaturedCard(
+                    title: 'Dr. Omar Suleiman',
+                    subtitle: 'Scholar of the Week',
+                    imageColor: Colors.purpleAccent,
+                    icon: Icons.person,
+                    onTap: () => context.push('/scholars'),
+                  ),
+                  const SizedBox(width: 16),
+                  _FeaturedCard(
+                    title: 'Islamic Finance',
+                    subtitle: 'New Course Available',
+                    imageColor: Colors.teal,
+                    icon: Icons.school,
+                    onTap: () => context.push('/courses'),
+                  ),
+                ],
+              ),
+            ).animate().fade().slideX(begin: 0.1, end: 0, delay: 200.ms),
+
+            const SizedBox(height: 24),
+
             // Quick Actions Grid
             const Text(
               'Quick Actions',
@@ -371,6 +411,103 @@ class _QuickAction extends StatelessWidget {
             textAlign: TextAlign.center,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _FeaturedCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final Color imageColor;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _FeaturedCard({
+    required this.title,
+    required this.subtitle,
+    required this.imageColor,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 280,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [imageColor, imageColor.withValues(alpha: 0.7)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: imageColor.withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 24),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    'Featured',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

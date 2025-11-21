@@ -1,0 +1,32 @@
+[
+    {
+        "id": "alafasy",
+        "name": "Mishary Rashid Alafasy",
+        "language": "Arabic",
+        "baseUrl": "https://cdn.islamic.network/quran/audio/128/ar.alafasy"
+    },
+    {
+        "id": "abdulbasit",
+        "name": "Abdul Basit",
+        "language": "Arabic",
+        "baseUrl": "https://cdn.islamic.network/quran/audio/128/ar.abdulbasit"
+    },
+    {
+        "id": "muaiqly",
+        "name": "Maher Al-Muaiqly",
+        "language": "Arabic",
+        "baseUrl": "https://cdn.islamic.network/quran/audio/128/ar.mahermuaiqly"
+    },
+    {
+        "id": "ghamadi",
+        "name": "Saad Al-Ghamdi",
+        "language": "Arabic",
+        "baseUrl": "https://cdn.islamic.network/quran/audio/128/ar.saadalghamadi"
+    },
+    {
+        "id": "sudais",
+        "name": "Sudais",
+        "language": "Arabic",
+        "baseUrl": "https://cdn.islamic.network/quran/audio/128/ar.abdurrahmaansudais"
+    }
+]

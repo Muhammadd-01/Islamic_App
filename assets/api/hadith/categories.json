@@ -1,0 +1,26 @@
+[
+    {
+        "id": "bukhari",
+        "name": "Sahih Bukhari"
+    },
+    {
+        "id": "muslim",
+        "name": "Sahih Muslim"
+    },
+    {
+        "id": "tirmidhi",
+        "name": "Jami' at-Tirmidhi"
+    },
+    {
+        "id": "abudawood",
+        "name": "Sunan Abu Dawood"
+    },
+    {
+        "id": "nasai",
+        "name": "Sunan an-Nasai"
+    },
+    {
+        "id": "ibnmajah",
+        "name": "Sunan Ibn Majah"
+    }
+]

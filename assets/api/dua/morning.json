@@ -1,0 +1,16 @@
+[
+    {
+        "id": 1,
+        "arabic": "اللَّهُمَّ بِكَ أَصْبَحْنَا وَبِكَ أَمْسَيْنَا وَبِكَ نَحْيَا وَبِكَ نَمُوتُ وَإِلَيْكَ النُّشُورُ",
+        "translation": "O Allah, by You we enter the morning and by You we enter the evening, by You we live and by You we die, and to You is the Final Return.",
+        "reference": "Tirmidhi",
+        "audio": "https://example.com/audio1.mp3"
+    },
+    {
+        "id": 2,
+        "arabic": "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ وَالْحَمْدُ لِلَّهِ...",
+        "translation": "We have entered the morning and at this very time the whole kingdom belongs to Allah...",
+        "reference": "Muslim",
+        "audio": "https://example.com/audio2.mp3"
+    }
+]

@@ -1,0 +1,33 @@
+[
+    {
+        "id": 1,
+        "title": "The Importance of Ikhlaas (Sincerity)",
+        "image": "https://picsum.photos/300/200",
+        "category": "Akhlaq",
+        "date": "2025-01-01",
+        "author": "Sheikh Ahmed",
+        "summary": "Ikhlaas is the foundation of all deeds in Islam. Without it, actions are void.",
+        "content": [
+            "Ikhlaas, or sincerity, is the essence of worship in Islam. It means to do everything solely for the sake of Allah, without seeking praise or recognition from others.",
+            "The Prophet Muhammad (peace be upon him) said: 'Actions are judged by intentions.' This hadith highlights that the value of our deeds depends on the purity of our intent.",
+            "To cultivate Ikhlaas, one must constantly check their heart and remind themselves that Allah is the All-Seeing and All-Knowing."
+        ]
+    },
+    {
+        "id": 2,
+        "title": "Understanding the 5 Pillars of Islam",
+        "image": "https://picsum.photos/300/201",
+        "category": "Fiqh",
+        "date": "2025-01-05",
+        "author": "Dr. Fatima",
+        "summary": "A brief overview of the five pillars that uphold the faith of a Muslim.",
+        "content": [
+            "The five pillars of Islam are the framework of the Muslim life. They are the testimony of faith, prayer, giving zakat (support of the needy), fasting during the month of Ramadan, and the pilgrimage to Makkah once in a lifetime for those who are able.",
+            "1. Shahada: Faith.",
+            "2. Salah: Prayer.",
+            "3. Zakat: Charity.",
+            "4. Sawm: Fasting.",
+            "5. Hajj: Pilgrimage."
+        ]
+    }
+]

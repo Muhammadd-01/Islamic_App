@@ -7,6 +7,8 @@ import 'package:islamic_app/presentation/quran/surah_detail_screen.dart';
 // import 'package:islamic_app/presentation/quran/surah_detail_screen.dart';
 import 'package:islamic_app/presentation/prayer/prayer_screen.dart';
 import 'package:islamic_app/presentation/tasbeeh/tasbeeh_screen.dart';
+import 'package:islamic_app/presentation/names/names_of_allah_screen.dart';
+import 'package:islamic_app/presentation/qibla/qibla_screen.dart';
 import 'package:islamic_app/presentation/hadith/hadith_categories_screen.dart';
 import 'package:islamic_app/presentation/hadith/hadith_list_screen.dart';
 import 'package:islamic_app/presentation/hadith/hadith_detail_screen.dart';
@@ -38,6 +40,8 @@ import 'package:islamic_app/presentation/library/library_screen.dart';
 import 'package:islamic_app/presentation/library/book_detail_screen.dart';
 import 'package:islamic_app/presentation/courses/courses_screen.dart';
 import 'package:islamic_app/presentation/library/book_reader_screen.dart';
+import 'package:islamic_app/presentation/education/study_religions_screen.dart';
+import 'package:islamic_app/presentation/education/debate_panel_screen.dart';
 
 final goRouter = GoRouter(
   initialLocation: '/',
@@ -70,6 +74,14 @@ final goRouter = GoRouter(
         GoRoute(
           path: '/tasbeeh',
           builder: (context, state) => const TasbeehScreen(),
+        ),
+        GoRoute(
+          path: '/names',
+          builder: (context, state) => const NamesOfAllahScreen(),
+        ),
+        GoRoute(
+          path: '/qibla',
+          builder: (context, state) => const QiblaScreen(),
         ),
         GoRoute(
           path: '/hadith',
@@ -210,6 +222,14 @@ final goRouter = GoRouter(
         final book = state.extra as Book;
         return BookReaderScreen(book: book);
       },
+    ),
+    GoRoute(
+      path: '/study-religions',
+      builder: (context, state) => const StudyReligionsScreen(),
+    ),
+    GoRoute(
+      path: '/debate-panel',
+      builder: (context, state) => const DebatePanelScreen(),
     ),
   ],
 );

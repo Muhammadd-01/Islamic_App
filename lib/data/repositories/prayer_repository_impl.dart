@@ -18,4 +18,16 @@ class PrayerRepositoryImpl {
     const double long = 39.8262;
     return await _service.getHijriDate(lat, long);
   }
+
+  Future<double> getQiblaDirection() async {
+    // Mock Qibla direction for now or fetch from API if Aladhan supports it easily
+    // Aladhan has a Qibla endpoint: http://api.aladhan.com/v1/qibla/:latitude/:longitude
+    // For now, returning a static value for Mecca from a generic location
+    return 100.0; // Degrees from North
+  }
+
+  Future<List<dynamic>> getMonthlyPrayerTimes() async {
+    // Placeholder for monthly times
+    return [];
+  }
 }

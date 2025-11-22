@@ -12,14 +12,26 @@ class QAScreen extends ConsumerStatefulWidget {
   ConsumerState<QAScreen> createState() => _QAScreenState();
 }
 
-class _QAScreenState extends ConsumerState<QAScreen> {
+class _QAScreenState extends ConsumerState<QAScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      setState(() {});
+    });
+  }
 
   @override
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -33,6 +45,44 @@ class _QAScreenState extends ConsumerState<QAScreen> {
     }
   }
 
+  void _showAskQuestionDialog() {
+    final questionController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Ask Community'),
+        content: TextField(
+          controller: questionController,
+          decoration: const InputDecoration(
+            hintText: 'What is your question?',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (questionController.text.isNotEmpty) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Question posted to community!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+            child: const Text('Post'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final messages = ref.watch(qaProvider);
@@ -40,21 +90,29 @@ class _QAScreenState extends ConsumerState<QAScreen> {
     // Scroll to bottom when messages change
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Islamic Assistant'),
-          centerTitle: true,
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'AI Chat'),
-              Tab(text: 'Community Q&A'),
-            ],
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Islamic Assistant'),
+        centerTitle: true,
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(text: 'AI Chat'),
+            Tab(text: 'Community Q&A'),
+          ],
         ),
-        body: TabBarView(
-          children: [
+      ),
+      floatingActionButton: _tabController.index == 1
+          ? FloatingActionButton.extended(
+              onPressed: _showAskQuestionDialog,
+              icon: const Icon(Icons.add),
+              label: const Text('Ask Question'),
+              backgroundColor: AppColors.primary,
+            )
+          : null,
+      body: TabBarView(
+        controller: _tabController,
+        children: [
             Column(
               children: [
                 Expanded(
@@ -130,8 +188,7 @@ class _QAScreenState extends ConsumerState<QAScreen> {
             _CommunityQA(),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildInputArea() {
@@ -280,7 +337,42 @@ class _CommunityQA extends StatelessWidget {
                       style: const TextStyle(color: Colors.grey),
                     ),
                     const Spacer(),
-                    TextButton(onPressed: () {}, child: const Text('Answer')),
+                    TextButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Answer Question'),
+                            content: const TextField(
+                              decoration: InputDecoration(
+                                hintText: 'Type your answer...',
+                                border: OutlineInputBorder(),
+                              ),
+                              maxLines: 3,
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancel'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Answer submitted!'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                },
+                                child: const Text('Submit'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      child: const Text('Answer'),
+                    ),
                   ],
                 ),
               ],

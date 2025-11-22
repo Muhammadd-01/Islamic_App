@@ -22,15 +22,9 @@ class DefaultFirebaseOptions {
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for android - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -52,4 +46,21 @@ class DefaultFirebaseOptions {
         );
     }
   }
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyCtPyX45gkEpxwkC69oY5sRdlLompVV5N0',
+    appId: '1:276908933332:android:8db0ba61cb41f211f2bb41',
+    messagingSenderId: '276908933332',
+    projectId: 'islamic-app-backend',
+    storageBucket: 'islamic-app-backend.firebasestorage.app',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyBSvISoZQWJuaupiclD0E1QAHr1eFgdQUQ',
+    appId: '1:276908933332:ios:f2121a617ad3e493f2bb41',
+    messagingSenderId: '276908933332',
+    projectId: 'islamic-app-backend',
+    storageBucket: 'islamic-app-backend.firebasestorage.app',
+    iosBundleId: 'com.affan.islamicapp',
+  );
 }

@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
+import 'package:islamic_app/data/repositories/auth_repository_impl.dart';
+import 'package:islamic_app/presentation/auth/auth_provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
@@ -17,19 +20,13 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     setState(() => _isLoading = true);
     try {
-      // For now, we simulate login because Firebase is not configured with google-services.json
-      // In a real scenario, you would use:
-      // await ref.read(authRepositoryProvider).signInWithEmailAndPassword(
-      //   _emailController.text,
-      //   _passwordController.text,
-      // );
-
-      // Mock login for demo purposes if Firebase fails (which it will without config)
-      await Future.delayed(const Duration(seconds: 2));
-
-      if (mounted) {
-        context.go('/');
-      }
+      await ref
+          .read(authRepositoryProvider)
+          .signInWithEmailAndPassword(
+            _emailController.text,
+            _passwordController.text,
+          );
+      if (mounted) context.go('/');
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -37,9 +34,43 @@ class _LoginScreenState extends State<LoginScreen> {
         ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
       }
     } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isLoading = true);
+    try {
+      final authRepo =
+          ref.read(authRepositoryProvider) as FirebaseAuthRepository;
+      await authRepo.signInWithGoogle();
+      if (mounted) context.go('/');
+    } catch (e) {
       if (mounted) {
-        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Google Sign-In failed: $e')));
       }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _signInWithFacebook() async {
+    setState(() => _isLoading = true);
+    try {
+      final authRepo =
+          ref.read(authRepositoryProvider) as FirebaseAuthRepository;
+      await authRepo.signInWithFacebook();
+      if (mounted) context.go('/');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Facebook Sign-In failed: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -47,12 +78,13 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const SizedBox(height: 60),
               const Icon(Icons.mosque, size: 80, color: AppColors.primary),
               const SizedBox(height: 24),
               const Text(
@@ -111,9 +143,47 @@ class _LoginScreenState extends State<LoginScreen> {
                       )
                     : const Text('Sign In', style: TextStyle(fontSize: 16)),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(child: Divider(color: Colors.grey[300])),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'OR',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ),
+                  Expanded(child: Divider(color: Colors.grey[300])),
+                ],
+              ),
+              const SizedBox(height: 24),
+              OutlinedButton.icon(
+                onPressed: _isLoading ? null : _signInWithGoogle,
+                icon: const Icon(Icons.g_mobiledata, size: 28),
+                label: const Text('Continue with Google'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: _isLoading ? null : _signInWithFacebook,
+                icon: const Icon(Icons.facebook, size: 24),
+                label: const Text('Continue with Facebook'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
               TextButton(
-                onPressed: () {},
+                onPressed: () => context.push('/signup'),
                 child: const Text('Don\'t have an account? Sign Up'),
               ),
             ],

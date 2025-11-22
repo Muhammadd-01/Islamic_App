@@ -1,5 +1,4 @@
 import 'package:go_router/go_router.dart';
-import 'package:islamic_app/presentation/home/home_screen.dart';
 import 'package:islamic_app/presentation/navigation/scaffold_with_nav_bar.dart';
 import 'package:islamic_app/presentation/qa/qa_screen.dart';
 import 'package:islamic_app/presentation/quran/quran_screen.dart';
@@ -42,6 +41,9 @@ import 'package:islamic_app/presentation/courses/courses_screen.dart';
 import 'package:islamic_app/presentation/library/book_reader_screen.dart';
 import 'package:islamic_app/presentation/education/study_religions_screen.dart';
 import 'package:islamic_app/presentation/education/debate_panel_screen.dart';
+import 'package:islamic_app/presentation/profile/edit_profile_screen.dart';
+
+import 'package:islamic_app/presentation/auth/auth_gate.dart';
 
 final goRouter = GoRouter(
   initialLocation: '/',
@@ -51,7 +53,7 @@ final goRouter = GoRouter(
         return ScaffoldWithNavBar(child: child);
       },
       routes: [
-        GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+        GoRoute(path: '/', builder: (context, state) => const AuthGate()),
         GoRoute(path: '/qa', builder: (context, state) => const QAScreen()),
         GoRoute(
           path: '/quran',
@@ -164,6 +166,10 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: '/edit-profile',
+      builder: (context, state) => const EditProfileScreen(),
     ),
     GoRoute(
       path: '/notifications',

@@ -65,3 +65,96 @@ Follow these steps to connect your Flutter app to Firebase for Authentication an
 ## Troubleshooting
 - **Android Build Fails**: Ensure your `android/build.gradle` and `android/app/build.gradle` have the correct classpath and plugin dependencies (FlutterFire usually handles this, but double-check documentation if issues arise).
 - **iOS Build Fails**: Ensure you have run `pod install` in the `ios` directory.
+
+## Step 6: Enable Firestore Database
+1. In Firebase Console, go to **Build > Firestore Database**.
+2. Click **"Create database"**.
+3. Select **"Start in test mode"** (for development).
+4. Choose a location and click **"Enable"**.
+
+## Step 7: Enable Firebase Storage
+1. In Firebase Console, go to **Build > Storage**.
+2. Click **"Get started"**.
+3. Select **"Start in test mode"** (for development).
+4. Click **"Done"**.
+
+## Step 8: Enable Google Sign-In
+1. In Firebase Console, go to **Build > Authentication > Sign-in method**.
+2. Click **"Google"** and toggle **"Enable"**.
+3. Enter a support email and click **"Save"**.
+
+### Android Setup for Google Sign-In
+1. Get your SHA-1 fingerprint:
+   ```bash
+   cd android
+   ./gradlew signingReport
+   ```
+2. Copy the SHA-1 from the debug keystore.
+3. In Firebase Console, go to **Project Settings > Your apps > Android app**.
+4. Click **"Add fingerprint"** and paste the SHA-1.
+
+### iOS Setup for Google Sign-In
+1. In Firebase Console, go to **Project Settings > Your apps > iOS app**.
+2. Download the updated `GoogleService-Info.plist`.
+3. Replace the existing file in `ios/Runner/`.
+4. Open `ios/Runner/Info.plist` and add:
+   ```xml
+   <key>CFBundleURLTypes</key>
+   <array>
+     <dict>
+       <key>CFBundleTypeRole</key>
+       <string>Editor</string>
+       <key>CFBundleURLSchemes</key>
+       <array>
+         <string>com.googleusercontent.apps.YOUR_REVERSED_CLIENT_ID</string>
+       </array>
+     </dict>
+   </array>
+   ```
+   (Replace `YOUR_REVERSED_CLIENT_ID` with the value from `GoogleService-Info.plist`)
+
+## Step 9: Enable Facebook Sign-In
+1. Create a Facebook App at [developers.facebook.com](https://developers.facebook.com/).
+2. Get your **App ID** and **App Secret**.
+3. In Firebase Console, go to **Build > Authentication > Sign-in method**.
+4. Click **"Facebook"** and toggle **"Enable"**.
+5. Enter your App ID and App Secret, then click **"Save"**.
+6. Copy the OAuth redirect URI from Firebase and add it to your Facebook App settings.
+
+### Android Setup for Facebook
+1. Open `android/app/src/main/res/values/strings.xml` and add:
+   ```xml
+   <string name="facebook_app_id">YOUR_FACEBOOK_APP_ID</string>
+   <string name="fb_login_protocol_scheme">fbYOUR_FACEBOOK_APP_ID</string>
+   ```
+2. Open `android/app/src/main/AndroidManifest.xml` and add inside `<application>`:
+   ```xml
+   <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/facebook_app_id"/>
+   ```
+
+### iOS Setup for Facebook
+1. Open `ios/Runner/Info.plist` and add:
+   ```xml
+   <key>FacebookAppID</key>
+   <string>YOUR_FACEBOOK_APP_ID</string>
+   <key>FacebookDisplayName</key>
+   <string>Islamic App</string>
+   ```
+
+## Step 10: Monitor Users in Firebase Console
+1. Go to **Build > Authentication > Users** to see all registered users.
+2. You can view:
+   - User UID
+   - Email
+   - Sign-in provider (Email, Google, Facebook)
+   - Creation date
+   - Last sign-in
+3. Go to **Build > Firestore Database > Data** to see user profiles and other data.
+4. Go to **Build > Storage > Files** to see uploaded profile images.
+
+## Testing
+1. Run your app: `flutter run`
+2. Try signing up with email/password.
+3. Try signing in with Google.
+4. Try signing in with Facebook.
+5. Check Firebase Console to see the new users appear in real-time!

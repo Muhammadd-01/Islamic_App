@@ -27,6 +27,10 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: () => context.push('/edit-profile'),
+          ),
+          IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () => context.push('/settings'),
           ),

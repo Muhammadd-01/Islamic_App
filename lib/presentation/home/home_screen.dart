@@ -54,6 +54,51 @@ class HomeScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
 
+            // Daily Dua Card (Moved to Top)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.lightbulb_outline, color: AppColors.accent),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Daily Inspiration',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    '"The best among you is the one who learns the Quran and teaches it."',
+                    style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '- Sahih Al-Bukhari',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ).animate().fade().slideY(begin: -0.2, end: 0, duration: 500.ms),
+
+            const SizedBox(height: 24),
+
             // Next Prayer Card
             ClipRRect(
                   borderRadius: BorderRadius.circular(24),
@@ -330,44 +375,6 @@ class HomeScreen extends ConsumerWidget {
                       .fade()
                       .scale(curve: Curves.easeOutBack),
             ),
-
-            const SizedBox(height: 24),
-
-            // Daily Dua Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.lightbulb_outline, color: AppColors.accent),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Daily Inspiration',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    '"The best among you is the one who learns the Quran and teaches it."',
-                    style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '- Sahih Al-Bukhari',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            ).animate().fade().slideX(begin: 0.1, end: 0, delay: 200.ms),
           ],
         ),
       ),

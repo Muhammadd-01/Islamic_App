@@ -12,7 +12,12 @@
           "package_name": "com.islamicapp.islamic_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "276908933332-453ktddnjnba7i9a0idb7mk1mhsp3i8u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCtPyX45gkEpxwkC69oY5sRdlLompVV5N0"
@@ -20,7 +25,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "276908933332-453ktddnjnba7i9a0idb7mk1mhsp3i8u.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "276908933332-0clsiojjsm4dnccnvk0aave80kqhe7st.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.affan.islamicapp"
+              }
+            }
+          ]
         }
       }
     }

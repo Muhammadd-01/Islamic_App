@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/core/providers/user_provider.dart';
+import 'package:islamic_app/data/services/supabase_service.dart';
+import 'package:islamic_app/data/services/location_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -18,7 +20,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _bioController = TextEditingController();
   final _locationController = TextEditingController();
   File? _selectedImage;
+  String? _currentImageUrl;
   bool _isLoading = false;
+  bool _isLoadingLocation = false;
 
   @override
   void initState() {
@@ -29,10 +33,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Future<void> _loadUserData() async {
     final userRepo = ref.read(userRepositoryProvider);
     final userData = await userRepo.getUserData();
-    if (userData != null) {
-      _nameController.text = userData['displayName'] ?? '';
-      _bioController.text = userData['bio'] ?? '';
-      _locationController.text = userData['location'] ?? '';
+    if (userData != null && mounted) {
+      setState(() {
+        _nameController.text = userData['name'] ?? '';
+        _bioController.text = userData['bio'] ?? '';
+        _locationController.text = userData['location'] ?? '';
+        _currentImageUrl = userData['imageUrl'];
+      });
     }
   }
 
@@ -46,31 +53,56 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
   }
 
+  Future<void> _detectLocation() async {
+    setState(() => _isLoadingLocation = true);
+    try {
+      final locationService = LocationService();
+      final locationString = await locationService.getLocationString();
+      setState(() {
+        _locationController.text = locationString;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to get location: $e')));
+      }
+    } finally {
+      setState(() => _isLoadingLocation = false);
+    }
+  }
+
   Future<void> _saveProfile() async {
     setState(() => _isLoading = true);
     try {
       final userRepo = ref.read(userRepositoryProvider);
-      final storageService = ref.read(storageServiceProvider);
       final user = FirebaseAuth.instance.currentUser;
 
-      String? photoURL;
+      String? imageUrl = _currentImageUrl;
+
+      // Upload image to Supabase if new image selected
       if (_selectedImage != null && user != null) {
-        photoURL = await storageService.uploadProfileImage(
+        final supabaseService = SupabaseService();
+        imageUrl = await supabaseService.updateProfileImage(
           user.uid,
           _selectedImage!,
+          _currentImageUrl,
         );
       }
 
       await userRepo.updateUserProfile(
-        displayName: _nameController.text,
-        bio: _bioController.text,
-        location: _locationController.text,
-        imageUrl: photoURL,
+        displayName: _nameController.text.trim(),
+        bio: _bioController.text.trim(),
+        location: _locationController.text.trim(),
+        imageUrl: imageUrl,
       );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully!')),
+          const SnackBar(
+            content: Text('Profile updated successfully!'),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.pop(context);
       }
@@ -87,8 +119,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Profile'),
@@ -121,11 +151,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     backgroundColor: AppColors.primary.withValues(alpha: 0.1),
                     backgroundImage: _selectedImage != null
                         ? FileImage(_selectedImage!)
-                        : (user?.photoURL != null
-                                  ? NetworkImage(user!.photoURL!)
+                        : (_currentImageUrl != null &&
+                                      _currentImageUrl!.isNotEmpty
+                                  ? NetworkImage(_currentImageUrl!)
                                   : null)
                               as ImageProvider?,
-                    child: _selectedImage == null && user?.photoURL == null
+                    child:
+                        _selectedImage == null &&
+                            (_currentImageUrl == null ||
+                                _currentImageUrl!.isEmpty)
                         ? const Icon(
                             Icons.person,
                             size: 60,
@@ -174,15 +208,37 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             const SizedBox(height: 16),
             TextField(
               controller: _locationController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Location',
-                prefixIcon: Icon(Icons.location_on_outlined),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.location_on_outlined),
+                border: const OutlineInputBorder(),
+                suffixIcon: _isLoadingLocation
+                    ? const Padding(
+                        padding: EdgeInsets.all(12.0),
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.my_location),
+                        onPressed: _detectLocation,
+                        tooltip: 'Detect Location',
+                      ),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _bioController.dispose();
+    _locationController.dispose();
+    super.dispose();
   }
 }

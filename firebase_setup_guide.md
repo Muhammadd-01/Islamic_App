@@ -158,3 +158,62 @@ Follow these steps to connect your Flutter app to Firebase for Authentication an
 3. Try signing in with Google.
 4. Try signing in with Facebook.
 5. Check Firebase Console to see the new users appear in real-time!
+
+## Step 11: Supabase Integration for Images
+
+### Why Supabase?
+Firebase Storage is a paid service. To save costs, we use **Supabase Storage** for hosting profile images. The public URLs from Supabase are stored in Firebase Firestore.
+
+### Setup Process
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Create a storage bucket named `profile-images`
+3. Set the bucket to **public** for read access
+4. Configure Row Level Security (RLS) policies for upload/delete
+
+### Detailed Instructions
+See `SUPABASE_SETUP.md` for complete step-by-step instructions on:
+- Creating Supabase project
+- Configuring storage bucket
+- Setting up security policies
+- Integrating with Flutter app
+- Upload/delete/display images
+
+### How It Works
+1. User selects profile image
+2. Image uploads to Supabase Storage
+3. Supabase returns public URL
+4. URL is saved in Firestore under `users/{uid}/imageUrl`
+5. App displays image using the Firestore URL
+
+### Firestore Schema with Supabase
+```
+users/
+  {uid}/
+    name: string
+    email: string
+    phone: string
+    bio: string
+    location: string
+    imageUrl: string  ← Supabase public URL
+    preferences: map
+    bookmarks: array
+    createdAt: timestamp
+```
+
+### Code Example
+```dart
+// Initialize Supabase in main.dart
+await SupabaseService.initialize(
+  url: 'YOUR_SUPABASE_URL',
+  anonKey: 'YOUR_SUPABASE_ANON_KEY',
+);
+
+// Upload image
+final supabaseService = SupabaseService();
+final imageUrl = await supabaseService.uploadProfileImage(uid, imageFile);
+
+// Save URL to Firestore
+await userRepository.updateUserProfile(imageUrl: imageUrl);
+```
+
+For complete implementation details, refer to `SUPABASE_SETUP.md`.

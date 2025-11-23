@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
+import 'package:islamic_app/core/providers/user_provider.dart';
 import 'package:islamic_app/presentation/prayer/prayer_provider.dart';
 import 'package:islamic_app/presentation/hadith/hadith_provider.dart';
 
@@ -85,14 +86,10 @@ class HomeScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Greeting
-                Text(
-                  'Assalamu Alaikum,',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                _buildGreetingSection(
+                  context,
+                  ref,
                 ).animate().fade().slideX(begin: -0.2, end: 0),
-                const Text(
-                  'Muhammad',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                ).animate().fade(delay: 100.ms).slideX(begin: -0.2, end: 0),
 
                 const SizedBox(height: 24),
 
@@ -232,6 +229,60 @@ class HomeScreen extends ConsumerWidget {
                 const SizedBox(height: 100), // Bottom padding
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGreetingSection(BuildContext context, WidgetRef ref) {
+    final userProfileStream = ref.watch(userProfileStreamProvider);
+
+    return userProfileStream.when(
+      data: (snapshot) {
+        final userData = snapshot.data() as Map<String, dynamic>?;
+        final userName = userData?['name'] ?? 'User';
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Assalamu Alaikum 👋',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              userName,
+              style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            ),
+          ],
+        );
+      },
+      loading: () => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Assalamu Alaikum 👋',
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'User',
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+      error: (_, __) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Assalamu Alaikum 👋',
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'User',
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
           ),
         ],
       ),

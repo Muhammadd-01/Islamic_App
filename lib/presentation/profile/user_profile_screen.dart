@@ -70,6 +70,11 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                           onTap: () => context.push('/notifications'),
                         ),
                         _buildMenuButton(
+                          icon: Icons.lock_reset,
+                          title: 'Change Password',
+                          onTap: () => context.push('/forgot-password'),
+                        ),
+                        _buildMenuButton(
                           icon: Icons.bookmark,
                           title: 'Bookmarks',
                           onTap: () => context.push('/bookmarks'),

@@ -217,3 +217,131 @@ await userRepository.updateUserProfile(imageUrl: imageUrl);
 ```
 
 For complete implementation details, refer to `SUPABASE_SETUP.md`.
+
+## Step 12: Bookmark System with Firestore
+
+### Firestore Structure
+Bookmarks are stored as a subcollection under each user:
+
+```
+users/
+  {uid}/
+    bookmarks/
+      {type}_{id}/
+        id: string
+        type: string (quran/hadith/dua/qa/book)
+        title: string
+        subtitle: string
+        content: string
+        route: string
+        timestamp: string (ISO 8601)
+        sourceUrl: string (optional)
+        metadata: map (optional)
+```
+
+### How It Works
+1. User taps bookmark icon on any content
+2. Bookmark is saved to Firestore under `users/{uid}/bookmarks/`
+3. Document ID format: `{type}_{id}` (e.g., `hadith_123`, `quran_2_255`)
+4. Real-time sync across all devices
+5. Bookmarks screen shows all saved items with filtering
+
+### Code Example
+```dart
+// Add bookmark
+final bookmark = Bookmark(
+  id: '123',
+  type: 'hadith',
+  title: 'Hadith on Patience',
+  subtitle: 'Sahih Bukhari',
+  content: 'Full hadith text...',
+  route: '/hadith/123',
+  timestamp: DateTime.now(),
+);
+
+await bookmarkRepository.addBookmark(bookmark);
+
+// Remove bookmark
+await bookmarkRepository.removeBookmark('123', 'hadith');
+
+// Check if bookmarked
+final isBookmarked = await bookmarkRepository.isBookmarked('123', 'hadith');
+
+// Get all bookmarks (real-time stream)
+final bookmarksStream = bookmarkRepository.getBookmarksStream();
+```
+
+### Firestore Rules
+Add these security rules to allow users to manage their own bookmarks:
+
+```javascript
+match /users/{userId}/bookmarks/{bookmarkId} {
+  allow read, write: if request.auth != null && request.auth.uid == userId;
+}
+```
+
+## Step 13: Password Reset Functionality
+
+### Firebase Auth Password Reset
+The app uses Firebase Authentication's built-in password reset:
+
+1. User clicks "Forgot Password?" on login screen
+2. Enters email address
+3. Firebase sends password reset email
+4. User clicks link in email
+5. Redirected to Firebase-hosted page to set new password
+
+### Implementation
+```dart
+// In AuthRepository
+Future<void> sendPasswordResetEmail(String email) async {
+  await _firebaseAuth.sendPasswordResetEmail(email: email);
+}
+
+// In ForgotPasswordScreen
+await authRepo.sendPasswordResetEmail(email);
+// Show success message
+```
+
+### Email Template Customization
+1. Go to Firebase Console → Authentication → Templates
+2. Select "Password reset"
+3. Customize email subject and body
+4. Add your app name and logo
+5. Save changes
+
+### Change Password from Profile
+Users can also access password reset from their profile:
+- Profile Screen → "Change Password" button
+- Redirects to Forgot Password screen
+- Same email reset flow
+
+### Error Handling
+Common errors and messages:
+- `user-not-found`: "No account found with this email"
+- `invalid-email`: "Please enter a valid email address"
+- `too-many-requests`: "Too many attempts. Please try again later"
+
+## Monitoring Users and Bookmarks
+
+### Firebase Console
+1. **Authentication Tab**: View all registered users
+2. **Firestore Tab**: 
+   - Navigate to `users` collection
+   - Click any user document
+   - View `bookmarks` subcollection
+   - See all saved bookmarks with metadata
+
+### Bookmark Analytics
+Track bookmark usage:
+- Most bookmarked content types
+- Popular Quran verses/Hadiths
+- User engagement with bookmarks
+- Bookmark creation trends
+
+### User Activity
+Monitor:
+- Password reset requests
+- Bookmark additions/removals
+- Profile updates
+- Login patterns

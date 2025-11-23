@@ -21,6 +21,7 @@ import 'package:islamic_app/presentation/profile/user_profile_screen.dart';
 import 'package:islamic_app/presentation/bookmarks/bookmarks_screen.dart';
 import 'package:islamic_app/presentation/calendar/calendar_screen.dart';
 import 'package:islamic_app/presentation/auth/signup_screen.dart';
+import 'package:islamic_app/presentation/auth/forgot_password_screen.dart';
 import 'package:islamic_app/presentation/settings/settings_screen.dart';
 import 'package:islamic_app/presentation/notifications/notifications_screen.dart';
 import 'package:islamic_app/presentation/quran_audio/reciter_selection_screen.dart';
@@ -163,6 +164,10 @@ final goRouter = GoRouter(
     ),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/signup', builder: (context, state) => const SignUpScreen()),
+    GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) => const ForgotPasswordScreen(),
+    ),
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),

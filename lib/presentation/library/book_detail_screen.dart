@@ -43,6 +43,7 @@ class BookDetailScreen extends ConsumerWidget {
                         type: 'book',
                         title: book.title,
                         subtitle: book.author,
+                        content: book.description,
                         route: '/library/${book.id}',
                         timestamp: DateTime.now(),
                       ),

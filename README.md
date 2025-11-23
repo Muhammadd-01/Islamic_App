@@ -16,9 +16,15 @@ A comprehensive Flutter application designed to help Muslims in their daily spir
 
 ### 👤 User Features
 - **Authentication**: Email/Password, Google Sign-In, Facebook Sign-In
+- **Forgot Password**: Email-based password reset with Firebase Auth
 - **User Profiles**: Customizable profiles with bio, location, and profile pictures
 - **Image Storage**: Profile images stored in Supabase Storage
 - **Location Services**: Auto-detect location for prayer times and nearby mosques
+- **Bookmarks**: Save and organize Quran verses, Hadiths, Duas, Q&A, and Books
+  - Real-time sync with Firestore
+  - Filter by type (Quran, Hadith, Dua, Q&A, Books)
+  - Quick access to bookmarked content
+  - Remove bookmarks with confirmation
 
 ### 📚 Educational Features
 - **Islamic Courses**: Learn about Islam through structured courses
@@ -84,7 +90,16 @@ A comprehensive Flutter application designed to help Muslims in their daily spir
 ### Authentication
 1. **Sign Up**: Create an account with name, email, and password
 2. **Login**: Sign in with email/password, Google, or Facebook
-3. **Profile**: Edit your profile, add bio, location, and profile picture
+3. **Forgot Password**: Reset password via email link
+4. **Change Password**: Access from profile screen
+5. **Profile**: Edit your profile, add bio, location, and profile picture
+
+### Bookmarks
+- **Add Bookmark**: Tap bookmark icon on any content (Quran, Hadith, Dua, Q&A, Books)
+- **View Bookmarks**: Access from profile or navigation menu
+- **Filter**: Filter bookmarks by type
+- **Remove**: Swipe or tap delete icon to remove bookmarks
+- **Sync**: All bookmarks sync in real-time across devices via Firestore
 
 ### Prayer Times
 - Automatic location detection for accurate prayer times
@@ -154,6 +169,18 @@ users/
     preferences: map
     bookmarks: array
     createdAt: timestamp
+    
+    bookmarks/ (subcollection)
+      {bookmarkId}/
+        id: string
+        type: string (quran/hadith/dua/qa/book)
+        title: string
+        subtitle: string
+        content: string
+        route: string
+        timestamp: string (ISO 8601)
+        sourceUrl: string (optional)
+        metadata: map (optional)
 ```
 
 ## 🤝 Contributing

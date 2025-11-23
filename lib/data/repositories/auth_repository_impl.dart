@@ -108,4 +108,13 @@ class FirebaseAuthRepository implements AuthRepository {
     await GoogleSignIn().signOut();
     await FacebookAuth.instance.logOut();
   }
+
+  /// Send password reset email
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

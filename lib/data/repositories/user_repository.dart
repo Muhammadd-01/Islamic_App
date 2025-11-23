@@ -5,7 +5,11 @@ class UserRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<void> createUserProfile(User user) async {
+  Future<void> createUserProfile(
+    User user, {
+    String? fullName,
+    String? phone,
+  }) async {
     final userDoc = _firestore.collection('users').doc(user.uid);
 
     // Check if user already exists to avoid overwriting
@@ -13,21 +17,25 @@ class UserRepository {
     if (!docSnapshot.exists) {
       await userDoc.set({
         'uid': user.uid,
-        'email': user.email,
-        'displayName': user.displayName ?? '',
-        'photoURL': user.photoURL ?? '',
+        'name': fullName ?? user.displayName ?? '',
+        'email': user.email ?? '',
+        'phone': phone ?? '',
+        'bio': '',
+        'location': '',
+        'imageUrl': user.photoURL ?? '',
         'createdAt': FieldValue.serverTimestamp(),
         'bookmarks': [],
-        'settings': {'theme': 'system', 'language': 'en'},
+        'preferences': {'theme': 'system', 'language': 'en'},
       });
     }
   }
 
   Future<void> updateUserProfile({
     String? displayName,
-    String? photoURL,
+    String? phone,
     String? bio,
     String? location,
+    String? imageUrl,
   }) async {
     final user = _auth.currentUser;
     if (user == null) return;
@@ -37,15 +45,16 @@ class UserRepository {
     };
 
     if (displayName != null) {
-      updates['displayName'] = displayName;
+      updates['name'] = displayName;
       await user.updateDisplayName(displayName);
     }
-    if (photoURL != null) {
-      updates['photoURL'] = photoURL;
-      await user.updatePhotoURL(photoURL);
-    }
+    if (phone != null) updates['phone'] = phone;
     if (bio != null) updates['bio'] = bio;
     if (location != null) updates['location'] = location;
+    if (imageUrl != null) {
+      updates['imageUrl'] = imageUrl;
+      await user.updatePhotoURL(imageUrl);
+    }
 
     await _firestore.collection('users').doc(user.uid).update(updates);
   }
@@ -61,5 +70,19 @@ class UserRepository {
     if (user == null) return null;
     final doc = await _firestore.collection('users').doc(user.uid).get();
     return doc.data();
+  }
+
+  /// Check if user exists by email
+  Future<bool> userExistsByEmail(String email) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .limit(1)
+          .get();
+      return querySnapshot.docs.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
   }
 }

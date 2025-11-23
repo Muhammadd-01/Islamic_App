@@ -65,7 +65,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         displayName: _nameController.text,
         bio: _bioController.text,
         location: _locationController.text,
-        photoURL: photoURL,
+        imageUrl: photoURL,
       );
 
       if (mounted) {

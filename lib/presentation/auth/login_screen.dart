@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/data/repositories/auth_repository_impl.dart';
+import 'package:islamic_app/data/repositories/user_repository.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
+import 'package:islamic_app/presentation/widgets/glassmorphism_alert.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -20,13 +23,53 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _login() async {
     setState(() => _isLoading = true);
     try {
+      // Check if user exists first
+      final userRepo = UserRepository();
+      final userExists = await userRepo.userExistsByEmail(
+        _emailController.text.trim(),
+      );
+
+      if (!userExists) {
+        setState(() => _isLoading = false);
+        if (mounted) {
+          await GlassmorphismAlert.show(
+            context,
+            title: 'User Not Found',
+            message: 'User does not exist.\nPlease sign up first.',
+            buttonText: 'Go to Sign Up',
+            icon: Icons.person_off,
+            iconColor: Colors.orange,
+            onPressed: () {
+              context.go('/signup');
+            },
+          );
+        }
+        return;
+      }
+
+      // Proceed with login
       await ref
           .read(authRepositoryProvider)
           .signInWithEmailAndPassword(
-            _emailController.text,
+            _emailController.text.trim(),
             _passwordController.text,
           );
       if (mounted) context.go('/');
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        String message = 'Login failed';
+        if (e.code == 'user-not-found') {
+          message = 'No user found with this email';
+        } else if (e.code == 'wrong-password') {
+          message = 'Incorrect password';
+        } else if (e.code == 'invalid-email') {
+          message = 'Invalid email format';
+        }
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -108,6 +151,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
+                keyboardType: TextInputType.emailAddress,
               ),
               const SizedBox(height: 16),
               TextField(

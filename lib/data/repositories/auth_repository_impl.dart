@@ -35,15 +35,21 @@ class FirebaseAuthRepository implements AuthRepository {
   @override
   Future<User?> signUpWithEmailAndPassword(
     String email,
-    String password,
-  ) async {
+    String password, {
+    String? fullName,
+    String? phone,
+  }) async {
     try {
       final credential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
       if (credential.user != null) {
-        await _userRepository.createUserProfile(credential.user!);
+        await _userRepository.createUserProfile(
+          credential.user!,
+          fullName: fullName,
+          phone: phone,
+        );
       }
       return credential.user;
     } catch (e) {

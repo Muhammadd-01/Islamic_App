@@ -84,8 +84,27 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                           title: 'Logout',
                           isDestructive: true,
                           onTap: () async {
-                            await ref.read(authRepositoryProvider).signOut();
-                            if (context.mounted) context.go('/login');
+                            // Show loading indicator for immediate feedback
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) => const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+
+                            try {
+                              await ref.read(authRepositoryProvider).signOut();
+                            } finally {
+                              // Use root navigator to pop dialog if still mounted
+                              if (context.mounted) {
+                                Navigator.of(
+                                  context,
+                                  rootNavigator: true,
+                                ).pop(); // Pop dialog
+                                context.go('/login');
+                              }
+                            }
                           },
                         ),
                       ]

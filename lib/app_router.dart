@@ -56,11 +56,20 @@ final goRouter = GoRouter(
         return ScaffoldWithNavBar(child: child);
       },
       routes: [
-        GoRoute(path: '/', builder: (context, state) => const AuthGate()),
-        GoRoute(path: '/qa', builder: (context, state) => const QAScreen()),
+        GoRoute(
+          path: '/',
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: AuthGate()),
+        ),
+        GoRoute(
+          path: '/qa',
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: QAScreen()),
+        ),
         GoRoute(
           path: '/quran',
-          builder: (context, state) => const QuranScreen(),
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: QuranScreen()),
           routes: [
             GoRoute(
               path: ':number',
@@ -74,7 +83,8 @@ final goRouter = GoRouter(
         ),
         GoRoute(
           path: '/prayer',
-          builder: (context, state) => const PrayerScreen(),
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: PrayerScreen()),
         ),
         GoRoute(
           path: '/tasbeeh',

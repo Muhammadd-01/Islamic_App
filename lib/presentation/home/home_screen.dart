@@ -858,24 +858,25 @@ class _GlassmorphicToolCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 120,
+        width: 130, // Increased width
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              color.withValues(alpha: 0.15),
-              color.withValues(alpha: 0.05),
+              color.withValues(alpha: 0.20), // Slightly more opaque
+              color.withValues(alpha: 0.08),
             ],
           ),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+          border: Border.all(color: color.withValues(alpha: 0.4), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: color.withValues(alpha: 0.1),
-              blurRadius: 15,
+              color: color.withValues(alpha: 0.15),
+              blurRadius: 20,
               offset: const Offset(0, 8),
+              spreadRadius: -2,
             ),
           ],
         ),
@@ -883,20 +884,27 @@ class _GlassmorphicToolCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(16), // Larger padding
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
+                color: color.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    spreadRadius: -2,
+                  ),
+                ],
               ),
-              child: Icon(icon, color: color, size: 28),
+              child: Icon(icon, color: color, size: 32), // Larger icon
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             Text(
               title,
               style: TextStyle(
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.bold, // Bolder text
                 color: color,
-                fontSize: 13,
+                fontSize: 14, // Larger font
               ),
             ),
           ],
@@ -972,10 +980,10 @@ class _QuickActionsGrid extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 5,
+        crossAxisCount: 4, // Changed to 4 columns for better spacing
         mainAxisSpacing: 16,
         crossAxisSpacing: 12,
-        childAspectRatio: 0.85,
+        childAspectRatio: 0.8, // Taller aspect ratio
       ),
       itemCount: actions.length,
       itemBuilder: (context, index) {
@@ -985,7 +993,7 @@ class _QuickActionsGrid extends StatelessWidget {
           label: action.label,
           color: action.color,
           onTap: () => context.push(action.route),
-        ).animate(delay: (50 * index).ms).fade().scale();
+        ).animate(delay: (30 * index).ms).fade().scale();
       },
     );
   }
@@ -1017,23 +1025,23 @@ class _QuickActionItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-              border: Border.all(color: color.withValues(alpha: 0.2)),
+              borderRadius: BorderRadius.circular(18), // Squircle shape
+              border: Border.all(color: color.withValues(alpha: 0.15)),
             ),
-            child: Icon(icon, color: color, size: 22),
+            child: Icon(icon, color: color, size: 26),
           ),
           const SizedBox(height: 8),
           Text(
             label,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

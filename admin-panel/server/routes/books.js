@@ -1,7 +1,40 @@
 import express from 'express';
-import { db } from '../config/firebase.js';
+import multer from 'multer';
+import { db, admin } from '../config/firebase.js';
 
 const router = express.Router();
+
+// Multer config for memory storage (for Firebase Upload)
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+});
+
+// Helper to upload to firebase
+const uploadImage = async (file) => {
+    const bucket = admin.storage().bucket();
+    // Unique filename
+    const filename = `books/${Date.now()}_${file.originalname.replace(/\s+/g, '_')}`;
+    const fileUpload = bucket.file(filename);
+
+    const stream = fileUpload.createWriteStream({
+        metadata: {
+            contentType: file.mimetype
+        }
+    });
+
+    return new Promise((resolve, reject) => {
+        stream.on('error', (err) => reject(err));
+        stream.on('finish', async () => {
+            // Make the file public
+            await fileUpload.makePublic();
+            // Get public URL
+            const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
+            resolve(publicUrl);
+        });
+        stream.end(file.buffer);
+    });
+};
 
 // Get all books
 router.get('/', async (req, res) => {
@@ -40,9 +73,14 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new book
-router.post('/', async (req, res) => {
+router.post('/', upload.single('image'), async (req, res) => {
     try {
-        const { title, author, description, coverUrl, price, isFree, rating } = req.body;
+        const { title, author, description, price, isFree, rating } = req.body;
+        let coverUrl = req.body.coverUrl || ''; // URL from text input if any
+
+        if (req.file) {
+            coverUrl = await uploadImage(req.file);
+        }
 
         if (!title || !author) {
             return res.status(400).json({ error: 'Title and author are required' });
@@ -52,9 +90,9 @@ router.post('/', async (req, res) => {
             title,
             author,
             description: description || '',
-            coverUrl: coverUrl || '',
+            coverUrl: coverUrl,
             price: parseFloat(price) || 0,
-            isFree: isFree || false,
+            isFree: isFree === 'true' || isFree === true, // Handle form-data string boolean
             rating: parseFloat(rating) || 0,
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -74,9 +112,14 @@ router.post('/', async (req, res) => {
 });
 
 // Update book
-router.put('/:id', async (req, res) => {
+router.put('/:id', upload.single('image'), async (req, res) => {
     try {
-        const { title, author, description, coverUrl, price, isFree, rating } = req.body;
+        const { title, author, description, price, isFree, rating } = req.body;
+        let coverUrl = req.body.coverUrl;
+
+        if (req.file) {
+            coverUrl = await uploadImage(req.file);
+        }
 
         const updateData = {
             updatedAt: new Date(),
@@ -87,7 +130,7 @@ router.put('/:id', async (req, res) => {
         if (description !== undefined) updateData.description = description;
         if (coverUrl !== undefined) updateData.coverUrl = coverUrl;
         if (price !== undefined) updateData.price = parseFloat(price);
-        if (isFree !== undefined) updateData.isFree = isFree;
+        if (isFree !== undefined) updateData.isFree = isFree === 'true' || isFree === true;
         if (rating !== undefined) updateData.rating = parseFloat(rating);
 
         await db.collection('books').doc(req.params.id).update(updateData);

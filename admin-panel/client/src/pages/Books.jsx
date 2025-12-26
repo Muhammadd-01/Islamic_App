@@ -8,6 +8,7 @@ function BooksPage() {
     const [error, setError] = useState(null);
     const [showForm, setShowForm] = useState(false);
     const [editingBook, setEditingBook] = useState(null);
+    const [imageFile, setImageFile] = useState(null);
     const [formData, setFormData] = useState({
         title: '',
         author: '',
@@ -37,13 +38,25 @@ function BooksPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const data = new FormData();
+            data.append('title', formData.title);
+            data.append('author', formData.author);
+            data.append('description', formData.description);
+            data.append('price', formData.price);
+            data.append('isFree', formData.isFree);
+            data.append('rating', formData.rating);
+
+            if (formData.coverUrl) data.append('coverUrl', formData.coverUrl);
+            if (imageFile) data.append('image', imageFile);
+
             if (editingBook) {
-                await booksApi.update(editingBook.id, formData);
+                await booksApi.update(editingBook.id, data);
             } else {
-                await booksApi.create(formData);
+                await booksApi.create(data);
             }
             setShowForm(false);
             setEditingBook(null);
+            setImageFile(null);
             setFormData({
                 title: '',
                 author: '',
@@ -61,6 +74,7 @@ function BooksPage() {
 
     const handleEdit = (book) => {
         setEditingBook(book);
+        setImageFile(null);
         setFormData({
             title: book.title,
             author: book.author,
@@ -106,6 +120,7 @@ function BooksPage() {
                                 isFree: false,
                                 rating: '5',
                             });
+                            setImageFile(null);
                             setShowForm(true);
                         }}
                         className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
@@ -253,8 +268,20 @@ function BooksPage() {
                                     rows="3"
                                 />
                             </div>
+
                             <div>
-                                <label className="block text-sm font-medium mb-1">Cover URL</label>
+                                <label className="block text-sm font-medium mb-1">Book Cover Image (Upload)</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => setImageFile(e.target.files[0])}
+                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Or enter URL below</p>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Cover URL (Optional)</label>
                                 <input
                                     type="text"
                                     value={formData.coverUrl}
@@ -263,6 +290,7 @@ function BooksPage() {
                                     placeholder="https://example.com/cover.jpg"
                                 />
                             </div>
+
                             <div className="flex gap-4">
                                 <div className="flex-1">
                                     <label className="block text-sm font-medium mb-1">Price</label>

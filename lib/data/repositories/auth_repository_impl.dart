@@ -39,8 +39,9 @@ class FirebaseAuthRepository implements AuthRepository {
     String? fullName,
     String? phone,
   }) async {
+    UserCredential? credential;
     try {
-      final credential = await _firebaseAuth.createUserWithEmailAndPassword(
+      credential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
@@ -53,6 +54,15 @@ class FirebaseAuthRepository implements AuthRepository {
       }
       return credential.user;
     } catch (e) {
+      // Rollback: Delete the user if profile creation failed
+      if (credential?.user != null) {
+        try {
+          await credential!.user!.delete();
+          print("Rolled back user creation due to profile error");
+        } catch (deleteError) {
+          print("Failed to rollback user creation: $deleteError");
+        }
+      }
       rethrow;
     }
   }

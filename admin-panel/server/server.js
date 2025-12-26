@@ -11,6 +11,9 @@ import ordersRoutes from './routes/orders.js';
 import statsRoutes from './routes/stats.js';
 import booksRoutes from './routes/books.js';
 import questionsRoutes from './routes/questions.js';
+import { seedSuperAdmin } from './utils/seed_admin.js';
+
+seedSuperAdmin();
 
 const app = express();
 const PORT = process.env.PORT || 5000;

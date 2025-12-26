@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return request.auth != null && 
+             (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin' ||
+              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      // Allow user to create their own profile during signup
+      allow create: if request.auth != null && request.auth.uid == userId;
+      // Allow user to read/update their own profile
+      allow read, update: if request.auth != null && request.auth.uid == userId;
+      // Admins can read all users
+      allow read, write: if isAdmin();
+    }
+
+    // Books Collection
+    match /books/{bookId} {
+      allow read: if true; // Public read
+      allow write: if isAdmin(); // Admin write
+    }
+
+    // Questions Collection (Q&A)
+    match /questions/{questionId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // Notifications
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow write: if isAdmin(); // Usually server writes these, but allowing admin is safe
+    }
+    
+    // Carts Collection
+    match /carts/{userId} {
+       allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

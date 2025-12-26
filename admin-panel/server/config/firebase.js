@@ -23,6 +23,7 @@ const initializeFirebase = () => {
 
             admin.initializeApp({
                 credential: admin.credential.cert(serviceAccount),
+                storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'islamic-app-backend.firebasestorage.app'
             });
 
             console.log('✅ Firebase Admin initialized with service account file');
@@ -54,4 +55,5 @@ initializeFirebase();
 // Export Firestore and Auth instances
 export const db = admin.firestore();
 export const auth = admin.auth();
+export { admin };
 export default admin;

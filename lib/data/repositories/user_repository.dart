@@ -34,8 +34,9 @@ class UserRepository {
         });
       }
     } catch (e) {
-      // Log error but don't throw - user is already authenticated
+      // Rethrow to let the UI handle the error
       print('Error creating user profile: $e');
+      rethrow;
     }
   }
 

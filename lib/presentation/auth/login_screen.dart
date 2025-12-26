@@ -3,9 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/data/repositories/auth_repository_impl.dart';
-import 'package:islamic_app/data/repositories/user_repository.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
-import 'package:islamic_app/presentation/widgets/glassmorphism_alert.dart';
 import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -20,35 +18,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   Future<void> _login() async {
     setState(() => _isLoading = true);
     try {
-      // Check if user exists first
-      final userRepo = UserRepository();
-      final userExists = await userRepo.userExistsByEmail(
-        _emailController.text.trim(),
-      );
-
-      if (!userExists) {
-        setState(() => _isLoading = false);
-        if (mounted) {
-          await GlassmorphismAlert.show(
-            context,
-            title: 'User Not Found',
-            message: 'User does not exist.\nPlease sign up first.',
-            buttonText: 'Go to Sign Up',
-            icon: Icons.person_off,
-            iconColor: Colors.orange,
-            onPressed: () {
-              context.go('/signup');
-            },
-          );
-        }
-        return;
-      }
-
-      // Proceed with login
+      // Direct login - Auth Repository handles errors if user not found
       await ref
           .read(authRepositoryProvider)
           .signInWithEmailAndPassword(
@@ -149,10 +131,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 16),
               TextField(
                 controller: _passwordController,
-                obscureText: true,
+                obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
                   labelText: 'Password',
                   prefixIcon: const Icon(Icons.lock_outline),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                    ),
+                    onPressed: () => setState(
+                      () => _isPasswordVisible = !_isPasswordVisible,
+                    ),
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

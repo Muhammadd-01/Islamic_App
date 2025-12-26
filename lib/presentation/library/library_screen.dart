@@ -3,14 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
-import 'package:islamic_app/data/repositories/library_repository_impl.dart';
+import 'package:islamic_app/data/repositories/firestore_library_repository.dart';
 
 class LibraryScreen extends ConsumerWidget {
   const LibraryScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final booksAsync = ref.watch(booksListProvider);
+    final booksAsync = ref.watch(firestoreBooksProvider);
 
     return Scaffold(
       appBar: AppBar(

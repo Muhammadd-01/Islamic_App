@@ -33,4 +33,22 @@ export const ordersApi = {
     getStats: () => api.get('/orders/stats/summary'),
 };
 
+// Books API
+export const booksApi = {
+    getAll: () => api.get('/books'),
+    getById: (id) => api.get(`/books/${id}`),
+    create: (data) => api.post('/books', data),
+    update: (id, data) => api.put(`/books/${id}`, data),
+    delete: (id) => api.delete(`/books/${id}`),
+};
+
+// Questions API
+export const questionsApi = {
+    getAll: (params = {}) => api.get('/questions', { params }),
+    getById: (id) => api.get(`/questions/${id}`),
+    answer: (id, answer) => api.post(`/questions/${id}/answer`, { answer }),
+    delete: (id) => api.delete(`/questions/${id}`),
+    getStats: () => api.get('/questions/stats/summary'),
+};
+
 export default api;

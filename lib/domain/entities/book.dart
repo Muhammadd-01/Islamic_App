@@ -21,14 +21,27 @@ class Book {
 
   factory Book.fromJson(Map<String, dynamic> json) {
     return Book(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      author: json['author'] as String,
-      description: json['description'] as String,
-      coverUrl: json['coverUrl'] as String,
-      price: (json['price'] as num).toDouble(),
-      isFree: json['isFree'] as bool,
-      rating: (json['rating'] as num).toDouble(),
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      author: json['author'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      coverUrl: json['coverUrl'] as String? ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      isFree: json['isFree'] as bool? ?? false,
+      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'author': author,
+      'description': description,
+      'coverUrl': coverUrl,
+      'price': price,
+      'isFree': isFree,
+      'rating': rating,
+    };
   }
 }

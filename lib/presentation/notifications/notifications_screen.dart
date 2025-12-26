@@ -1,160 +1,89 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-
-class NotificationItem {
-  final String id;
-  final String title;
-  final String description;
-  final DateTime timestamp;
-  bool isRead;
-
-  NotificationItem({
-    required this.id,
-    required this.title,
-    required this.description,
-    required this.timestamp,
-    this.isRead = false,
-  });
-}
-
-class NotificationsNotifier extends Notifier<List<NotificationItem>> {
-  @override
-  List<NotificationItem> build() {
-    return [
-      NotificationItem(
-        id: '1',
-        title: 'New Hadith of the Day',
-        description: 'Read the new hadith from Sahih Bukhari.',
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-      ),
-      NotificationItem(
-        id: '2',
-        title: 'Reminder for Maghrib Prayer',
-        description: 'Maghrib prayer time is in 15 minutes.',
-        timestamp: DateTime.now().subtract(const Duration(hours: 5)),
-      ),
-      NotificationItem(
-        id: '3',
-        title: 'New Islamic Article Published',
-        description: 'Check out "The Importance of Charity" in Articles.',
-        timestamp: DateTime.now().subtract(const Duration(days: 1)),
-      ),
-    ];
-  }
-
-  void markAllAsRead() {
-    state = [
-      for (final n in state)
-        NotificationItem(
-          id: n.id,
-          title: n.title,
-          description: n.description,
-          timestamp: n.timestamp,
-          isRead: true,
-        ),
-    ];
-  }
-
-  void markAsRead(String id) {
-    state = [
-      for (final n in state)
-        if (n.id == id)
-          NotificationItem(
-            id: n.id,
-            title: n.title,
-            description: n.description,
-            timestamp: n.timestamp,
-            isRead: true,
-          )
-        else
-          n,
-    ];
-  }
-}
-
-final notificationsProvider =
-    NotifierProvider<NotificationsNotifier, List<NotificationItem>>(() {
-      return NotificationsNotifier();
-    });
+import 'package:islamic_app/data/repositories/questions_repository.dart';
 
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notifications = ref.watch(notificationsProvider);
+    final notificationsAsync = ref.watch(notificationsStreamProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notifications'),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.done_all),
-            tooltip: 'Mark all as read',
-            onPressed: () {
-              ref.read(notificationsProvider.notifier).markAllAsRead();
-            },
-          ),
-        ],
-      ),
-      body: notifications.isEmpty
-          ? const Center(child: Text('No notifications'))
-          : ListView.builder(
-              itemCount: notifications.length,
-              itemBuilder: (context, index) {
-                final notification = notifications[index];
-                return Container(
-                  color: notification.isRead
-                      ? null
-                      : AppColors.primary.withValues(alpha: 0.05),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                      child: const Icon(
-                        Icons.notifications,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    title: Text(
-                      notification.title,
-                      style: TextStyle(
-                        fontWeight: notification.isRead
-                            ? FontWeight.normal
-                            : FontWeight.bold,
-                      ),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 4),
-                        Text(notification.description),
-                        const SizedBox(height: 4),
-                        Text(
-                          _formatTime(notification.timestamp),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                    onTap: () {
-                      // Mark as read on tap
-                      ref
-                          .read(notificationsProvider.notifier)
-                          .markAsRead(notification.id);
-                    },
+      appBar: AppBar(title: const Text('Notifications'), centerTitle: true),
+      body: notificationsAsync.when(
+        data: (notifications) {
+          if (notifications.isEmpty) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.notifications_off_outlined,
+                    size: 64,
+                    color: Colors.grey,
                   ),
-                ).animate().fade().slideX(
-                  begin: 0.1,
-                  end: 0,
-                  delay: Duration(milliseconds: index * 100),
-                );
-              },
-            ),
+                  SizedBox(height: 16),
+                  Text('No notifications yet'),
+                ],
+              ),
+            );
+          }
+
+          return ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: notifications.length,
+            separatorBuilder: (context, index) => const Divider(),
+            itemBuilder: (context, index) {
+              final notification = notifications[index];
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: notification.read
+                      ? Colors.grey[200]
+                      : AppColors.primary.withValues(alpha: 0.1),
+                  child: Icon(
+                    Icons.notifications,
+                    color: notification.read ? Colors.grey : AppColors.primary,
+                  ),
+                ),
+                title: Text(
+                  notification.title,
+                  style: TextStyle(
+                    fontWeight: notification.read
+                        ? FontWeight.normal
+                        : FontWeight.bold,
+                  ),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(notification.message),
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatTime(notification.createdAt),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
+                onTap: () {
+                  if (!notification.read) {
+                    ref
+                        .read(notificationsRepositoryProvider)
+                        .markAsRead(notification.id);
+                  }
+                  // Verify if we should navigate
+                  if (notification.type == 'question_answered') {
+                    // Optionally navigate to Q&A screen or show details
+                  }
+                },
+              );
+            },
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
+      ),
     );
   }
 

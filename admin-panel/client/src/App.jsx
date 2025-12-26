@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, ShoppingCart, Settings, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, ShoppingCart, BookOpen, MessageCircle, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import Dashboard from './pages/Dashboard';
 import UsersPage from './pages/Users';
 import OrdersPage from './pages/Orders';
+import BooksPage from './pages/Books';
+import QuestionsPage from './pages/Questions';
 
 function App() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -12,6 +14,8 @@ function App() {
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { to: '/users', icon: Users, label: 'Users' },
         { to: '/orders', icon: ShoppingCart, label: 'Orders' },
+        { to: '/books', icon: BookOpen, label: 'Books' },
+        { to: '/questions', icon: MessageCircle, label: 'Questions' },
     ];
 
     return (
@@ -89,6 +93,8 @@ function App() {
                             <Route path="/" element={<Dashboard />} />
                             <Route path="/users" element={<UsersPage />} />
                             <Route path="/orders" element={<OrdersPage />} />
+                            <Route path="/books" element={<BooksPage />} />
+                            <Route path="/questions" element={<QuestionsPage />} />
                         </Routes>
                     </div>
                 </main>

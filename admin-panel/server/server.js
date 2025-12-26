@@ -9,6 +9,8 @@ dotenv.config();
 import usersRoutes from './routes/users.js';
 import ordersRoutes from './routes/orders.js';
 import statsRoutes from './routes/stats.js';
+import booksRoutes from './routes/books.js';
+import questionsRoutes from './routes/questions.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -33,6 +35,8 @@ app.get('/api/health', (req, res) => {
 app.use('/api/users', usersRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/books', booksRoutes);
+app.use('/api/questions', questionsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

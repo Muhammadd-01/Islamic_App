@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:islamic_app/domain/entities/chat_message.dart';
-import 'package:islamic_app/presentation/qa/qa_provider.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
+import 'package:islamic_app/data/repositories/questions_repository.dart';
+import 'package:islamic_app/presentation/qa/qa_provider.dart';
 import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
+import 'package:intl/intl.dart';
 
 class QAScreen extends ConsumerStatefulWidget {
   const QAScreen({super.key});
@@ -15,50 +16,46 @@ class QAScreen extends ConsumerStatefulWidget {
 
 class _QAScreenState extends ConsumerState<QAScreen>
     with SingleTickerProviderStateMixin {
-  final TextEditingController _controller = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
   late TabController _tabController;
+  final TextEditingController _questionController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(() {
-      setState(() {});
-    });
   }
 
   @override
   void dispose() {
-    _controller.dispose();
-    _scrollController.dispose();
     _tabController.dispose();
+    _questionController.dispose();
     super.dispose();
   }
 
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
+  void _submitQuestion() {
+    if (_questionController.text.trim().isEmpty) return;
+
+    ref
+        .read(questionsRepositoryProvider)
+        .postQuestion(_questionController.text.trim());
+
+    Navigator.pop(context);
+    _questionController.clear();
+    AppSnackbar.showSuccess(context, 'Question posted anonymously');
   }
 
-  void _showAskQuestionDialog() {
-    final questionController = TextEditingController();
+  void _showAskDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Ask Community'),
+        title: const Text('Ask User Community'),
         content: TextField(
-          controller: questionController,
+          controller: _questionController,
+          maxLines: 4,
           decoration: const InputDecoration(
             hintText: 'What is your question?',
             border: OutlineInputBorder(),
           ),
-          maxLines: 3,
         ),
         actions: [
           TextButton(
@@ -66,15 +63,11 @@ class _QAScreenState extends ConsumerState<QAScreen>
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              if (questionController.text.isNotEmpty) {
-                Navigator.pop(context);
-                AppSnackbar.showSuccess(
-                  context,
-                  'Question posted to community!',
-                );
-              }
-            },
+            onPressed: _submitQuestion,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Post'),
           ),
         ],
@@ -84,11 +77,6 @@ class _QAScreenState extends ConsumerState<QAScreen>
 
   @override
   Widget build(BuildContext context) {
-    final messages = ref.watch(qaProvider);
-
-    // Scroll to bottom when messages change
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Islamic Assistant'),
@@ -101,334 +89,262 @@ class _QAScreenState extends ConsumerState<QAScreen>
           ],
         ),
       ),
-      floatingActionButton: _tabController.index == 1
-          ? FloatingActionButton.extended(
-              onPressed: _showAskQuestionDialog,
-              icon: const Icon(Icons.add),
-              label: const Text('Ask Question'),
-              backgroundColor: AppColors.primary,
-            )
-          : null,
       body: TabBarView(
         controller: _tabController,
         children: [
-          Column(
-            children: [
-              Expanded(
-                child: messages.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.chat_bubble_outline,
-                              size: 64,
-                              color: Colors.grey[400],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Ask any religious question',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ).animate().fade().scale(),
-                      )
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.all(16),
-                        itemCount: messages.length,
-                        itemBuilder: (context, index) {
-                          final message = messages[index];
-                          return _MessageBubble(message: message);
-                        },
-                      ),
-              ),
-              if (ref.watch(qaLoadingProvider))
-                Padding(
-                  padding: const EdgeInsets.only(left: 16, bottom: 8),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const SizedBox(
-                              width: 12,
-                              height: 12,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Thinking...',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ).animate().fade().scale(),
-                    ],
-                  ),
-                ),
-              _buildInputArea(),
-            ],
-          ),
-          _CommunityQA(),
-        ],
-      ),
-    );
-  }
+          // AI Chat
+          const _AIChatView(),
 
-  Widget _buildInputArea() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
+          // Community Q&A
+          _CommunityQAView(onAsk: _showAskDialog),
         ],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: _controller,
-              decoration: InputDecoration(
-                hintText: 'Type your question...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Theme.of(context).cardColor,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 14,
-                ),
-              ),
-              onSubmitted: (_) => _sendMessage(),
-            ),
-          ),
-          const SizedBox(width: 12),
-          FloatingActionButton(
-            onPressed: _sendMessage,
-            backgroundColor: AppColors.primary,
-            elevation: 2,
-            child: const Icon(Icons.send, color: Colors.white),
-          ),
-        ],
-      ),
+      floatingActionButton: _tabController.index == 1
+          ? FloatingActionButton(
+              onPressed: _showAskDialog,
+              backgroundColor: AppColors.primary,
+              child: const Icon(Icons.add, color: Colors.white),
+            )
+          : null,
     );
-  }
-
-  void _sendMessage() {
-    final text = _controller.text;
-    if (text.trim().isNotEmpty) {
-      ref.read(qaProvider.notifier).sendMessage(text);
-      _controller.clear();
-    }
   }
 }
 
-class _CommunityQA extends StatelessWidget {
-  const _CommunityQA();
+class _AIChatView extends ConsumerWidget {
+  const _AIChatView();
 
   @override
-  Widget build(BuildContext context) {
-    final questions = [
-      {
-        'question': 'What is the best time for Tahajjud?',
-        'answers': 12,
-        'author': 'Ahmed K.',
-        'time': '2h ago',
-      },
-      {
-        'question': 'How to calculate Zakat on gold?',
-        'answers': 8,
-        'author': 'Sarah M.',
-        'time': '5h ago',
-      },
-      {
-        'question': 'Can I combine prayers when traveling?',
-        'answers': 24,
-        'author': 'Bilal Y.',
-        'time': '1d ago',
-      },
-      {
-        'question': 'Meaning of Surah Al-Ikhlas?',
-        'answers': 15,
-        'author': 'Fatima R.',
-        'time': '2d ago',
-      },
-    ];
+  Widget build(BuildContext context, WidgetRef ref) {
+    final messages = ref.watch(qaProvider);
+    final isLoading = ref.watch(qaLoadingProvider);
+    final textController = TextEditingController();
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: questions.length,
-      itemBuilder: (context, index) {
-        final q = questions[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 16,
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                      child: Text(
-                        (q['author'] as String)[0],
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
+    return Column(
+      children: [
+        Expanded(
+          child: messages.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.chat_bubble_outline,
+                        size: 64,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Ask any religious question',
+                        style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                      ),
+                    ],
+                  ).animate().fade().scale(),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    final msg = messages[index];
+                    return Align(
+                      alignment: msg.isUser
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(12),
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.75,
+                        ),
+                        decoration: BoxDecoration(
+                          color: msg.isUser
+                              ? AppColors.primary
+                              : Colors.grey[200],
+                          borderRadius: BorderRadius.circular(16).copyWith(
+                            bottomRight: msg.isUser
+                                ? const Radius.circular(0)
+                                : null,
+                            bottomLeft: !msg.isUser
+                                ? const Radius.circular(0)
+                                : null,
+                          ),
+                        ),
+                        child: Text(
+                          msg.text,
+                          style: TextStyle(
+                            color: msg.isUser ? Colors.white : Colors.black87,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      q['author'] as String,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                    ),
-                    const Spacer(),
-                    Text(
-                      q['time'] as String,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  q['question'] as String,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+        ),
+        if (isLoading)
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: LinearProgressIndicator(),
+          ),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            border: Border(
+              top: BorderSide(color: Colors.grey.withValues(alpha: 0.1)),
+            ),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: textController,
+                  decoration: const InputDecoration(
+                    hintText: 'Ask AI...',
+                    border: InputBorder.none,
                   ),
+                  onSubmitted: (value) {
+                    if (value.trim().isNotEmpty) {
+                      ref.read(qaProvider.notifier).sendMessage(value);
+                      textController.clear();
+                    }
+                  },
                 ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.chat_bubble_outline,
-                      size: 16,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${q['answers']} Answers',
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Answer Question'),
-                            content: const TextField(
-                              decoration: InputDecoration(
-                                hintText: 'Type your answer...',
-                                border: OutlineInputBorder(),
-                              ),
-                              maxLines: 3,
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Cancel'),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  AppSnackbar.showSuccess(
-                                    context,
-                                    'Answer submitted!',
-                                  );
-                                },
-                                child: const Text('Submit'),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                      child: const Text('Answer'),
-                    ),
-                  ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.send, color: AppColors.primary),
+                onPressed: () {
+                  if (textController.text.trim().isNotEmpty) {
+                    ref
+                        .read(qaProvider.notifier)
+                        .sendMessage(textController.text);
+                    textController.clear();
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CommunityQAView extends ConsumerWidget {
+  final VoidCallback onAsk;
+
+  const _CommunityQAView({required this.onAsk});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final questionsAsync = ref.watch(questionsStreamProvider);
+
+    return questionsAsync.when(
+      data: (questions) {
+        if (questions.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.forum_outlined, size: 64, color: Colors.grey),
+                const SizedBox(height: 16),
+                const Text('No questions yet'),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: onAsk,
+                  child: const Text('Ask First Question'),
                 ),
               ],
             ),
-          ),
-        ).animate().fade().slideY(
-          begin: 0.1,
-          end: 0,
-          delay: Duration(milliseconds: index * 100),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: questions.length,
+          itemBuilder: (context, index) {
+            final q = questions[index];
+            return Card(
+              margin: const EdgeInsets.only(bottom: 16),
+              child: ExpansionTile(
+                title: Text(
+                  q.question,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Row(
+                    children: [
+                      Icon(
+                        q.status == 'answered'
+                            ? Icons.check_circle
+                            : Icons.schedule,
+                        size: 14,
+                        color: q.status == 'answered'
+                            ? Colors.green
+                            : Colors.orange,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        q.status == 'answered' ? 'Answered' : 'Pending',
+                        style: TextStyle(
+                          color: q.status == 'answered'
+                              ? Colors.green
+                              : Colors.orange,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        DateFormat.yMMMd().format(q.createdAt),
+                        style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                children: [
+                  if (q.status == 'answered' && q.answer != null)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      color: Colors.green.withValues(alpha: 0.1),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Answer:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(q.answer!),
+                        ],
+                      ),
+                    )
+                  else
+                    const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text(
+                        'Waiting for an answer from scholars...',
+                        style: TextStyle(
+                          fontStyle: FontStyle.italic,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ).animate().fade().slideY(
+              begin: 0.1,
+              end: 0,
+              delay: Duration(milliseconds: index * 50),
+            );
+          },
         );
       },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text('Error: $err')),
     );
-  }
-}
-
-class _MessageBubble extends StatelessWidget {
-  final ChatMessage message;
-
-  const _MessageBubble({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    final isUser = message.isUser;
-    return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        decoration: BoxDecoration(
-          color: isUser ? AppColors.primary : Theme.of(context).cardColor,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: isUser
-                ? const Radius.circular(16)
-                : const Radius.circular(4),
-            bottomRight: isUser
-                ? const Radius.circular(4)
-                : const Radius.circular(16),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Text(
-          message.text,
-          style: TextStyle(
-            color: isUser
-                ? Colors.white
-                : Theme.of(context).textTheme.bodyLarge?.color,
-            fontSize: 16,
-          ),
-        ),
-      ),
-    ).animate().fade().slideY(begin: 0.2, end: 0);
   }
 }

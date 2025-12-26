@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/domain/entities/hadith.dart';
+import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 
 class HadithDetailScreen extends ConsumerWidget {
   final Hadith hadith;
@@ -18,9 +19,7 @@ class HadithDetailScreen extends ConsumerWidget {
             icon: const Icon(Icons.bookmark_border),
             onPressed: () {
               // TODO: Implement bookmark
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Bookmark feature coming soon!')),
-              );
+              AppSnackbar.showInfo(context, 'Bookmark feature coming soon!');
             },
           ),
           IconButton(

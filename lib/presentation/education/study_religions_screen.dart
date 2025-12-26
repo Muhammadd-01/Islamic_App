@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
+import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 
 class StudyReligionsScreen extends StatelessWidget {
   const StudyReligionsScreen({super.key});
@@ -67,10 +68,9 @@ class StudyReligionsScreen extends StatelessWidget {
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 // Navigate to detail screen (placeholder for now)
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Opening ${religion['name']} resources...'),
-                  ),
+                AppSnackbar.showInfo(
+                  context,
+                  'Opening ${religion['name']} resources...',
                 );
               },
             ),

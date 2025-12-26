@@ -5,6 +5,7 @@ import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/core/theme/theme_provider.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
 import 'package:islamic_app/core/providers/language_provider.dart';
+import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -133,9 +134,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
                     // Mock Help Center
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Opening Help Center...')),
-                    );
+                    AppSnackbar.showInfo(context, 'Opening Help Center...');
                   },
                 ),
                 const Divider(height: 1),
@@ -148,11 +147,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                   onTap: () {
                     // Mock Privacy Policy
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Opening Privacy Policy...'),
-                      ),
-                    );
+                    AppSnackbar.showInfo(context, 'Opening Privacy Policy...');
                   },
                 ),
                 const Divider(height: 1),
@@ -198,9 +193,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 // Mock Share
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Sharing app link...')),
-                );
+                AppSnackbar.showInfo(context, 'Sharing app link...');
               },
             ),
           ),

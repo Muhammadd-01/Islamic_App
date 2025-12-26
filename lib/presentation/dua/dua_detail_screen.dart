@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/core/services/audio_player_service.dart';
 import 'package:islamic_app/domain/entities/dua.dart';
+import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 
 class DuaDetailScreen extends ConsumerStatefulWidget {
   final Dua dua;
@@ -28,9 +29,7 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
             icon: const Icon(Icons.bookmark_border),
             onPressed: () {
               // TODO: Implement bookmark
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Bookmark feature coming soon!')),
-              );
+              AppSnackbar.showInfo(context, 'Bookmark feature coming soon!');
             },
           ),
         ],

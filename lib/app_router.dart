@@ -43,6 +43,8 @@ import 'package:islamic_app/presentation/library/book_reader_screen.dart';
 import 'package:islamic_app/presentation/education/study_religions_screen.dart';
 import 'package:islamic_app/presentation/education/debate_panel_screen.dart';
 import 'package:islamic_app/presentation/profile/edit_profile_screen.dart';
+import 'package:islamic_app/presentation/cart/cart_screen.dart';
+import 'package:islamic_app/presentation/checkout/checkout_screen.dart';
 
 import 'package:islamic_app/presentation/auth/auth_gate.dart';
 
@@ -241,6 +243,11 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/debate-panel',
       builder: (context, state) => const DebatePanelScreen(),
+    ),
+    GoRoute(path: '/cart', builder: (context, state) => const CartScreen()),
+    GoRoute(
+      path: '/checkout',
+      builder: (context, state) => const CheckoutScreen(),
     ),
   ],
 );

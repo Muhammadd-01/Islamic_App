@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
+import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 
 class DebatePanelScreen extends StatelessWidget {
   const DebatePanelScreen({super.key});
@@ -44,10 +45,9 @@ class DebatePanelScreen extends StatelessWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Start New Debate feature coming soon!'),
-            ),
+          AppSnackbar.showInfo(
+            context,
+            'Start New Debate feature coming soon!',
           );
         },
         label: const Text('New Topic'),
@@ -68,9 +68,7 @@ class DebatePanelScreen extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
         onTap: () {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Joining $title...')));
+          AppSnackbar.showInfo(context, 'Joining $title...');
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(

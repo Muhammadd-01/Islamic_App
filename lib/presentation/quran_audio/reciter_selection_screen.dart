@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/presentation/quran_audio/quran_audio_provider.dart';
+import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 
 class ReciterSelectionScreen extends ConsumerWidget {
   const ReciterSelectionScreen({super.key});
@@ -61,8 +62,9 @@ class ReciterSelectionScreen extends ConsumerWidget {
                             .setSelectedReciter(reciter.id);
                         ref.invalidate(selectedReciterProvider);
                         if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('${reciter.name} selected')),
+                          AppSnackbar.showSuccess(
+                            context,
+                            '${reciter.name} selected',
                           );
                         }
                       },

@@ -5,28 +5,37 @@ class UserRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  /// Create user profile in Firestore after signup
   Future<void> createUserProfile(
     User user, {
     String? fullName,
     String? phone,
+    String role = 'user',
   }) async {
-    final userDoc = _firestore.collection('users').doc(user.uid);
+    try {
+      final userDoc = _firestore.collection('users').doc(user.uid);
 
-    // Check if user already exists to avoid overwriting
-    final docSnapshot = await userDoc.get();
-    if (!docSnapshot.exists) {
-      await userDoc.set({
-        'uid': user.uid,
-        'name': fullName ?? user.displayName ?? '',
-        'email': user.email ?? '',
-        'phone': phone ?? '',
-        'bio': '',
-        'location': '',
-        'imageUrl': user.photoURL ?? '',
-        'createdAt': FieldValue.serverTimestamp(),
-        'bookmarks': [],
-        'preferences': {'theme': 'system', 'language': 'en'},
-      });
+      // Check if user already exists to avoid overwriting
+      final docSnapshot = await userDoc.get();
+      if (!docSnapshot.exists) {
+        await userDoc.set({
+          'uid': user.uid,
+          'name': fullName ?? user.displayName ?? '',
+          'email': user.email ?? '',
+          'phone': phone ?? '',
+          'bio': '',
+          'location': '',
+          'imageUrl': user.photoURL ?? '',
+          'role': role,
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+          'bookmarks': [],
+          'preferences': {'theme': 'system', 'language': 'en'},
+        });
+      }
+    } catch (e) {
+      // Log error but don't throw - user is already authenticated
+      print('Error creating user profile: $e');
     }
   }
 

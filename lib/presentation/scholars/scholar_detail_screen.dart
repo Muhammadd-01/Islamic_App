@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/domain/entities/scholar.dart';
+import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 
 class ScholarDetailScreen extends ConsumerWidget {
   final Scholar scholar;
@@ -143,11 +144,9 @@ class ScholarDetailScreen extends ConsumerWidget {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Booking request sent successfully!'),
-                  backgroundColor: Colors.green,
-                ),
+              AppSnackbar.showSuccess(
+                context,
+                'Booking request sent successfully!',
               );
             },
             child: const Text('Confirm'),

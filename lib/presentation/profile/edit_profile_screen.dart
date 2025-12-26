@@ -6,6 +6,7 @@ import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/core/providers/user_provider.dart';
 import 'package:islamic_app/data/services/supabase_service.dart';
 import 'package:islamic_app/data/services/location_service.dart';
+import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -63,9 +64,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to get location: $e')));
+        AppSnackbar.showError(context, 'Failed to get location: $e');
       }
     } finally {
       setState(() => _isLoadingLocation = false);
@@ -98,19 +97,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        AppSnackbar.showSuccess(context, 'Profile updated successfully!');
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to update profile: $e')));
+        AppSnackbar.showError(context, 'Failed to update profile: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

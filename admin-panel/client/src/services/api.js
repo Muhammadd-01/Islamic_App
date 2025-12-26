@@ -1,0 +1,36 @@
+import axios from 'axios';
+
+const API_BASE_URL = '/api';
+
+const api = axios.create({
+    baseURL: API_BASE_URL,
+    headers: {
+        'Content-Type': 'application/json',
+    },
+});
+
+// Stats API
+export const statsApi = {
+    getDashboard: () => api.get('/stats'),
+    getOrdersChart: (days = 7) => api.get(`/stats/orders-chart?days=${days}`),
+};
+
+// Users API
+export const usersApi = {
+    getAll: (params = {}) => api.get('/users', { params }),
+    getById: (id) => api.get(`/users/${id}`),
+    updateRole: (id, role) => api.patch(`/users/${id}/role`, { role }),
+    delete: (id) => api.delete(`/users/${id}`),
+    getStatsByRole: () => api.get('/users/stats/by-role'),
+};
+
+// Orders API
+export const ordersApi = {
+    getAll: (params = {}) => api.get('/orders', { params }),
+    getById: (id) => api.get(`/orders/${id}`),
+    updateStatus: (id, status) => api.patch(`/orders/${id}/status`, { status }),
+    delete: (id) => api.delete(`/orders/${id}`),
+    getStats: () => api.get('/orders/stats/summary'),
+};
+
+export default api;

@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:islamic_app/domain/entities/chat_message.dart';
 import 'package:islamic_app/presentation/qa/qa_provider.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
+import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 
 class QAScreen extends ConsumerStatefulWidget {
   const QAScreen({super.key});
@@ -68,11 +69,9 @@ class _QAScreenState extends ConsumerState<QAScreen>
             onPressed: () {
               if (questionController.text.isNotEmpty) {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Question posted to community!'),
-                    backgroundColor: Colors.green,
-                  ),
+                AppSnackbar.showSuccess(
+                  context,
+                  'Question posted to community!',
                 );
               }
             },
@@ -113,82 +112,80 @@ class _QAScreenState extends ConsumerState<QAScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-            Column(
-              children: [
-                Expanded(
-                  child: messages.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.chat_bubble_outline,
-                                size: 64,
-                                color: Colors.grey[400],
+          Column(
+            children: [
+              Expanded(
+                child: messages.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.chat_bubble_outline,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Ask any religious question',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 16,
                               ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Ask any religious question',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ],
-                          ).animate().fade().scale(),
-                        )
-                      : ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.all(16),
-                          itemCount: messages.length,
-                          itemBuilder: (context, index) {
-                            final message = messages[index];
-                            return _MessageBubble(message: message);
-                          },
-                        ),
-                ),
-                if (ref.watch(qaLoadingProvider))
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16, bottom: 8),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const SizedBox(
-                                width: 12,
-                                height: 12,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Thinking...',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ).animate().fade().scale(),
-                      ],
-                    ),
+                      )
+                    : ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          final message = messages[index];
+                          return _MessageBubble(message: message);
+                        },
+                      ),
+              ),
+              if (ref.watch(qaLoadingProvider))
+                Padding(
+                  padding: const EdgeInsets.only(left: 16, bottom: 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(
+                              width: 12,
+                              height: 12,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Thinking...',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ).animate().fade().scale(),
+                    ],
                   ),
-                _buildInputArea(),
-              ],
-            ),
-            _CommunityQA(),
-          ],
-        ),
-      );
+                ),
+              _buildInputArea(),
+            ],
+          ),
+          _CommunityQA(),
+        ],
+      ),
+    );
   }
 
   Widget _buildInputArea() {
@@ -358,11 +355,9 @@ class _CommunityQA extends StatelessWidget {
                               ElevatedButton(
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Answer submitted!'),
-                                      backgroundColor: Colors.green,
-                                    ),
+                                  AppSnackbar.showSuccess(
+                                    context,
+                                    'Answer submitted!',
                                   );
                                 },
                                 child: const Text('Submit'),

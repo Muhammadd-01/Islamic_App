@@ -15,10 +15,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -26,15 +23,9 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -61,6 +52,36 @@ class DefaultFirebaseOptions {
     messagingSenderId: '276908933332',
     projectId: 'islamic-app-backend',
     storageBucket: 'islamic-app-backend.firebasestorage.app',
+    iosClientId: '276908933332-0clsiojjsm4dnccnvk0aave80kqhe7st.apps.googleusercontent.com',
     iosBundleId: 'com.affan.islamicapp',
   );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyCt1VzmHVTXwCkIq3B1GnMIC6JKlNbdKXo',
+    appId: '1:276908933332:web:f01360a14c8c5eb1f2bb41',
+    messagingSenderId: '276908933332',
+    projectId: 'islamic-app-backend',
+    authDomain: 'islamic-app-backend.firebaseapp.com',
+    storageBucket: 'islamic-app-backend.firebasestorage.app',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyBSvISoZQWJuaupiclD0E1QAHr1eFgdQUQ',
+    appId: '1:276908933332:ios:3fc7b1485d33a57cf2bb41',
+    messagingSenderId: '276908933332',
+    projectId: 'islamic-app-backend',
+    storageBucket: 'islamic-app-backend.firebasestorage.app',
+    iosClientId: '276908933332-32guuglfub7p59p8kc5tjhbvfffp0jdc.apps.googleusercontent.com',
+    iosBundleId: 'com.islamicapp.islamicApp',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyCt1VzmHVTXwCkIq3B1GnMIC6JKlNbdKXo',
+    appId: '1:276908933332:web:f03ed1185aae1cd3f2bb41',
+    messagingSenderId: '276908933332',
+    projectId: 'islamic-app-backend',
+    authDomain: 'islamic-app-backend.firebaseapp.com',
+    storageBucket: 'islamic-app-backend.firebasestorage.app',
+  );
+
 }

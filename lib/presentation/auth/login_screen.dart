@@ -6,6 +6,7 @@ import 'package:islamic_app/data/repositories/auth_repository_impl.dart';
 import 'package:islamic_app/data/repositories/user_repository.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
 import 'package:islamic_app/presentation/widgets/glassmorphism_alert.dart';
+import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -66,15 +67,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           message = 'Invalid email format';
         }
 
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(message)));
+        AppSnackbar.showError(context, message);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
+        AppSnackbar.showError(context, 'Login failed: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -90,9 +87,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) context.go('/');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Google Sign-In failed: $e')));
+        AppSnackbar.showError(context, 'Google Sign-In failed: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -108,9 +103,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) context.go('/');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Facebook Sign-In failed: $e')));
+        AppSnackbar.showError(context, 'Facebook Sign-In failed: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

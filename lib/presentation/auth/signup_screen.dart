@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/data/repositories/auth_repository_impl.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
+import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 
 class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
@@ -49,18 +50,11 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
         if (mounted) {
           // Auto-redirect to login
           context.go('/login');
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Account created! Please log in.'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          AppSnackbar.showSuccess(context, 'Account created! Please log in.');
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Sign up failed: $e')));
+          AppSnackbar.showError(context, 'Sign up failed: $e');
         }
       } finally {
         if (mounted) setState(() => _isLoading = false);
@@ -77,9 +71,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       if (mounted) context.go('/');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Google Sign-In failed: $e')));
+        AppSnackbar.showError(context, 'Google Sign-In failed: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -95,9 +87,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
       if (mounted) context.go('/');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Facebook Sign-In failed: $e')));
+        AppSnackbar.showError(context, 'Facebook Sign-In failed: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

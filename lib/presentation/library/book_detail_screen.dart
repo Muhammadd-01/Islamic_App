@@ -5,7 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/domain/entities/book.dart';
 import 'package:islamic_app/data/repositories/bookmark_repository.dart';
+import 'package:islamic_app/data/repositories/cart_repository.dart';
 import 'package:islamic_app/domain/entities/bookmark.dart';
+import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 
 class BookDetailScreen extends ConsumerWidget {
   final Book book;
@@ -14,10 +16,42 @@ class BookDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final cartItemCount = ref.watch(cartItemCountProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Book Details'),
         actions: [
+          // Cart icon with badge
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.shopping_cart_outlined),
+                onPressed: () => context.push('/cart'),
+              ),
+              if (cartItemCount > 0)
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      '$cartItemCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
           Consumer(
             builder: (context, ref, child) {
               final bookmarksAsync = ref.watch(bookmarksProvider);
@@ -124,27 +158,77 @@ class BookDetailScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => _handleAction(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            if (book.isFree)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => context.push('/book-reader', extra: book),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'READ NOW',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
-                child: Text(
-                  book.isFree ? 'READ NOW' : 'BUY FOR \$${book.price}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+              ).animate().fade().scale()
+            else
+              Column(
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _addToCart(context, ref),
+                      icon: const Icon(Icons.add_shopping_cart),
+                      label: const Text(
+                        'ADD TO CART',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ).animate().fade().scale(),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        _addToCart(context, ref);
+                        context.push('/checkout');
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        side: const BorderSide(color: AppColors.primary),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'BUY NOW - \$${book.price}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ).animate().fade().scale(),
             const SizedBox(height: 32),
             const Align(
               alignment: Alignment.centerLeft,
@@ -168,39 +252,18 @@ class BookDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _handleAction(BuildContext context) {
-    if (book.isFree) {
-      context.push('/book-reader', extra: book);
-    } else {
-      // Show payment dialog (mock)
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Purchase Book'),
-          content: Text(
-            'Confirm purchase of "${book.title}" for \$${book.price}?',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Purchase successful! Added to library.'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              },
-              child: const Text('Confirm'),
-            ),
-          ],
-        ),
-      );
-    }
+  void _addToCart(BuildContext context, WidgetRef ref) {
+    final cartRepo = ref.read(cartRepositoryProvider);
+    cartRepo.addToCart(
+      CartItem(
+        bookId: book.id,
+        title: book.title,
+        author: book.author,
+        price: book.price,
+        coverUrl: book.coverUrl,
+      ),
+    );
+    AppSnackbar.showSuccess(context, 'Added to cart!');
   }
 }
 

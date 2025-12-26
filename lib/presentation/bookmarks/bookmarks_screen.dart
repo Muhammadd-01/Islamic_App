@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/data/repositories/bookmark_repository.dart';
 import 'package:islamic_app/domain/entities/bookmark.dart';
+import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 
 class BookmarksScreen extends ConsumerStatefulWidget {
   const BookmarksScreen({super.key});
@@ -229,9 +230,7 @@ class _BookmarkCard extends ConsumerWidget {
                     final repo = ref.read(bookmarkRepositoryProvider);
                     await repo.removeBookmark(bookmark.id, bookmark.type);
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Bookmark removed')),
-                      );
+                      AppSnackbar.showInfo(context, 'Bookmark removed');
                     }
                   }
                 },

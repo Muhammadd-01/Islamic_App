@@ -8,12 +8,14 @@ class ThemeNotifier extends Notifier<ThemeMode> {
   @override
   ThemeMode build() {
     _loadTheme();
-    return ThemeMode.system;
+    // DeenSphere defaults to dark mode for premium Islamic aesthetic
+    return ThemeMode.dark;
   }
 
   Future<void> _loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
-    final isDark = prefs.getBool(_key) ?? false;
+    // Default to dark mode if no preference is set
+    final isDark = prefs.getBool(_key) ?? true;
     state = isDark ? ThemeMode.dark : ThemeMode.light;
   }
 

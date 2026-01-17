@@ -8,6 +8,8 @@ import UsersPage from './pages/Users';
 import OrdersPage from './pages/Orders';
 import BooksPage from './pages/Books';
 import QuestionsPage from './pages/Questions';
+import InventionsPage from './pages/Inventions';
+import ScientistsPage from './pages/Scientists';
 import Login from './pages/Login';
 
 function AuthGuard({ children }) {
@@ -50,6 +52,8 @@ function App() {
         { to: '/orders', icon: ShoppingCart, label: 'Orders' },
         { to: '/books', icon: BookOpen, label: 'Books' },
         { to: '/questions', icon: MessageCircle, label: 'Questions' },
+        { to: '/inventions', icon: BookOpen, label: 'Inventions' },
+        { to: '/scientists', icon: Users, label: 'Scientists' },
     ];
 
     return (
@@ -140,6 +144,8 @@ function App() {
                                 <Route path="/orders" element={<OrdersPage />} />
                                 <Route path="/books" element={<BooksPage />} />
                                 <Route path="/questions" element={<QuestionsPage />} />
+                                <Route path="/inventions" element={<InventionsPage />} />
+                                <Route path="/scientists" element={<ScientistsPage />} />
                             </Routes>
                         </div>
                     </main>

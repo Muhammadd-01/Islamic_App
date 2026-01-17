@@ -75,10 +75,10 @@ class HomeScreen extends ConsumerWidget {
                       // Featured Tools Section
                       _SectionHeader(
                         title: 'Featured Tools',
-                        onSeeAll: () => context.push('/settings'),
+                        onSeeAll: () => context.push('/all-tools'),
                       ).animate().fade(delay: 400.ms),
                       const SizedBox(height: 16),
-                      const _FeaturedToolsCarousel()
+                      const _FeaturedToolsGrid()
                           .animate()
                           .fade(delay: 450.ms)
                           .slideX(begin: 0.1, end: 0),
@@ -132,19 +132,43 @@ class HomeScreen extends ConsumerWidget {
       title: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.primary, AppColors.secondary],
-              ),
-              borderRadius: BorderRadius.circular(12),
+              gradient: AppColors.goldTileGradient,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primaryGold.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                ),
+              ],
             ),
-            child: const Icon(Icons.mosque, color: Colors.white, size: 20),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/deensphere_logo.png',
+                width: 36,
+                height: 36,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.high,
+              ),
+            ),
           ),
           const SizedBox(width: 12),
-          const Text(
-            'Islamic App',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          RichText(
+            text: const TextSpan(
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              children: [
+                TextSpan(
+                  text: 'Deen',
+                  style: TextStyle(color: AppColors.primaryWhite),
+                ),
+                TextSpan(
+                  text: 'Sphere',
+                  style: TextStyle(color: AppColors.primaryGold),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -405,20 +429,108 @@ class _GreetingSection extends StatelessWidget {
   }
 }
 
-// Enhanced Prayer Card
+// Enhanced Prayer Card with Dynamic Colors
 class _EnhancedPrayerCard extends StatelessWidget {
   final AsyncValue<String> nextPrayerAsync;
 
   const _EnhancedPrayerCard({required this.nextPrayerAsync});
 
+  // Get current prayer name based on time of day
+  String _getCurrentPrayerName() {
+    final hour = DateTime.now().hour;
+    if (hour >= 4 && hour < 6) return 'Fajr';
+    if (hour >= 6 && hour < 12) return 'Dhuhr';
+    if (hour >= 12 && hour < 15) return 'Dhuhr';
+    if (hour >= 15 && hour < 17) return 'Asr';
+    if (hour >= 17 && hour < 19) return 'Maghrib';
+    return 'Isha';
+  }
+
+  // Get next prayer name
+  String _getNextPrayerName() {
+    final hour = DateTime.now().hour;
+    if (hour >= 4 && hour < 6) return 'Fajr';
+    if (hour >= 6 && hour < 12) return 'Dhuhr';
+    if (hour >= 12 && hour < 15) return 'Asr';
+    if (hour >= 15 && hour < 17) return 'Asr';
+    if (hour >= 17 && hour < 19) return 'Maghrib';
+    if (hour >= 19 && hour < 21) return 'Isha';
+    return 'Fajr'; // After Isha
+  }
+
+  // Get gradient colors based on prayer time
+  List<Color> _getPrayerGradient() {
+    final prayerName = _getNextPrayerName();
+    switch (prayerName) {
+      case 'Fajr':
+        // Dawn - deep purple to soft blue
+        return const [
+          Color(0xFF4C1D95), // Deep violet
+          Color(0xFF6366F1), // Soft indigo
+          Color(0xFF818CF8), // Light purple
+        ];
+      case 'Dhuhr':
+        // Midday - warm amber to gold
+        return const [
+          Color(0xFFF59E0B), // Amber
+          Color(0xFFFBBF24), // Yellow
+          Color(0xFFD97706), // Deep amber
+        ];
+      case 'Asr':
+        // Afternoon - soft orange to muted gold
+        return const [
+          Color(0xFFEA580C), // Orange
+          Color(0xFFF97316), // Light orange
+          Color(0xFFD97706), // Amber
+        ];
+      case 'Maghrib':
+        // Sunset - deep orange to dark purple
+        return const [
+          Color(0xFFDC2626), // Red-orange
+          Color(0xFFEA580C), // Deep orange
+          Color(0xFF7C3AED), // Purple
+        ];
+      case 'Isha':
+      default:
+        // Night - deep navy to soft purple
+        return const [
+          Color(0xFF1E1B4B), // Deep navy
+          Color(0xFF312E81), // Indigo
+          Color(0xFF4C1D95), // Purple
+        ];
+    }
+  }
+
+  // Get icon based on prayer time
+  IconData _getPrayerIcon() {
+    final prayerName = _getNextPrayerName();
+    switch (prayerName) {
+      case 'Fajr':
+        return Icons.wb_twilight;
+      case 'Dhuhr':
+        return Icons.wb_sunny;
+      case 'Asr':
+        return Icons.sunny_snowing;
+      case 'Maghrib':
+        return Icons.nights_stay_outlined;
+      case 'Isha':
+      default:
+        return Icons.nights_stay;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final gradientColors = _getPrayerGradient();
+    final nextPrayer = _getNextPrayerName();
+    final prayerIcon = _getPrayerIcon();
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
+            color: gradientColors[0].withValues(alpha: 0.4),
             blurRadius: 30,
             offset: const Offset(0, 15),
           ),
@@ -431,12 +543,8 @@ class _EnhancedPrayerCard extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [
-                  AppColors.primary,
-                  Color(0xFF00897B),
-                  Color(0xFF00695C),
-                ],
+              gradient: LinearGradient(
+                colors: gradientColors,
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -480,9 +588,9 @@ class _EnhancedPrayerCard extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 12),
-                        const Text(
-                          'Maghrib',
-                          style: TextStyle(
+                        Text(
+                          nextPrayer,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 36,
                             fontWeight: FontWeight.bold,
@@ -491,7 +599,7 @@ class _EnhancedPrayerCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '6:45 PM',
+                          _getEstimatedTime(),
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.8),
                             fontSize: 18,
@@ -506,8 +614,8 @@ class _EnhancedPrayerCard extends StatelessWidget {
                             color: Colors.white.withValues(alpha: 0.15),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
-                            Icons.nights_stay,
+                          child: Icon(
+                            prayerIcon,
                             color: Colors.white,
                             size: 36,
                           ),
@@ -536,9 +644,9 @@ class _EnhancedPrayerCard extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.timer_outlined,
-                        color: AppColors.neonGreen,
+                        color: Colors.white70,
                         size: 18,
                       ),
                       const SizedBox(width: 10),
@@ -551,7 +659,7 @@ class _EnhancedPrayerCard extends StatelessWidget {
                         data: (time) => Text(
                           time,
                           style: const TextStyle(
-                            color: AppColors.neonGreen,
+                            color: Colors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             fontFeatures: [FontFeature.tabularFigures()],
@@ -578,6 +686,17 @@ class _EnhancedPrayerCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _getEstimatedTime() {
+    final hour = DateTime.now().hour;
+    if (hour >= 4 && hour < 6) return '5:15 AM';
+    if (hour >= 6 && hour < 12) return '12:30 PM';
+    if (hour >= 12 && hour < 15) return '3:45 PM';
+    if (hour >= 15 && hour < 17) return '3:45 PM';
+    if (hour >= 17 && hour < 19) return '6:15 PM';
+    if (hour >= 19 && hour < 21) return '7:45 PM';
+    return '5:15 AM';
   }
 }
 
@@ -614,7 +733,7 @@ class _QuickStatsRow extends StatelessWidget {
           ),
         ),
       ],
-    );
+    ).animate().fade().slideX(begin: 0.2, end: 0, delay: 300.ms);
   }
 }
 
@@ -756,7 +875,7 @@ class _DailyInspirationCard extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ).animate().fade().slideY(begin: 0.2, end: 0, delay: 400.ms);
   }
 }
 
@@ -787,9 +906,9 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// Featured Tools Carousel
-class _FeaturedToolsCarousel extends StatelessWidget {
-  const _FeaturedToolsCarousel();
+// Featured Tools Grid (No Scrolling)
+class _FeaturedToolsGrid extends StatelessWidget {
+  const _FeaturedToolsGrid();
 
   @override
   Widget build(BuildContext context) {
@@ -811,22 +930,22 @@ class _FeaturedToolsCarousel extends StatelessWidget {
       _ToolData('Courses', Icons.school, const Color(0xFFEC4899), '/courses'),
     ];
 
-    return SizedBox(
-      height: 150,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: tools.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 14),
-        itemBuilder: (context, index) {
-          final tool = tools[index];
-          return _GlassmorphicToolCard(
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: tools.asMap().entries.map((entry) {
+        final index = entry.key;
+        final tool = entry.value;
+        return SizedBox(
+          width: (MediaQuery.of(context).size.width - 40 - 24) / 3,
+          child: _FeaturedToolCard(
             title: tool.title,
             icon: tool.icon,
             color: tool.color,
             onTap: () => context.push(tool.route),
-          );
-        },
-      ),
+          ).animate(delay: (50 * index).ms).fade().slideY(begin: 0.1, end: 0),
+        );
+      }).toList(),
     );
   }
 }
@@ -840,13 +959,13 @@ class _ToolData {
   _ToolData(this.title, this.icon, this.color, this.route);
 }
 
-class _GlassmorphicToolCard extends StatelessWidget {
+class _FeaturedToolCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
 
-  const _GlassmorphicToolCard({
+  const _FeaturedToolCard({
     required this.title,
     required this.icon,
     required this.color,
@@ -855,57 +974,69 @@ class _GlassmorphicToolCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 130, // Increased width
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              color.withValues(alpha: 0.20), // Slightly more opaque
-              color.withValues(alpha: 0.08),
+              color.withValues(alpha: isDark ? 0.25 : 0.15),
+              color.withValues(alpha: isDark ? 0.10 : 0.05),
             ],
           ),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: color.withValues(alpha: 0.4), width: 1.5),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: color.withValues(alpha: isDark ? 0.4 : 0.25),
+            width: 1.5,
+          ),
           boxShadow: [
             BoxShadow(
-              color: color.withValues(alpha: 0.15),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-              spreadRadius: -2,
+              color: color.withValues(alpha: 0.2),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+              spreadRadius: -4,
             ),
           ],
         ),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(16), // Larger padding
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.2),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    color.withValues(alpha: 0.3),
+                    color.withValues(alpha: 0.15),
+                  ],
+                ),
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: color.withValues(alpha: 0.3),
-                    blurRadius: 12,
+                    color: color.withValues(alpha: 0.25),
+                    blurRadius: 10,
                     spreadRadius: -2,
                   ),
                 ],
               ),
-              child: Icon(icon, color: color, size: 32), // Larger icon
+              child: Icon(icon, color: color, size: 26),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             Text(
               title,
               style: TextStyle(
-                fontWeight: FontWeight.bold, // Bolder text
-                color: color,
-                fontSize: 14, // Larger font
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white.withValues(alpha: 0.9) : color,
+                fontSize: 12,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -914,7 +1045,7 @@ class _GlassmorphicToolCard extends StatelessWidget {
   }
 }
 
-// Quick Actions Grid
+// Quick Actions Grid - Premium Redesign
 class _QuickActionsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -969,6 +1100,18 @@ class _QuickActionsGrid extends StatelessWidget {
         '/debate-panel',
       ),
       _ActionData(
+        'Scientists',
+        Icons.science,
+        const Color(0xFF0EA5E9),
+        '/muslim-scientists',
+      ),
+      _ActionData(
+        'Politics',
+        Icons.account_balance,
+        const Color(0xFF9333EA),
+        '/politics',
+      ),
+      _ActionData(
         'Settings',
         Icons.settings,
         const Color(0xFF6B7280),
@@ -980,20 +1123,23 @@ class _QuickActionsGrid extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4, // Changed to 4 columns for better spacing
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 12,
-        childAspectRatio: 0.8, // Taller aspect ratio
+        crossAxisCount: 3,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
+        childAspectRatio: 0.95,
       ),
       itemCount: actions.length,
       itemBuilder: (context, index) {
         final action = actions[index];
-        return _QuickActionItem(
-          icon: action.icon,
-          label: action.label,
-          color: action.color,
-          onTap: () => context.push(action.route),
-        ).animate(delay: (30 * index).ms).fade().scale();
+        return _PremiumActionCard(
+              icon: action.icon,
+              label: action.label,
+              color: action.color,
+              onTap: () => context.push(action.route),
+            )
+            .animate(delay: (30 * index).ms)
+            .fade()
+            .scale(begin: const Offset(0.9, 0.9), end: const Offset(1, 1));
       },
     );
   }
@@ -1008,13 +1154,13 @@ class _ActionData {
   _ActionData(this.label, this.icon, this.color, this.route);
 }
 
-class _QuickActionItem extends StatelessWidget {
+class _PremiumActionCard extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color color;
   final VoidCallback onTap;
 
-  const _QuickActionItem({
+  const _PremiumActionCard({
     required this.icon,
     required this.label,
     required this.color,
@@ -1023,30 +1169,80 @@ class _QuickActionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(18), // Squircle shape
-              border: Border.all(color: color.withValues(alpha: 0.15)),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)]
+                : [Colors.white, color.withValues(alpha: 0.08)],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: color.withValues(alpha: isDark ? 0.3 : 0.2),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.15),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+              spreadRadius: -2,
             ),
-            child: Icon(icon, color: color, size: 26),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+            if (!isDark)
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    color.withValues(alpha: 0.25),
+                    color.withValues(alpha: 0.15),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    spreadRadius: -2,
+                  ),
+                ],
+              ),
+              child: Icon(icon, color: color, size: 28),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.9)
+                    : color.withValues(alpha: 0.9),
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -11,6 +11,8 @@ import ordersRoutes from './routes/orders.js';
 import statsRoutes from './routes/stats.js';
 import booksRoutes from './routes/books.js';
 import questionsRoutes from './routes/questions.js';
+import inventionsRoutes from './routes/inventions.js';
+import scientistsRoutes from './routes/scientists.js';
 import { seedSuperAdmin } from './utils/seed_admin.js';
 
 seedSuperAdmin();
@@ -40,6 +42,8 @@ app.use('/api/orders', ordersRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/books', booksRoutes);
 app.use('/api/questions', questionsRoutes);
+app.use('/api/inventions', inventionsRoutes);
+app.use('/api/scientists', scientistsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

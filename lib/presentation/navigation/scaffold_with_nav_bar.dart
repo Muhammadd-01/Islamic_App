@@ -51,13 +51,14 @@ class ScaffoldWithNavBar extends StatelessWidget {
     if (location.startsWith('/qa')) return 1;
     if (location.startsWith('/quran')) return 2;
     if (location.startsWith('/prayer')) return 3;
+    if (location.startsWith('/home') || location == '/') return 0;
     return 0;
   }
 
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0:
-        context.go('/');
+        context.go('/home');
         break;
       case 1:
         context.go('/qa');

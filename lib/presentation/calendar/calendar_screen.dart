@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:islamic_app/presentation/prayer/prayer_provider.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 
@@ -71,10 +72,10 @@ class CalendarScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(30),
                           ),
                           child: Text(
-                            DateTime.now().toString().split(' ')[0],
+                            _formatGregorianDate(),
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 16,
+                              fontSize: 14,
                             ),
                           ),
                         ),
@@ -141,5 +142,10 @@ class CalendarScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  String _formatGregorianDate() {
+    final now = DateTime.now();
+    return DateFormat('EEEE, MMMM d, y').format(now);
   }
 }

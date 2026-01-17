@@ -44,6 +44,56 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
   }
 
+  bool get _hasImage =>
+      _selectedImage != null ||
+      (_currentImageUrl != null && _currentImageUrl!.isNotEmpty);
+
+  Future<void> _handleImageTap() async {
+    if (!_hasImage) {
+      await _pickImage();
+    } else {
+      await _showImageOptionsDialog();
+    }
+  }
+
+  Future<void> _showImageOptionsDialog() async {
+    await showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Change Image'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text(
+                'Remove Image',
+                style: TextStyle(color: Colors.red),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                setState(() {
+                  _selectedImage = null;
+                  _currentImageUrl = null;
+                });
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -134,49 +184,49 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            GestureDetector(
-              onTap: _pickImage,
-              child: Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                    backgroundImage: _selectedImage != null
-                        ? FileImage(_selectedImage!)
-                        : (_currentImageUrl != null &&
-                                      _currentImageUrl!.isNotEmpty
-                                  ? NetworkImage(_currentImageUrl!)
-                                  : null)
-                              as ImageProvider?,
-                    child:
-                        _selectedImage == null &&
-                            (_currentImageUrl == null ||
-                                _currentImageUrl!.isEmpty)
-                        ? const Icon(
-                            Icons.person,
-                            size: 60,
-                            color: AppColors.primary,
-                          )
-                        : null,
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
+            Stack(
+              children: [
+                CircleAvatar(
+                  radius: 60,
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                  backgroundImage: _selectedImage != null
+                      ? FileImage(_selectedImage!)
+                      : (_currentImageUrl != null &&
+                                    _currentImageUrl!.isNotEmpty
+                                ? NetworkImage(_currentImageUrl!)
+                                : null)
+                            as ImageProvider?,
+                  child:
+                      _selectedImage == null &&
+                          (_currentImageUrl == null ||
+                              _currentImageUrl!.isEmpty)
+                      ? const Icon(
+                          Icons.person,
+                          size: 60,
+                          color: AppColors.primary,
+                        )
+                      : null,
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: _handleImageTap,
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: const BoxDecoration(
                         color: AppColors.primary,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.camera_alt,
+                      child: Icon(
+                        _hasImage ? Icons.edit : Icons.camera_alt,
                         color: Colors.white,
                         size: 20,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
             const SizedBox(height: 32),
             TextField(

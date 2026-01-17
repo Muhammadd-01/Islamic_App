@@ -3,6 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 
+/// DeenSphere Onboarding Splash Screen
+/// Alternative splash used in onboarding flow with premium DeenSphere branding
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -27,53 +29,80 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primary,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 20,
-                        spreadRadius: 5,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.darkBackgroundGradient,
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // DeenSphere Logo with glow effect
+              Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryGold.withValues(alpha: 0.3),
+                          blurRadius: 30,
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: Image.asset(
+                        'assets/deensphere_logo.png',
+                        width: 150,
+                        height: 150,
+                        fit: BoxFit.contain,
                       ),
-                    ],
+                    ),
+                  )
+                  .animate()
+                  .scale(duration: 800.ms, curve: Curves.easeOutBack)
+                  .then(delay: 200.ms)
+                  .shimmer(duration: 1200.ms, color: AppColors.highlightGold),
+              const SizedBox(height: 28),
+              // App Name - "Deen" in white, "Sphere" in gold
+              RichText(
+                text: TextSpan(
+                  style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
                   ),
-                  child: const Icon(
-                    Icons.mosque,
-                    size: 80,
-                    color: AppColors.primary,
-                  ),
-                )
-                .animate()
-                .scale(duration: 800.ms, curve: Curves.easeOutBack)
-                .then(delay: 200.ms)
-                .shimmer(duration: 1200.ms, color: AppColors.accent),
-            const SizedBox(height: 24),
-            const Text(
-              'Islamic App',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: 1.2,
-              ),
-            ).animate().fade(duration: 800.ms).slideY(begin: 0.5, end: 0),
-            const SizedBox(height: 8),
-            Text(
-              'Your Daily Companion',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white.withValues(alpha: 0.8),
-              ),
-            ).animate().fade(delay: 400.ms, duration: 800.ms),
-          ],
+                  children: [
+                    const TextSpan(
+                      text: 'Deen',
+                      style: TextStyle(color: AppColors.primaryWhite),
+                    ),
+                    TextSpan(
+                      text: 'Sphere',
+                      style: TextStyle(
+                        color: AppColors.primaryGold,
+                        shadows: [
+                          Shadow(
+                            color: AppColors.primaryGold.withValues(alpha: 0.5),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ).animate().fade(duration: 800.ms).slideY(begin: 0.5, end: 0),
+              const SizedBox(height: 8),
+              Text(
+                'Serving Islam, Fostering Unity',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.mutedGray.withValues(alpha: 0.8),
+                  letterSpacing: 0.5,
+                ),
+              ).animate().fade(delay: 400.ms, duration: 800.ms),
+            ],
+          ),
         ),
       ),
     );

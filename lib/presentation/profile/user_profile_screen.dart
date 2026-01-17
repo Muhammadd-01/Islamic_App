@@ -4,6 +4,12 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
+import 'package:islamic_app/data/services/supabase_storage_service.dart';
+
+// Provider for user profile data from Firestore
+final userProfileProvider = StreamProvider<Map<String, dynamic>?>((ref) {
+  return SupabaseStorageService().watchUserProfile();
+});
 
 class UserProfileScreen extends ConsumerStatefulWidget {
   const UserProfileScreen({super.key});
@@ -13,9 +19,31 @@ class UserProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
+  bool _isUploadingImage = false;
+
+  Future<void> _pickAndUploadImage() async {
+    setState(() => _isUploadingImage = true);
+    try {
+      final service = SupabaseStorageService();
+      await service.uploadAndSaveProfileImage();
+    } finally {
+      if (mounted) {
+        setState(() => _isUploadingImage = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(firebaseAuthProvider).currentUser;
+    final profileAsync = ref.watch(userProfileProvider);
+
+    // Get profile image URL and display name from Firestore
+    final profileData = profileAsync.value;
+    final profileImageUrl = profileData?['profileImageUrl'] as String?;
+    final displayName =
+        profileData?['displayName'] as String? ?? user?.displayName ?? 'User';
+
     // Mock data
     const totalBookmarks = 12;
     const lastReadSurah = 'Al-Kahf';
@@ -40,18 +68,109 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const CircleAvatar(
-              radius: 50,
-              backgroundColor: AppColors.primary,
-              child: Icon(Icons.person, size: 50, color: Colors.white),
+            // Profile Avatar with Upload
+            GestureDetector(
+              onTap: _isUploadingImage ? null : _pickAndUploadImage,
+              child: Stack(
+                children: [
+                  Container(
+                    width: 110,
+                    height: 110,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: AppColors.primaryGoldGradient,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primaryGold.withValues(alpha: 0.3),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(3),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(3),
+                          child: ClipOval(
+                            child: profileImageUrl != null
+                                ? Image.network(
+                                    profileImageUrl,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder: (context, child, progress) {
+                                      if (progress == null) return child;
+                                      return const Center(
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stack) =>
+                                        const Icon(
+                                          Icons.person,
+                                          size: 50,
+                                          color: AppColors.primary,
+                                        ),
+                                  )
+                                : Container(
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    child: const Icon(
+                                      Icons.person,
+                                      size: 50,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Camera Icon Overlay
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryGold,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          width: 2,
+                        ),
+                      ),
+                      child: _isUploadingImage
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.black,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.camera_alt,
+                              size: 16,
+                              color: Colors.black,
+                            ),
+                    ),
+                  ),
+                ],
+              ),
             ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
             const SizedBox(height: 16),
             Text(
-              user?.displayName ?? 'Muhammad Affan', // Mock name if null
+              displayName,
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ).animate().fade().slideY(begin: 0.5, end: 0, delay: 100.ms),
             Text(
-              user?.email ?? 'affan@example.com',
+              user?.email ?? '',
               style: TextStyle(color: Colors.grey[600], fontSize: 16),
             ).animate().fade().slideY(begin: 0.5, end: 0, delay: 200.ms),
             const SizedBox(height: 32),

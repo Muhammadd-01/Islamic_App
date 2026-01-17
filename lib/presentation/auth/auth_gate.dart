@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
-import 'package:islamic_app/presentation/auth/login_screen.dart';
-import 'package:islamic_app/presentation/home/home_screen.dart';
 
+/// AuthGate - Checks authentication status and navigates accordingly
+/// Located OUTSIDE ShellRoute so navbar is hidden on auth screens
 class AuthGate extends ConsumerWidget {
   const AuthGate({super.key});
 
@@ -13,11 +14,16 @@ class AuthGate extends ConsumerWidget {
 
     return authState.when(
       data: (user) {
-        if (user != null) {
-          return const HomeScreen();
-        } else {
-          return const LoginScreen();
-        }
+        // Use addPostFrameCallback to navigate after build
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (user != null) {
+            context.go('/home');
+          } else {
+            context.go('/login');
+          }
+        });
+        // Show loading while navigating
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
       },
       loading: () =>
           const Scaffold(body: Center(child: CircularProgressIndicator())),

@@ -161,19 +161,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   onTap: () {
                     showAboutDialog(
                       context: context,
-                      applicationName: 'Islamic App',
+                      applicationName: 'DeenSphere',
                       applicationVersion: '1.0.0',
                       applicationIcon: Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: AppColors.primary,
                           borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primaryGold.withValues(
+                                alpha: 0.2,
+                              ),
+                              blurRadius: 8,
+                            ),
+                          ],
                         ),
-                        child: const Icon(Icons.mosque, color: Colors.white),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.asset(
+                            'assets/deensphere_logo.png',
+                            width: 48,
+                            height: 48,
+                          ),
+                        ),
                       ),
                       children: [
                         const Text(
-                          'A comprehensive Islamic application featuring Quran, Hadith, Prayer Times, and more.',
+                          'Serving Islam, Fostering Unity.\n\nA comprehensive Islamic application featuring Quran, Hadith, Prayer Times, and more.',
                         ),
                       ],
                     );

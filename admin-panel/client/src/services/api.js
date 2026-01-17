@@ -49,4 +49,18 @@ export const questionsApi = {
     getStats: () => api.get('/questions/stats/summary'),
 };
 
+// Inventions API
+export const inventionsApi = {
+    getAll: () => api.get('/inventions'),
+    create: (data) => api.post('/inventions', data),
+    delete: (id) => api.delete(`/inventions/${id}`),
+};
+
+// Scientists API
+export const scientistsApi = {
+    getAll: () => api.get('/scientists'),
+    create: (data) => api.post('/scientists', data),
+    delete: (id) => api.delete(`/scientists/${id}`),
+};
+
 export default api;

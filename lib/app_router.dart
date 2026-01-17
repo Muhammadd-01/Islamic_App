@@ -5,6 +5,7 @@ import 'package:islamic_app/presentation/quran/quran_screen.dart';
 import 'package:islamic_app/presentation/quran/surah_detail_screen.dart';
 // import 'package:islamic_app/presentation/quran/surah_detail_screen.dart';
 import 'package:islamic_app/presentation/prayer/prayer_screen.dart';
+import 'package:islamic_app/presentation/home/home_screen.dart';
 import 'package:islamic_app/presentation/tasbeeh/tasbeeh_screen.dart';
 import 'package:islamic_app/presentation/names/names_of_allah_screen.dart';
 import 'package:islamic_app/presentation/qibla/qibla_screen.dart';
@@ -45,21 +46,32 @@ import 'package:islamic_app/presentation/education/debate_panel_screen.dart';
 import 'package:islamic_app/presentation/profile/edit_profile_screen.dart';
 import 'package:islamic_app/presentation/cart/cart_screen.dart';
 import 'package:islamic_app/presentation/checkout/checkout_screen.dart';
+import 'package:islamic_app/presentation/muslim_scientists/muslim_scientists_screen.dart';
 
 import 'package:islamic_app/presentation/auth/auth_gate.dart';
+import 'package:islamic_app/presentation/tools/all_tools_screen.dart';
+import 'package:islamic_app/presentation/politics/politics_screen.dart';
+import 'package:islamic_app/presentation/prayer/prayer_tracker_history_screen.dart';
 
 final goRouter = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/auth',
   routes: [
+    // Auth Gate - Outside ShellRoute (no navbar)
+    GoRoute(
+      path: '/auth',
+      pageBuilder: (context, state) =>
+          const NoTransitionPage(child: AuthGate()),
+    ),
+    // Main Shell with Navbar (authenticated routes)
     ShellRoute(
       builder: (context, state, child) {
         return ScaffoldWithNavBar(child: child);
       },
       routes: [
         GoRoute(
-          path: '/',
+          path: '/home',
           pageBuilder: (context, state) =>
-              const NoTransitionPage(child: AuthGate()),
+              const NoTransitionPage(child: HomeScreen()),
         ),
         GoRoute(
           path: '/qa',
@@ -172,8 +184,17 @@ final goRouter = GoRouter(
           path: '/calendar',
           builder: (context, state) => const CalendarScreen(),
         ),
+        GoRoute(
+          path: '/all-tools',
+          builder: (context, state) => const AllToolsScreen(),
+        ),
+        GoRoute(
+          path: '/politics',
+          builder: (context, state) => const PoliticsScreen(),
+        ),
       ],
     ),
+    GoRoute(path: '/', redirect: (_, __) => '/home'),
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(path: '/signup', builder: (context, state) => const SignUpScreen()),
     GoRoute(
@@ -258,6 +279,14 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/checkout',
       builder: (context, state) => const CheckoutScreen(),
+    ),
+    GoRoute(
+      path: '/muslim-scientists',
+      builder: (context, state) => const MuslimScientistsScreen(),
+    ),
+    GoRoute(
+      path: '/prayer-history',
+      builder: (context, state) => const PrayerTrackerHistoryScreen(),
     ),
   ],
 );

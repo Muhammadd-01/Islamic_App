@@ -10,11 +10,12 @@ import 'package:islamic_app/data/services/supabase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Commented out until Firebase is configured
- await SupabaseService.initialize(
-    url: 'https://xauintsqmapuenkzwxmz.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdWludHNxbWFwdWVua3p3eG16Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4ODQ5MzQsImV4cCI6MjA3OTQ2MDkzNH0.Q89Rz-RFhe2WLD5ywYlZ-_OD1xm7O5bP4kKqToft3L4',
+  await SupabaseService.initialize(
+    url: 'https://lphfrnpvgudrcxbmwloq.supabase.co',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwaGZybnB2Z3VkcmN4Ym13bG9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MzI0NTYsImV4cCI6MjA4NDIwODQ1Nn0.BFX2XO0zAjz4wMuFHlSxT1Tim9LUEhu1K_mkLcce46g',
   );
   runApp(const ProviderScope(child: IslamicApp()));
 }
@@ -28,7 +29,7 @@ class IslamicApp extends ConsumerWidget {
     final locale = ref.watch(languageProvider);
 
     return MaterialApp.router(
-      title: 'Islamic App',
+      title: 'DeenSphere',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,

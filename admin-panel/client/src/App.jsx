@@ -10,6 +10,9 @@ import BooksPage from './pages/Books';
 import QuestionsPage from './pages/Questions';
 import InventionsPage from './pages/Inventions';
 import ScientistsPage from './pages/Scientists';
+import NamesOfAllahPage from './pages/NamesOfAllah';
+import DuasPage from './pages/Duas';
+import DailyInspirationPage from './pages/DailyInspiration';
 import Login from './pages/Login';
 
 function AuthGuard({ children }) {
@@ -26,8 +29,8 @@ function AuthGuard({ children }) {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+            <div className="min-h-screen flex items-center justify-center bg-dark-main">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-primary"></div>
             </div>
         );
     }
@@ -54,26 +57,27 @@ function App() {
         { to: '/questions', icon: MessageCircle, label: 'Questions' },
         { to: '/inventions', icon: BookOpen, label: 'Inventions' },
         { to: '/scientists', icon: Users, label: 'Scientists' },
+        { to: '/names', icon: BookOpen, label: '99 Names' },
+        { to: '/duas', icon: BookOpen, label: 'Duas' },
+        { to: '/inspiration', icon: BookOpen, label: 'Inspiration' },
     ];
 
     return (
         <BrowserRouter>
             <AuthGuard>
-                <div className="min-h-screen bg-gray-100 flex">
+                <div className="min-h-screen bg-dark-main flex">
                     {/* Sidebar */}
                     <aside
-                        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 lg:translate-x-0 lg:static ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                        className={`fixed inset-y-0 left-0 z-50 w-64 bg-dark-card shadow-lg border-r border-dark-icon transform transition-transform duration-300 lg:translate-x-0 lg:static ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                             }`}
                     >
-                        <div className="flex items-center justify-between h-16 px-6 border-b">
+                        <div className="flex items-center justify-between h-16 px-6 border-b border-dark-icon">
                             <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
-                                    <span className="text-white font-bold">IA</span>
-                                </div>
-                                <span className="font-bold text-gray-800">Admin Panel</span>
+                                <img src="/deensphere_logo.png" alt="DeenSphere" className="w-8 h-8" />
+                                <span className="font-bold text-light-primary font-outfit">DeenSphere</span>
                             </div>
                             <button
-                                className="lg:hidden p-1 hover:bg-gray-100 rounded"
+                                className="lg:hidden p-1 hover:bg-dark-icon text-light-muted rounded"
                                 onClick={() => setSidebarOpen(false)}
                             >
                                 <X size={20} />
@@ -88,8 +92,8 @@ function App() {
                                         to={to}
                                         className={({ isActive }) =>
                                             `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${isActive
-                                                ? 'bg-primary-50 text-primary-600'
-                                                : 'text-gray-600 hover:bg-gray-50'
+                                                ? 'bg-gold-primary/10 text-gold-primary'
+                                                : 'text-light-muted hover:bg-dark-icon'
                                             }`
                                         }
                                         onClick={() => setSidebarOpen(false)}
@@ -102,7 +106,7 @@ function App() {
 
                             <button
                                 onClick={handleLogout}
-                                className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-red-600 hover:bg-red-50 w-full"
+                                className="flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors text-error hover:bg-error/10 w-full"
                             >
                                 <LogOut size={20} />
                                 <span className="font-medium">Sign Out</span>
@@ -121,17 +125,17 @@ function App() {
                     {/* Main Content */}
                     <main className="flex-1 min-h-screen">
                         {/* Top Bar */}
-                        <header className="h-16 bg-white shadow-sm flex items-center justify-between px-6">
+                        <header className="h-16 bg-dark-card border-b border-dark-icon shadow-sm flex items-center justify-between px-6">
                             <button
-                                className="lg:hidden p-2 hover:bg-gray-100 rounded"
+                                className="lg:hidden p-2 hover:bg-dark-icon text-light-muted rounded"
                                 onClick={() => setSidebarOpen(true)}
                             >
                                 <Menu size={20} />
                             </button>
                             <div className="flex-1" />
                             <div className="flex items-center space-x-4">
-                                <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
-                                    <span className="text-white text-sm font-medium">A</span>
+                                <div className="w-8 h-8 bg-gold-primary rounded-full flex items-center justify-center">
+                                    <span className="text-iconBlack text-sm font-medium">A</span>
                                 </div>
                             </div>
                         </header>
@@ -146,6 +150,9 @@ function App() {
                                 <Route path="/questions" element={<QuestionsPage />} />
                                 <Route path="/inventions" element={<InventionsPage />} />
                                 <Route path="/scientists" element={<ScientistsPage />} />
+                                <Route path="/names" element={<NamesOfAllahPage />} />
+                                <Route path="/duas" element={<DuasPage />} />
+                                <Route path="/inspiration" element={<DailyInspirationPage />} />
                             </Routes>
                         </div>
                     </main>

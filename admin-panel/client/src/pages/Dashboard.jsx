@@ -26,14 +26,14 @@ function Dashboard() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+                <Loader2 className="w-8 h-8 animate-spin text-gold-primary" />
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="bg-red-50 text-red-600 p-4 rounded-lg">
+            <div className="bg-error/10 text-error p-4 rounded-lg">
                 {error}
                 <button
                     onClick={fetchStats}
@@ -79,56 +79,56 @@ function Dashboard() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-                <p className="text-gray-500">Welcome to Islamic App Admin Panel</p>
+                <h1 className="text-2xl font-bold text-light-primary font-outfit">Dashboard</h1>
+                <p className="text-light-muted">Welcome to DeenSphere Admin Panel</p>
             </div>
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {cards.map(({ title, value, icon: Icon, color, change }) => (
-                    <div key={title} className="bg-white rounded-xl shadow-sm p-6">
+                    <div key={title} className="bg-dark-card border border-dark-icon rounded-xl shadow-sm p-6">
                         <div className="flex items-center justify-between mb-4">
                             <div className={`p-3 rounded-lg ${color}`}>
                                 <Icon className="w-6 h-6 text-white" />
                             </div>
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-800">{value}</h3>
-                        <p className="text-gray-500 text-sm">{title}</p>
-                        <p className="text-xs text-gray-400 mt-2">{change}</p>
+                        <h3 className="text-2xl font-bold text-light-primary">{value}</h3>
+                        <p className="text-light-muted text-sm">{title}</p>
+                        <p className="text-xs text-light-muted/60 mt-2">{change}</p>
                     </div>
                 ))}
             </div>
 
             {/* Quick Actions */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+            <div className="bg-dark-card border border-dark-icon rounded-xl shadow-sm p-6">
+                <h2 className="text-lg font-semibold text-light-primary mb-4">Quick Actions</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <a
                         href="/users"
-                        className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="flex items-center space-x-3 p-4 bg-dark-main/50 rounded-lg hover:bg-dark-icon transition-colors text-light-primary"
                     >
-                        <Users className="w-5 h-5 text-primary-500" />
+                        <Users className="w-5 h-5 text-gold-primary" />
                         <span>Manage Users</span>
                     </a>
                     <a
                         href="/orders"
-                        className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="flex items-center space-x-3 p-4 bg-dark-main/50 rounded-lg hover:bg-dark-icon transition-colors text-light-primary"
                     >
-                        <ShoppingCart className="w-5 h-5 text-primary-500" />
+                        <ShoppingCart className="w-5 h-5 text-gold-primary" />
                         <span>View Orders</span>
                     </a>
                     <button
                         onClick={fetchStats}
-                        className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="flex items-center space-x-3 p-4 bg-dark-main/50 rounded-lg hover:bg-dark-icon transition-colors text-light-primary"
                     >
-                        <TrendingUp className="w-5 h-5 text-primary-500" />
+                        <TrendingUp className="w-5 h-5 text-gold-primary" />
                         <span>Refresh Stats</span>
                     </button>
                 </div>
             </div>
 
             {/* Last Updated */}
-            <p className="text-xs text-gray-400 text-right">
+            <p className="text-xs text-light-muted/60 text-right">
                 Last updated: {stats?.lastUpdated ? new Date(stats.lastUpdated).toLocaleString() : 'N/A'}
             </p>
         </div>

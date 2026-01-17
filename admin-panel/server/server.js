@@ -1,3 +1,4 @@
+
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -13,6 +14,9 @@ import booksRoutes from './routes/books.js';
 import questionsRoutes from './routes/questions.js';
 import inventionsRoutes from './routes/inventions.js';
 import scientistsRoutes from './routes/scientists.js';
+import namesRoutes from './routes/names.js';
+import duasRoutes from './routes/duas.js';
+import inspirationRoutes from './routes/inspiration.js';
 import { seedSuperAdmin } from './utils/seed_admin.js';
 
 seedSuperAdmin();
@@ -44,6 +48,9 @@ app.use('/api/books', booksRoutes);
 app.use('/api/questions', questionsRoutes);
 app.use('/api/inventions', inventionsRoutes);
 app.use('/api/scientists', scientistsRoutes);
+app.use('/api/names', namesRoutes);
+app.use('/api/duas', duasRoutes);
+app.use('/api/inspiration', inspirationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

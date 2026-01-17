@@ -2,25 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
+/* DeenSphere Admin Panel Theme */
 body {
-  font-family: 'Inter', sans-serif;
-  background-color: #f9fafb;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  background-color: #0B0B0B;
+  /* DeenSphere Main Background */
+  color: #FFFFFF;
+  /* Primary White */
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - DeenSphere Style */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #1C1C1C;
+  /* Card Dark */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
+  background: #F5B400;
+  /* Primary Gold */
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
+  background: #FFD84D;
+  /* Highlight Gold */
 }

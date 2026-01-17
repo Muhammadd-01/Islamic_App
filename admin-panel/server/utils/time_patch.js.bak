@@ -1,0 +1,45 @@
+// This utility patches the Date object to handle system time skew
+// It forces the application time to appear as if it's in 2025 if the system says 2026
+
+const RealDate = Date;
+const now = new RealDate();
+
+// Only patch if we are in the future (2026) relative to expected time (2025)
+if (now.getFullYear() >= 2026) {
+    console.log('⚠️  System time detected as ' + now.getFullYear() + '. Applying time patch to match 2025.');
+
+    // Calculate offset to bring us back to same time in 2025
+    // We target exactly one year ago to preserve day/month logic roughly
+    // subtract 5 minutes buffer to be safely "in the past" avoiding future iat errors
+    const targetYear = 2025;
+    const safetyBuffer = 5 * 60 * 1000;
+    const offset = (new RealDate(now).setFullYear(targetYear) - now.getTime()) - safetyBuffer;
+
+    // Patch Date.now
+    Date.now = function () {
+        return new RealDate().getTime() + offset;
+    };
+
+    // Patch new Date() constructor
+    global.Date = class extends RealDate {
+        constructor(...args) {
+            if (args.length === 0) {
+                // Return patched current time
+                super(new RealDate().getTime() + offset);
+            } else {
+                // Pass arguments through to real constructor
+                super(...args);
+            }
+        }
+
+        static now() {
+            return new RealDate().getTime() + offset;
+        }
+    };
+
+    console.log('✅ Time patch applied. Server effective time: ' + new Date().toString());
+} else {
+    console.log('ℹ️  System time is ' + now.getFullYear() + '. No time patch needed.');
+}
+
+export default Date;

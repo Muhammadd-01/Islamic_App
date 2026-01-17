@@ -28,48 +28,48 @@ export default function Login() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-            <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-8">
+        <div className="min-h-screen bg-dark-main flex items-center justify-center p-4">
+            <div className="bg-dark-card border border-dark-icon rounded-xl shadow-lg w-full max-w-md p-8">
                 <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-primary-600 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-lg shadow-primary-200">
-                        <Lock className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 mx-auth mb-4 flex items-center justify-center">
+                        <img src="/deensphere_logo.png" alt="DeenSphere" className="w-16 h-16" />
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-800">Admin Login</h1>
-                    <p className="text-gray-500">Sign in to manage Islamic App</p>
+                    <h1 className="text-2xl font-bold text-light-primary font-outfit">Admin Login</h1>
+                    <p className="text-light-muted">Sign in to manage DeenSphere</p>
                 </div>
 
                 {error && (
-                    <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6 text-sm flex items-center gap-2">
+                    <div className="bg-error/10 text-error p-3 rounded-lg mb-6 text-sm flex items-center gap-2">
                         <span>⚠️</span> {error}
                     </div>
                 )}
 
                 <form onSubmit={handleLogin} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                        <label className="block text-sm font-medium text-light-muted mb-1">Email Address</label>
                         <div className="relative">
-                            <Mail className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+                            <Mail className="absolute left-3 top-2.5 w-5 h-5 text-light-muted" />
                             <input
                                 type="email"
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none"
-                                placeholder="admin@example.com"
+                                className="w-full pl-10 pr-4 py-2 bg-dark-main border border-dark-icon text-light-primary rounded-lg focus:ring-2 focus:ring-gold-primary focus:border-gold-primary transition-all outline-none"
+                                placeholder="superadmin@islamicapp.com"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <label className="block text-sm font-medium text-light-muted mb-1">Password</label>
                         <div className="relative">
-                            <Lock className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+                            <Lock className="absolute left-3 top-2.5 w-5 h-5 text-light-muted" />
                             <input
                                 type="password"
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all outline-none"
+                                className="w-full pl-10 pr-4 py-2 bg-dark-main border border-dark-icon text-light-primary rounded-lg focus:ring-2 focus:ring-gold-primary focus:border-gold-primary transition-all outline-none"
                                 placeholder="••••••••"
                             />
                         </div>
@@ -78,7 +78,7 @@ export default function Login() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-primary-600 text-white py-2.5 rounded-lg hover:bg-primary-700 transition-colors font-medium flex items-center justify-center gap-2 shadow-md shadow-primary-200"
+                        className="w-full bg-gold-primary text-iconBlack py-2.5 rounded-lg hover:bg-gold-highlight transition-colors font-medium flex items-center justify-center gap-2 shadow-md"
                     >
                         {loading ? (
                             <Loader2 className="w-5 h-5 animate-spin" />

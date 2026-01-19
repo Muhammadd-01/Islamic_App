@@ -16,7 +16,10 @@ class LibraryScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Islamic Library'),
         centerTitle: true,
-        leading: const BackButton(),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
       ),
       body: booksAsync.when(
         data: (books) => GridView.builder(
@@ -33,7 +36,7 @@ class LibraryScreen extends ConsumerWidget {
             return Card(
               clipBehavior: Clip.antiAlias,
               child: InkWell(
-                onTap: () => context.go('/library/${book.id}', extra: book),
+                onTap: () => context.push('/library/${book.id}', extra: book),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

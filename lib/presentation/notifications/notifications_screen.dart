@@ -295,7 +295,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 class _NotificationCard extends StatelessWidget {
   final AppNotification notification;
   final int index;
-  final VoidCallback onTap;
+  final Future<void> Function() onTap;
 
   const _NotificationCard({
     super.key,

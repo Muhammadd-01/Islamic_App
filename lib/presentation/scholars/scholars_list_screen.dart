@@ -14,7 +14,14 @@ class ScholarsListScreen extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Book a Scholar'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Book a Scholar'),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
       body: Column(
         children: [
           // Info banner
@@ -107,7 +114,7 @@ class ScholarsListScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: InkWell(
-                        onTap: () => context.go(
+                        onTap: () => context.push(
                           '/scholars/${scholar.id}',
                           extra: scholar,
                         ),

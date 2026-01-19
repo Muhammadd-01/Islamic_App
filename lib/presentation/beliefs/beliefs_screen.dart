@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:islamic_app/core/constants/app_colors.dart';
 
+/// Beliefs Screen - Like Politics with Two Tabs and Videos/Documents
 class BeliefsScreen extends ConsumerStatefulWidget {
   const BeliefsScreen({super.key});
+
+  static const String youtubeChannelUrl = 'https://www.youtube.com/@DeenSphere';
 
   @override
   ConsumerState<BeliefsScreen> createState() => _BeliefsScreenState();
@@ -14,91 +17,79 @@ class BeliefsScreen extends ConsumerStatefulWidget {
 class _BeliefsScreenState extends ConsumerState<BeliefsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  String _selectedCategory = 'all';
-  String _selectedContentType = 'all';
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
+  String _contentType = 'videos'; // 'videos' or 'documents'
 
-  final List<Map<String, dynamic>> _categories = [
-    {'id': 'all', 'name': 'All', 'icon': Icons.list, 'color': Colors.grey},
-    {
-      'id': 'atheism',
-      'name': 'Atheism',
-      'icon': Icons.close,
-      'color': Colors.red,
-    },
-    {
-      'id': 'agnosticism',
-      'name': 'Agnosticism',
-      'icon': Icons.help_outline,
-      'color': Colors.orange,
-    },
-    {
-      'id': 'deism',
-      'name': 'Deism',
-      'icon': Icons.brightness_5,
-      'color': Colors.blue,
-    },
-    {
-      'id': 'humanism',
-      'name': 'Secular Humanism',
-      'icon': Icons.people,
-      'color': Colors.green,
-    },
-    {
-      'id': 'nihilism',
-      'name': 'Nihilism',
-      'icon': Icons.blur_on,
-      'color': Colors.purple,
-    },
+  // Secular worldviews
+  final List<_Belief> _secularBeliefs = const [
+    _Belief(
+      name: 'Atheism',
+      description: 'The absence of belief in the existence of deities.',
+      icon: Icons.close,
+      color: Color(0xFFDC2626),
+      videoUrl: 'https://www.youtube.com/@DeenSphere',
+      documentUrl: 'https://example.com/atheism.pdf',
+    ),
+    _Belief(
+      name: 'Agnosticism',
+      description: 'The view that existence of God is unknown or unknowable.',
+      icon: Icons.help_outline,
+      color: Color(0xFFF59E0B),
+      videoUrl: 'https://www.youtube.com/@DeenSphere',
+      documentUrl: 'https://example.com/agnosticism.pdf',
+    ),
+    _Belief(
+      name: 'Secular Humanism',
+      description: 'Philosophy emphasizing human values without religion.',
+      icon: Icons.people,
+      color: Color(0xFF10B981),
+      videoUrl: 'https://www.youtube.com/@DeenSphere',
+      documentUrl: 'https://example.com/humanism.pdf',
+    ),
+    _Belief(
+      name: 'Nihilism',
+      description: 'The rejection of all religious and moral principles.',
+      icon: Icons.blur_on,
+      color: Color(0xFF6B7280),
+      videoUrl: 'https://www.youtube.com/@DeenSphere',
+      documentUrl: 'https://example.com/nihilism.pdf',
+    ),
   ];
 
-  // Sample data - in production this comes from Firebase
-  final List<Map<String, dynamic>> _beliefs = [
-    {
-      'id': '1',
-      'name': 'What is Atheism?',
-      'description':
-          'Understanding the philosophical position of atheism and its arguments.',
-      'category': 'atheism',
-      'contentType': 'video',
-      'videoUrl': 'https://www.youtube.com/watch?v=example',
-    },
-    {
-      'id': '2',
-      'name': 'Agnosticism Explained',
-      'description':
-          'The agnostic position: neither believing nor disbelieving in God.',
-      'category': 'agnosticism',
-      'contentType': 'video',
-      'videoUrl': 'https://www.youtube.com/watch?v=example',
-    },
-    {
-      'id': '3',
-      'name': 'Islamic Response to Atheism',
-      'description':
-          'A scholarly paper discussing Islamic responses to atheist arguments.',
-      'category': 'atheism',
-      'contentType': 'document',
-      'documentUrl': 'https://example.com/document.pdf',
-    },
-    {
-      'id': '4',
-      'name': 'Deism vs Theism',
-      'description': 'Understanding the difference between deism and theism.',
-      'category': 'deism',
-      'contentType': 'video',
-      'videoUrl': 'https://www.youtube.com/watch?v=example',
-    },
-    {
-      'id': '5',
-      'name': 'Secular Humanism Overview',
-      'description':
-          'An introduction to secular humanist philosophy and ethics.',
-      'category': 'humanism',
-      'contentType': 'document',
-      'documentUrl': 'https://example.com/humanism.pdf',
-    },
+  // Philosophical worldviews
+  final List<_Belief> _philosophicalBeliefs = const [
+    _Belief(
+      name: 'Deism',
+      description:
+          'Belief in a creator who does not intervene in the universe.',
+      icon: Icons.brightness_5,
+      color: Color(0xFF3B82F6),
+      videoUrl: 'https://www.youtube.com/@DeenSphere',
+      documentUrl: 'https://example.com/deism.pdf',
+    ),
+    _Belief(
+      name: 'Pantheism',
+      description: 'The belief that God is identical to the universe.',
+      icon: Icons.public,
+      color: Color(0xFF8B5CF6),
+      videoUrl: 'https://www.youtube.com/@DeenSphere',
+      documentUrl: 'https://example.com/pantheism.pdf',
+    ),
+    _Belief(
+      name: 'Existentialism',
+      description: 'Philosophy focusing on individual existence and freedom.',
+      icon: Icons.person,
+      color: Color(0xFFEC4899),
+      videoUrl: 'https://www.youtube.com/@DeenSphere',
+      documentUrl: 'https://example.com/existentialism.pdf',
+    ),
+    _Belief(
+      name: 'Naturalism',
+      description: 'The belief that only natural laws operate in the world.',
+      icon: Icons.nature,
+      color: Color(0xFF059669),
+      videoUrl: 'https://www.youtube.com/@DeenSphere',
+      documentUrl: 'https://example.com/naturalism.pdf',
+    ),
   ];
 
   @override
@@ -110,282 +101,128 @@ class _BeliefsScreenState extends ConsumerState<BeliefsScreen>
   @override
   void dispose() {
     _tabController.dispose();
-    _searchController.dispose();
     super.dispose();
   }
 
-  List<Map<String, dynamic>> get _filteredBeliefs {
-    return _beliefs.where((item) {
-      final matchesSearch =
-          _searchQuery.isEmpty ||
-          item['name'].toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          item['description'].toLowerCase().contains(
-            _searchQuery.toLowerCase(),
-          );
-      final matchesCategory =
-          _selectedCategory == 'all' || item['category'] == _selectedCategory;
-      final matchesType =
-          _selectedContentType == 'all' ||
-          item['contentType'] == _selectedContentType;
-      return matchesSearch && matchesCategory && matchesType;
-    }).toList();
+  Future<void> _launchYouTube() async {
+    final Uri url = Uri.parse(BeliefsScreen.youtubeChannelUrl);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Could not open YouTube')));
+      }
+    }
   }
 
-  Future<void> _openUrl(String url) async {
+  Future<void> _openContent(_Belief belief) async {
+    final url = _contentType == 'videos' ? belief.videoUrl : belief.documentUrl;
     final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Could not open content')));
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Beliefs & Worldviews'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.play_circle_outline),
+            onPressed: _launchYouTube,
+            tooltip: 'Open YouTube Channel',
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: AppColors.primaryGold,
-          unselectedLabelColor: Colors.grey,
           indicatorColor: AppColors.primaryGold,
+          labelColor: AppColors.primaryGold,
+          unselectedLabelColor: isDark ? Colors.grey[400] : Colors.grey[600],
           tabs: const [
-            Tab(text: 'Browse'),
-            Tab(text: 'About'),
+            Tab(text: 'Secular Views'),
+            Tab(text: 'Philosophical'),
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [_buildBrowseView(), _buildAboutView()],
-      ),
-    );
-  }
-
-  Widget _buildBrowseView() {
-    return Column(
-      children: [
-        // Search Bar
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: TextField(
-            controller: _searchController,
-            onChanged: (value) => setState(() => _searchQuery = value),
-            decoration: InputDecoration(
-              hintText: 'Search beliefs...',
-              prefixIcon: const Icon(Icons.search),
-              filled: true,
-              fillColor: Theme.of(context).cardColor,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-            ),
-          ),
-        ),
-
-        // Category Filter
-        SizedBox(
-          height: 50,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: _categories.length,
-            itemBuilder: (context, index) {
-              final cat = _categories[index];
-              final isSelected = _selectedCategory == cat['id'];
-              return Padding(
-                padding: const EdgeInsets.only(right: 8),
-                child: FilterChip(
-                  selected: isSelected,
-                  label: Text(cat['name']),
-                  avatar: Icon(
-                    cat['icon'],
-                    size: 16,
-                    color: isSelected ? Colors.white : cat['color'],
-                  ),
-                  selectedColor: cat['color'],
-                  backgroundColor: Theme.of(context).cardColor,
-                  labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : null,
-                  ),
-                  onSelected: (_) =>
-                      setState(() => _selectedCategory = cat['id']),
-                ),
-              );
-            },
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        // Content Type Filter
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              _ContentTypeButton(
-                label: 'All',
-                isSelected: _selectedContentType == 'all',
-                onTap: () => setState(() => _selectedContentType = 'all'),
-              ),
-              const SizedBox(width: 8),
-              _ContentTypeButton(
-                label: 'Videos',
-                icon: Icons.play_circle,
-                isSelected: _selectedContentType == 'video',
-                onTap: () => setState(() => _selectedContentType = 'video'),
-              ),
-              const SizedBox(width: 8),
-              _ContentTypeButton(
-                label: 'Documents',
-                icon: Icons.description,
-                isSelected: _selectedContentType == 'document',
-                onTap: () => setState(() => _selectedContentType = 'document'),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // Content List
-        Expanded(
-          child: _filteredBeliefs.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No content found',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _filteredBeliefs.length,
-                  itemBuilder: (context, index) {
-                    final item = _filteredBeliefs[index];
-                    return _BeliefCard(
-                      item: item,
-                      categories: _categories,
-                      onTap: () {
-                        final url = item['contentType'] == 'video'
-                            ? item['videoUrl']
-                            : item['documentUrl'];
-                        if (url != null && url.isNotEmpty) {
-                          _openUrl(url);
-                        }
-                      },
-                    ).animate().fade(delay: Duration(milliseconds: index * 50));
-                  },
-                ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAboutView() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Column(
         children: [
+          // Content Type Toggle
           Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primaryGold,
-                  AppColors.primaryGold.withValues(alpha: 0.7),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
-                Icon(Icons.info_outline, size: 40, color: Colors.black54),
-                SizedBox(height: 12),
-                Text(
-                  'Understanding Different Worldviews',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                Expanded(
+                  child: _ContentTypeButton(
+                    icon: Icons.video_library,
+                    label: 'Videos',
+                    isSelected: _contentType == 'videos',
+                    onTap: () => setState(() => _contentType = 'videos'),
                   ),
                 ),
-                SizedBox(height: 8),
-                Text(
-                  'This section provides educational content about various belief systems and worldviews to help you understand different perspectives.',
-                  style: TextStyle(color: Colors.black87),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _ContentTypeButton(
+                    icon: Icons.description,
+                    label: 'Documents',
+                    isSelected: _contentType == 'documents',
+                    onTap: () => setState(() => _contentType = 'documents'),
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
-          ..._categories
-              .skip(1)
-              .map(
-                (cat) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: (cat['color'] as Color).withValues(
-                        alpha: 0.2,
-                      ),
-                      child: Icon(cat['icon'], color: cat['color']),
-                    ),
-                    title: Text(
-                      cat['name'],
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(_getCategoryDescription(cat['id'])),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(
-                        color: Colors.grey.withValues(alpha: 0.2),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+          // Content View
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildBeliefsList(_secularBeliefs),
+                _buildBeliefsList(_philosophicalBeliefs),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  String _getCategoryDescription(String id) {
-    switch (id) {
-      case 'atheism':
-        return 'The absence of belief in the existence of deities.';
-      case 'agnosticism':
-        return 'The view that the existence of God is unknown or unknowable.';
-      case 'deism':
-        return 'Belief in a creator who does not intervene in the universe.';
-      case 'humanism':
-        return 'A philosophical stance emphasizing human values without religion.';
-      case 'nihilism':
-        return 'The rejection of all religious and moral principles.';
-      default:
-        return '';
-    }
+  Widget _buildBeliefsList(List<_Belief> beliefs) {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: beliefs.length,
+      itemBuilder: (context, index) {
+        final belief = beliefs[index];
+        return _BeliefCard(
+              belief: belief,
+              contentType: _contentType,
+              onTap: () => _openContent(belief),
+            )
+            .animate()
+            .fade(delay: Duration(milliseconds: 50 * index))
+            .slideY(begin: 0.05);
+      },
+    );
   }
 }
 
 class _ContentTypeButton extends StatelessWidget {
+  final IconData icon;
   final String label;
-  final IconData? icon;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _ContentTypeButton({
+    required this.icon,
     required this.label,
-    this.icon,
     required this.isSelected,
     required this.onTap,
   });
@@ -394,14 +231,14 @@ class _ContentTypeButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.primaryGold
               : Theme.of(context).cardColor,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
                 ? AppColors.primaryGold
@@ -409,21 +246,19 @@ class _ContentTypeButton extends StatelessWidget {
           ),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (icon != null) ...[
-              Icon(
-                icon,
-                size: 16,
-                color: isSelected ? Colors.black : Colors.grey,
-              ),
-              const SizedBox(width: 4),
-            ],
+            Icon(
+              icon,
+              size: 20,
+              color: isSelected ? Colors.black : Colors.grey,
+            ),
+            const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.black : Colors.grey[600],
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? Colors.black : Colors.grey,
               ),
             ),
           ],
@@ -434,26 +269,19 @@ class _ContentTypeButton extends StatelessWidget {
 }
 
 class _BeliefCard extends StatelessWidget {
-  final Map<String, dynamic> item;
-  final List<Map<String, dynamic>> categories;
+  final _Belief belief;
+  final String contentType;
   final VoidCallback onTap;
 
   const _BeliefCard({
-    required this.item,
-    required this.categories,
+    required this.belief,
+    required this.contentType,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final category = categories.firstWhere(
-      (c) => c['id'] == item['category'],
-      orElse: () => {
-        'name': 'Other',
-        'color': Colors.grey,
-        'icon': Icons.category,
-      },
-    );
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -466,17 +294,14 @@ class _BeliefCard extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 56,
+                height: 56,
                 decoration: BoxDecoration(
-                  color: (category['color'] as Color).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  color: belief.color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(
-                  item['contentType'] == 'video'
-                      ? Icons.play_circle
-                      : Icons.description,
-                  color: category['color'],
+                child: Center(
+                  child: Icon(belief.icon, size: 28, color: belief.color),
                 ),
               ),
               const SizedBox(width: 16),
@@ -485,15 +310,16 @@ class _BeliefCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item['name'],
-                      style: const TextStyle(
+                      belief.name,
+                      style: TextStyle(
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                        color: isDark ? Colors.white : Colors.black87,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      item['description'],
+                      belief.description,
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -505,17 +331,17 @@ class _BeliefCard extends StatelessWidget {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: (category['color'] as Color).withValues(
-                          alpha: 0.15,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
+                        color: belief.color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        category['name'],
+                        contentType == 'videos'
+                            ? '📹 Watch Video'
+                            : '📄 Read Document',
                         style: TextStyle(
                           fontSize: 10,
-                          color: category['color'],
                           fontWeight: FontWeight.bold,
+                          color: belief.color,
                         ),
                       ),
                     ),
@@ -529,4 +355,22 @@ class _BeliefCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _Belief {
+  final String name;
+  final String description;
+  final IconData icon;
+  final Color color;
+  final String videoUrl;
+  final String documentUrl;
+
+  const _Belief({
+    required this.name,
+    required this.description,
+    required this.icon,
+    required this.color,
+    required this.videoUrl,
+    required this.documentUrl,
+  });
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
@@ -89,7 +90,17 @@ class BookDetailScreen extends ConsumerWidget {
               );
             },
           ),
-          IconButton(icon: const Icon(Icons.share), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: () {
+              final text =
+                  'Check out "${book.title}" by ${book.author}!\n\n${book.description}\n\nGet it on DeenSphere App';
+              Clipboard.setData(ClipboardData(text: text));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Book info copied to clipboard!')),
+              );
+            },
+          ),
         ],
       ),
       body: SingleChildScrollView(

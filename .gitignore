@@ -43,3 +43,13 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Admin Panel - Secrets (NEVER COMMIT THESE!)
+admin-panel/server/config/serviceAccountKey.json
+admin-panel/server/.env
+**/serviceAccountKey.json
+**/.env.local
+**/firebase-adminsdk*.json
+
+# Node modules
+**/node_modules/

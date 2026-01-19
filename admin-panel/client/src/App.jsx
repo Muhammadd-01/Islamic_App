@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import {
     LayoutDashboard, Users, ShoppingCart, BookOpen, MessageCircle,
     Menu, X, LogOut, Lightbulb, Newspaper, Landmark, GraduationCap,
-    History, FlaskConical, Star, Heart, ChevronLeft, ChevronRight
+    History, FlaskConical, Star, Heart, ChevronLeft, ChevronRight, User, Settings
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -23,6 +23,7 @@ import ScholarsPage from './pages/Scholars';
 import CoursesPage from './pages/Courses';
 import HistoryPage from './pages/History';
 import BeliefsPage from './pages/Beliefs';
+import AdminProfilePage from './pages/AdminProfile';
 import Login from './pages/Login';
 
 function AuthGuard({ children }) {
@@ -77,6 +78,7 @@ function App() {
         { to: '/courses', icon: GraduationCap, label: 'Courses' },
         { to: '/history', icon: History, label: 'History' },
         { to: '/beliefs', icon: MessageCircle, label: 'Beliefs' },
+        { to: '/profile', icon: Settings, label: 'Admin Profile' },
     ];
 
     return (
@@ -90,14 +92,17 @@ function App() {
                     >
                         <div className="flex flex-col h-full">
                             {/* Logo */}
-                            <div className={`p-6 border-b border-dark-icon flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
+                            <div className={`p-4 border-b border-dark-icon flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
                                 {!sidebarCollapsed && (
-                                    <h1 className="text-xl font-bold bg-gradient-to-r from-gold-primary to-gold-dark bg-clip-text text-transparent">
-                                        DeenSphere
-                                    </h1>
+                                    <div className="flex items-center gap-3">
+                                        <img src="/deensphere_logo.png" alt="DeenSphere" className="w-10 h-10 rounded-lg" />
+                                        <h1 className="text-xl font-bold bg-gradient-to-r from-gold-primary to-gold-dark bg-clip-text text-transparent">
+                                            DeenSphere
+                                        </h1>
+                                    </div>
                                 )}
                                 {sidebarCollapsed && (
-                                    <span className="text-2xl font-bold text-gold-primary">D</span>
+                                    <img src="/deensphere_logo.png" alt="DeenSphere" className="w-10 h-10 rounded-lg" />
                                 )}
                                 <button
                                     onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -114,7 +119,7 @@ function App() {
                             </div>
 
                             {/* Navigation */}
-                            <nav className="flex-1 p-4 overflow-y-auto">
+                            <nav className="flex-1 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gold-primary/30 scrollbar-track-dark-card hover:scrollbar-thumb-gold-primary/50">
                                 <ul className="space-y-2">
                                     {navLinks.map((link) => (
                                         <li key={link.to}>
@@ -192,6 +197,7 @@ function App() {
                                 <Route path="/courses" element={<CoursesPage />} />
                                 <Route path="/history" element={<HistoryPage />} />
                                 <Route path="/beliefs" element={<BeliefsPage />} />
+                                <Route path="/profile" element={<AdminProfilePage />} />
                             </Routes>
                         </div>
                     </main>

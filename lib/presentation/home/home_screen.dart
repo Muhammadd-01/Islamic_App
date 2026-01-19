@@ -9,6 +9,7 @@ import 'package:islamic_app/core/providers/user_provider.dart';
 import 'package:islamic_app/presentation/prayer/prayer_provider.dart';
 import 'package:islamic_app/presentation/hadith/hadith_provider.dart';
 import 'package:islamic_app/data/repositories/questions_repository.dart';
+import 'package:islamic_app/data/repositories/cart_repository.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -183,6 +184,69 @@ class HomeScreen extends ConsumerWidget {
         ],
       ),
       actions: [
+        // Cart Icon with Badge
+        IconButton(
+          icon: Consumer(
+            builder: (context, ref, child) {
+              final cartCount = ref.watch(cartItemCountProvider);
+
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Theme.of(context).cardColor
+                          : Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.shopping_cart_outlined,
+                      size: 20,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white
+                          : AppColors.primary,
+                    ),
+                  ),
+                  if (cartCount > 0)
+                    Positioned(
+                      right: -2,
+                      top: -2,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: AppColors.primaryGold,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Text(
+                          cartCount > 9 ? '9+' : '$cartCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          onPressed: () => context.push('/cart'),
+        ),
+        // Notifications Icon with Badge
         IconButton(
           icon: Consumer(
             builder: (context, ref, child) {

@@ -295,7 +295,12 @@ class NotificationSettingsScreen extends ConsumerWidget {
       ),
       trailing: Switch.adaptive(
         value: value,
-        activeColor: AppColors.primaryGold,
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return AppColors.primaryGold;
+          }
+          return null;
+        }),
         onChanged: onChanged,
       ),
     );

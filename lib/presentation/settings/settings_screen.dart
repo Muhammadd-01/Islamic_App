@@ -116,7 +116,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 color: AppColors.primary,
               ),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () => context.push('/notifications'),
+              onTap: () => context.push('/notification-settings'),
             ),
           ),
           const SizedBox(height: 24),

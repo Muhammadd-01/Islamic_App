@@ -145,7 +145,17 @@ class _BookmarkCard extends ConsumerWidget {
       child: InkWell(
         onTap: () {
           if (bookmark.route.isNotEmpty) {
-            context.push(bookmark.route);
+            try {
+              context.push(bookmark.route);
+            } catch (e) {
+              // Route doesn't exist, show snackbar
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Cannot open ${bookmark.title}'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
           }
         },
         borderRadius: BorderRadius.circular(12),

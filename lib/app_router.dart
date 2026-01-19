@@ -56,6 +56,7 @@ import 'package:islamic_app/presentation/news/news_screen.dart';
 import 'package:islamic_app/presentation/history/history_screen.dart';
 import 'package:islamic_app/presentation/beliefs/beliefs_screen.dart';
 import 'package:islamic_app/presentation/religions/religions_hub_screen.dart';
+import 'package:islamic_app/presentation/settings/notification_settings_screen.dart';
 
 final goRouter = GoRouter(
   initialLocation: '/auth',
@@ -211,6 +212,10 @@ final goRouter = GoRouter(
         GoRoute(
           path: '/religions',
           builder: (context, state) => const StudyReligionsScreen(),
+        ),
+        GoRoute(
+          path: '/notification-settings',
+          builder: (context, state) => const NotificationSettingsScreen(),
         ),
       ],
     ),

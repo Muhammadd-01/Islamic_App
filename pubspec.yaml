@@ -94,6 +94,7 @@ flutter:
   assets:
     - assets/deensphere_logo.png
     - assets/app_icon.png
+    - assets/images/
     - assets/api/hadith/
     - assets/api/articles/
     - assets/api/dua/

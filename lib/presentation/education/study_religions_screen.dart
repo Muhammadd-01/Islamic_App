@@ -53,11 +53,12 @@ class _StudyReligionsScreenState extends State<StudyReligionsScreen> {
       documentUrl: 'https://example.com/sikhism.pdf',
     ),
     _Religion(
-      name: 'Atheism',
-      description: 'The absence of belief in the existence of deities.',
-      icon: '⚛️',
+      name: 'Worldviews & Beliefs',
+      description: 'Atheism, Agnosticism, Deism, Humanism and more.',
+      icon: '🌐',
       color: Color(0xFF6B7280),
-      documentUrl: 'https://example.com/atheism.pdf',
+      documentUrl: '/beliefs', // Route to beliefs section
+      isRoute: true,
     ),
   ];
 
@@ -366,6 +367,7 @@ class _Religion {
   final String icon;
   final Color color;
   final String documentUrl;
+  final bool isRoute;
 
   const _Religion({
     required this.name,
@@ -373,5 +375,6 @@ class _Religion {
     required this.icon,
     required this.color,
     required this.documentUrl,
+    this.isRoute = false,
   });
 }

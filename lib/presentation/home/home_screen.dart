@@ -358,27 +358,38 @@ class _AnimatedBackground extends StatelessWidget {
                   ),
         ),
 
-        // Decorative Islamic pattern overlay (Mosque/Calligraphy)
-        Positioned(
-          top: 0,
-          right: 0,
+        // Decorative Prophet Stamp background (centered, no square border)
+        Center(
           child: Opacity(
-            opacity: isDark ? 0.04 : 0.06,
-            child: Transform.rotate(
-              angle: 0,
-              child: Column(
-                children: [
-                  Icon(Icons.mosque, size: 150, color: AppColors.primaryGold),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'ﷺ',
-                    style: TextStyle(
-                      fontSize: 60,
-                      fontFamily: 'Amiri',
-                      color: AppColors.primaryGold,
-                    ),
-                  ),
-                ],
+            opacity: isDark ? 0.06 : 0.08,
+            child: ClipOval(
+              child: Image.asset(
+                'assets/images/prophet_stamp.jpg',
+                width: 280,
+                height: 280,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  // Fallback to icon if image not found
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.mosque,
+                        size: 150,
+                        color: AppColors.primaryGold,
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'ﷺ',
+                        style: TextStyle(
+                          fontSize: 60,
+                          fontFamily: 'Amiri',
+                          color: AppColors.primaryGold,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ),
@@ -1107,13 +1118,12 @@ class _FeaturedToolsGrid extends StatelessWidget {
         const Color(0xFF0D9488),
         '/tasbeeh',
       ),
-      // Qibla moved to Prayer section
       _ToolData('99 Names', Icons.stars, const Color(0xFF8B5CF6), '/names'),
       _ToolData(
-        'Audio',
-        Icons.headphones,
-        const Color(0xFF3B82F6),
-        '/reciters',
+        'History',
+        Icons.history_edu,
+        const Color(0xFF7C3AED),
+        '/history',
       ),
       _ToolData('Courses', Icons.school, const Color(0xFFEC4899), '/courses'),
     ];

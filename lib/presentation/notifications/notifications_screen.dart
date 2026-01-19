@@ -24,18 +24,24 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     if (mounted) setState(() => _isRefreshing = false);
   }
 
-  void _clearNotifications() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Notifications cleared'),
-        backgroundColor: AppColors.primaryGold,
-        action: SnackBarAction(
-          label: 'Undo',
-          textColor: Colors.black,
-          onPressed: () {},
+  Future<void> _clearNotifications() async {
+    // Mark all notifications as read
+    final notifications = _cachedNotifications ?? [];
+    final repo = ref.read(notificationsRepositoryProvider);
+    for (final n in notifications.where((n) => !n.read)) {
+      await repo.markAsRead(n.id);
+    }
+    // Invalidate providers to refresh counts
+    ref.invalidate(notificationsStreamProvider);
+    ref.invalidate(unreadNotificationsCountProvider);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('All notifications marked as read'),
+          backgroundColor: AppColors.primaryGold,
         ),
-      ),
-    );
+      );
+    }
   }
 
   @override
@@ -252,29 +258,33 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           key: ValueKey(notification.id), // Stable key for each item
           notification: notification,
           index: index,
-          onTap: () {
-            // Mark as read
+          onTap: () async {
+            // Mark as read and invalidate providers
             if (!notification.read) {
-              ref
+              await ref
                   .read(notificationsRepositoryProvider)
                   .markAsRead(notification.id);
+              // Invalidate to update badge count
+              ref.invalidate(unreadNotificationsCountProvider);
             }
             // Navigate to detail screen
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => NotificationDetailScreen(
-                  notification: {
-                    'id': notification.id,
-                    'title': notification.title,
-                    'body': notification.message,
-                    'type': notification.type,
-                    'timestamp': notification.createdAt,
-                    'read': notification.read,
-                  },
+            if (context.mounted) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NotificationDetailScreen(
+                    notification: {
+                      'id': notification.id,
+                      'title': notification.title,
+                      'body': notification.message,
+                      'type': notification.type,
+                      'timestamp': notification.createdAt,
+                      'read': true,
+                    },
+                  ),
                 ),
-              ),
-            );
+              );
+            }
           },
         );
       },

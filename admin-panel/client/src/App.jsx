@@ -13,6 +13,11 @@ import ScientistsPage from './pages/Scientists';
 import NamesOfAllahPage from './pages/NamesOfAllah';
 import DuasPage from './pages/Duas';
 import DailyInspirationPage from './pages/DailyInspiration';
+import NewsPage from './pages/News';
+import PoliticsPage from './pages/Politics';
+import ScholarsPage from './pages/Scholars';
+import CoursesPage from './pages/Courses';
+import HistoryPage from './pages/History';
 import Login from './pages/Login';
 
 function AuthGuard({ children }) {
@@ -60,6 +65,11 @@ function App() {
         { to: '/names', icon: BookOpen, label: '99 Names' },
         { to: '/duas', icon: BookOpen, label: 'Duas' },
         { to: '/inspiration', icon: BookOpen, label: 'Inspiration' },
+        { to: '/news', icon: BookOpen, label: 'News' },
+        { to: '/politics', icon: BookOpen, label: 'Politics' },
+        { to: '/scholars', icon: Users, label: 'Scholars' },
+        { to: '/courses', icon: BookOpen, label: 'Courses' },
+        { to: '/history', icon: BookOpen, label: 'History' },
     ];
 
     return (
@@ -153,6 +163,11 @@ function App() {
                                 <Route path="/names" element={<NamesOfAllahPage />} />
                                 <Route path="/duas" element={<DuasPage />} />
                                 <Route path="/inspiration" element={<DailyInspirationPage />} />
+                                <Route path="/news" element={<NewsPage />} />
+                                <Route path="/politics" element={<PoliticsPage />} />
+                                <Route path="/scholars" element={<ScholarsPage />} />
+                                <Route path="/courses" element={<CoursesPage />} />
+                                <Route path="/history" element={<HistoryPage />} />
                             </Routes>
                         </div>
                     </main>

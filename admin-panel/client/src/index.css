@@ -6,9 +6,7 @@
 body {
   font-family: 'Outfit', 'Inter', sans-serif;
   background-color: #0B0B0B;
-  /* DeenSphere Main Background */
   color: #FFFFFF;
-  /* Primary White */
 }
 
 /* Custom scrollbar - DeenSphere Style */
@@ -18,16 +16,176 @@ body {
 
 ::-webkit-scrollbar-track {
   background: #1C1C1C;
-  /* Card Dark */
 }
 
 ::-webkit-scrollbar-thumb {
   background: #F5B400;
-  /* Primary Gold */
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #FFD84D;
-  /* Highlight Gold */
+}
+
+/* ========== BUTTON STYLING ========== */
+button,
+.btn {
+  transition: all 0.2s ease;
+}
+
+/* Primary/Submit buttons - Gold background, black text */
+button[type="submit"],
+.btn-primary,
+button.bg-gold-primary,
+button.bg-yellow-500,
+button.bg-yellow-600 {
+  background-color: #F5B400 !important;
+  color: #000000 !important;
+  font-weight: 600;
+}
+
+button[type="submit"]:hover,
+.btn-primary:hover,
+button.bg-gold-primary:hover {
+  background-color: #FFD84D !important;
+  color: #000000 !important;
+}
+
+/* Text/Ghost buttons - Gold text */
+button:not([type="submit"]):not(.btn-primary):not(.bg-gold-primary):not(.bg-red-500):not(.bg-red-600):not(.bg-green-500):not(.bg-blue-500) {
+  color: #F5B400;
+}
+
+button:not([type="submit"]):not(.btn-primary):not(.bg-gold-primary):not(.bg-red-500):not(.bg-red-600):not(.bg-green-500):not(.bg-blue-500):hover {
+  color: #FFD84D;
+}
+
+/* Danger/Delete buttons */
+button.bg-red-500,
+button.bg-red-600,
+.btn-danger {
+  background-color: #EF4444 !important;
+  color: #FFFFFF !important;
+}
+
+/* ========== FORM INPUTS ========== */
+input,
+textarea,
+select {
+  background-color: #1C1C1C !important;
+  border: 1px solid #2A2A2A !important;
+  color: #FFFFFF !important;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #F5B400 !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(245, 180, 0, 0.2) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #888888 !important;
+}
+
+/* Labels */
+label {
+  color: #E5E5E5 !important;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* ========== TABLE STYLING ========== */
+table {
+  background-color: #1C1C1C;
+}
+
+th {
+  background-color: #2A2A2A !important;
+  color: #F5B400 !important;
+  font-weight: 600;
+  padding: 1rem;
+  text-align: left;
+}
+
+td {
+  color: #FFFFFF !important;
+  padding: 1rem;
+  border-bottom: 1px solid #2A2A2A;
+}
+
+tr:hover {
+  background-color: #2A2A2A;
+}
+
+/* ========== CARDS ========== */
+.card {
+  background-color: #1C1C1C;
+  border: 1px solid #2A2A2A;
+}
+
+/* ========== MODAL/DIALOG ========== */
+.modal,
+[role="dialog"],
+.fixed.inset-0 {
+  color: #FFFFFF;
+}
+
+.modal-content,
+[role="dialog"]>div {
+  background-color: #1C1C1C !important;
+  color: #FFFFFF !important;
+}
+
+/* ========== TEXT COLORS ========== */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: #FFFFFF;
+}
+
+p {
+  color: #E5E5E5;
+}
+
+/* Muted text */
+.text-gray-400,
+.text-gray-500,
+.text-gray-600 {
+  color: #B3B3B3 !important;
+}
+
+/* ========== LINKS ========== */
+a {
+  color: #F5B400;
+}
+
+a:hover {
+  color: #FFD84D;
+}
+
+/* ========== SELECT DROPDOWN ========== */
+select option {
+  background-color: #1C1C1C;
+  color: #FFFFFF;
+}
+
+/* ========== CHECKBOX/RADIO ========== */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: #F5B400;
+}
+
+/* ========== FORM GROUP SPACING ========== */
+.space-y-4>*+*,
+.form-group+.form-group {
+  margin-top: 1rem;
 }

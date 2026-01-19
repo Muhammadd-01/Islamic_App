@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/domain/entities/scholar.dart';
 import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 
-class ScholarDetailScreen extends ConsumerWidget {
+class ScholarDetailScreen extends ConsumerStatefulWidget {
   final Scholar scholar;
 
   const ScholarDetailScreen({super.key, required this.scholar});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ScholarDetailScreen> createState() =>
+      _ScholarDetailScreenState();
+}
+
+class _ScholarDetailScreenState extends ConsumerState<ScholarDetailScreen> {
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -19,11 +28,11 @@ class ScholarDetailScreen extends ConsumerWidget {
             expandedHeight: 300,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              title: Text(scholar.name),
+              title: Text(widget.scholar.name),
               background: Hero(
-                tag: 'scholar_${scholar.id}',
+                tag: 'scholar_${widget.scholar.id}',
                 child: Image.network(
-                  scholar.imageUrl,
+                  widget.scholar.imageUrl,
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => Container(
                     color: Colors.grey[300],
@@ -47,25 +56,25 @@ class ScholarDetailScreen extends ConsumerWidget {
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
+                          color: AppColors.primaryGold.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          scholar.specialty,
+                          widget.scholar.specialty,
                           style: const TextStyle(
-                            color: AppColors.primary,
+                            color: AppColors.primaryGold,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
                       const Spacer(),
-                      if (scholar.isAvailableFor1on1)
+                      if (widget.scholar.isAvailableFor1on1)
                         Row(
                           children: [
                             const Icon(Icons.videocam, color: Colors.green),
                             const SizedBox(width: 4),
                             Text(
-                              '\$${scholar.consultationFee.toInt()}/hr',
+                              '\$${widget.scholar.consultationFee.toInt()}/hr',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -82,7 +91,7 @@ class ScholarDetailScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    scholar.bio,
+                    widget.scholar.bio,
                     style: TextStyle(
                       fontSize: 16,
                       height: 1.6,
@@ -90,17 +99,17 @@ class ScholarDetailScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 40),
-                  if (scholar.isAvailableFor1on1)
+                  if (widget.scholar.isAvailableFor1on1)
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: () => _showBookingDialog(context),
                         icon: const Icon(Icons.calendar_today),
-                        label: const Text('Book 1-on-1 Session'),
+                        label: const Text('Book Live Session'),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColors.primaryGold,
+                          foregroundColor: Colors.black,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -117,39 +126,450 @@ class ScholarDetailScreen extends ConsumerWidget {
   }
 
   void _showBookingDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _BookingSheet(scholar: widget.scholar),
+    );
+  }
+}
+
+class _BookingSheet extends StatefulWidget {
+  final Scholar scholar;
+
+  const _BookingSheet({required this.scholar});
+
+  @override
+  State<_BookingSheet> createState() => _BookingSheetState();
+}
+
+class _BookingSheetState extends State<_BookingSheet> {
+  DateTime? _selectedDate;
+  String? _selectedTime;
+  String _paymentMethod = 'card';
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _nameController = TextEditingController();
+  bool _isProcessing = false;
+
+  final List<String> _timeSlots = [
+    '09:00 AM',
+    '10:00 AM',
+    '11:00 AM',
+    '02:00 PM',
+    '03:00 PM',
+    '04:00 PM',
+    '05:00 PM',
+    '07:00 PM',
+    '08:00 PM',
+  ];
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _phoneController.dispose();
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _selectDate() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now().add(const Duration(days: 1)),
+      lastDate: DateTime.now().add(const Duration(days: 30)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primaryGold,
+              onPrimary: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (date != null) {
+      setState(() => _selectedDate = date);
+    }
+  }
+
+  Future<void> _processBooking() async {
+    if (_selectedDate == null || _selectedTime == null) {
+      AppSnackbar.showError(context, 'Please select date and time');
+      return;
+    }
+    if (_nameController.text.isEmpty) {
+      AppSnackbar.showError(context, 'Please enter your name');
+      return;
+    }
+    if (_emailController.text.isEmpty || !_emailController.text.contains('@')) {
+      AppSnackbar.showError(context, 'Please enter a valid email');
+      return;
+    }
+    if (_phoneController.text.isEmpty) {
+      AppSnackbar.showError(context, 'Please enter WhatsApp number');
+      return;
+    }
+
+    setState(() => _isProcessing = true);
+
+    // Simulate payment processing
+    await Future.delayed(const Duration(seconds: 2));
+
+    final formattedDate = DateFormat(
+      'EEEE, MMMM d, yyyy',
+    ).format(_selectedDate!);
+    final sessionDetails =
+        '''
+📅 Session Booked Successfully!
+
+Scholar: ${widget.scholar.name}
+Date: $formattedDate
+Time: $_selectedTime
+
+Your session will be held via video call.
+You will receive a confirmation email at ${_emailController.text}
+And a WhatsApp message at ${_phoneController.text}
+
+Session Fee: \$${widget.scholar.consultationFee.toInt()}
+Payment Method: ${_paymentMethod == 'card' ? 'Credit/Debit Card' : 'PayPal'}
+''';
+
+    // Send WhatsApp confirmation (opens WhatsApp with pre-filled message)
+    final whatsappMessage = Uri.encodeComponent(
+      'Assalamu Alaikum! Your session with ${widget.scholar.name} is confirmed for $formattedDate at $_selectedTime. DeenSphere Team',
+    );
+    final whatsappUrl =
+        'https://wa.me/${_phoneController.text.replaceAll('+', '')}?text=$whatsappMessage';
+
+    setState(() => _isProcessing = false);
+
+    if (mounted) {
+      Navigator.pop(context);
+      _showConfirmationDialog(sessionDetails, whatsappUrl);
+    }
+  }
+
+  void _showConfirmationDialog(String details, String whatsappUrl) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Book Session'),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check, color: Colors.green),
+            ),
+            const SizedBox(width: 12),
+            const Text('Booking Confirmed!'),
+          ],
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Select a time for your session:'),
+            Text(details, style: const TextStyle(height: 1.5)),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 8,
-              children: [
-                _TimeSlot(time: '10:00 AM'),
-                _TimeSlot(time: '02:00 PM'),
-                _TimeSlot(time: '04:30 PM'),
-              ],
+            OutlinedButton.icon(
+              onPressed: () async {
+                final uri = Uri.parse(whatsappUrl);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+              icon: const Icon(Icons.message, color: Colors.green),
+              label: const Text('Send WhatsApp Reminder'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.green,
+                side: const BorderSide(color: Colors.green),
+              ),
             ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
           ElevatedButton(
             onPressed: () {
+              Clipboard.setData(ClipboardData(text: details));
               Navigator.pop(context);
-              AppSnackbar.showSuccess(
-                context,
-                'Booking request sent successfully!',
-              );
+              AppSnackbar.showSuccess(context, 'Details copied to clipboard!');
             },
-            child: const Text('Confirm'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryGold,
+              foregroundColor: Colors.black,
+            ),
+            child: const Text('Copy Details'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              CircleAvatar(
+                backgroundImage: NetworkImage(widget.scholar.imageUrl),
+                radius: 25,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Book Session with',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
+                    Text(
+                      widget.scholar.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryGold,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '\$${widget.scholar.consultationFee.toInt()}/hr',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Date Selection
+                  const Text(
+                    'Select Date',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  InkWell(
+                    onTap: _selectDate,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: _selectedDate != null
+                              ? AppColors.primaryGold
+                              : Colors.grey,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today,
+                            color: _selectedDate != null
+                                ? AppColors.primaryGold
+                                : Colors.grey,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            _selectedDate != null
+                                ? DateFormat(
+                                    'EEEE, MMM d, yyyy',
+                                  ).format(_selectedDate!)
+                                : 'Tap to select date',
+                            style: TextStyle(
+                              color: _selectedDate != null ? null : Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Time Selection
+                  const Text(
+                    'Select Time',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _timeSlots.map((time) {
+                      final isSelected = _selectedTime == time;
+                      return GestureDetector(
+                        onTap: () => setState(() => _selectedTime = time),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppColors.primaryGold
+                                : Colors.transparent,
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primaryGold
+                                  : Colors.grey,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            time,
+                            style: TextStyle(
+                              color: isSelected ? Colors.black : null,
+                              fontWeight: isSelected ? FontWeight.bold : null,
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Contact Info
+                  const Text(
+                    'Your Information',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Full Name',
+                      prefixIcon: const Icon(Icons.person),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      labelText: 'Email Address',
+                      prefixIcon: const Icon(Icons.email),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      helperText: 'Confirmation will be sent here',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                      labelText: 'WhatsApp Number',
+                      prefixIcon: const Icon(Icons.phone),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      helperText: 'Include country code (e.g., +1234567890)',
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Payment Method
+                  const Text(
+                    'Payment Method',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _PaymentOption(
+                          icon: Icons.credit_card,
+                          label: 'Card',
+                          isSelected: _paymentMethod == 'card',
+                          onTap: () => setState(() => _paymentMethod = 'card'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _PaymentOption(
+                          icon: Icons.paypal,
+                          label: 'PayPal',
+                          isSelected: _paymentMethod == 'paypal',
+                          onTap: () =>
+                              setState(() => _paymentMethod = 'paypal'),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+
+          // Book Button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _isProcessing ? null : _processBooking,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryGold,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: _isProcessing
+                  ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.black,
+                      ),
+                    )
+                  : Text(
+                      'Pay \$${widget.scholar.consultationFee.toInt()} & Confirm',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+            ),
           ),
         ],
       ),
@@ -157,27 +577,49 @@ class ScholarDetailScreen extends ConsumerWidget {
   }
 }
 
-class _TimeSlot extends StatefulWidget {
-  final String time;
-  const _TimeSlot({required this.time});
+class _PaymentOption extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
 
-  @override
-  State<_TimeSlot> createState() => _TimeSlotState();
-}
-
-class _TimeSlotState extends State<_TimeSlot> {
-  bool _selected = false;
+  const _PaymentOption({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ChoiceChip(
-      label: Text(widget.time),
-      selected: _selected,
-      onSelected: (value) => setState(() => _selected = value),
-      selectedColor: AppColors.primary.withValues(alpha: 0.2),
-      labelStyle: TextStyle(
-        color: _selected ? AppColors.primary : null,
-        fontWeight: _selected ? FontWeight.bold : null,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primaryGold.withValues(alpha: 0.1)
+              : Colors.transparent,
+          border: Border.all(
+            color: isSelected ? AppColors.primaryGold : Colors.grey,
+            width: isSelected ? 2 : 1,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: isSelected ? AppColors.primaryGold : Colors.grey),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : null,
+                color: isSelected ? AppColors.primaryGold : null,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

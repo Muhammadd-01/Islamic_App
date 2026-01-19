@@ -17,6 +17,11 @@ import scientistsRoutes from './routes/scientists.js';
 import namesRoutes from './routes/names.js';
 import duasRoutes from './routes/duas.js';
 import inspirationRoutes from './routes/inspiration.js';
+import newsRoutes from './routes/news.js';
+import politicsRoutes from './routes/politics.js';
+import scholarsRoutes from './routes/scholars.js';
+import coursesRoutes from './routes/courses.js';
+import historyRoutes from './routes/history.js';
 import { seedSuperAdmin } from './utils/seed_admin.js';
 
 seedSuperAdmin();
@@ -51,6 +56,11 @@ app.use('/api/scientists', scientistsRoutes);
 app.use('/api/names', namesRoutes);
 app.use('/api/duas', duasRoutes);
 app.use('/api/inspiration', inspirationRoutes);
+app.use('/api/news', newsRoutes);
+app.use('/api/politics', politicsRoutes);
+app.use('/api/scholars', scholarsRoutes);
+app.use('/api/courses', coursesRoutes);
+app.use('/api/history', historyRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

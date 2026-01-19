@@ -19,15 +19,14 @@ class AllToolsScreen extends StatelessWidget {
         const Color(0xFF0D9488),
         '/tasbeeh',
       ),
-      _ToolItem('Qibla', Icons.explore, const Color(0xFFF97316), '/qibla'),
       _ToolItem('99 Names', Icons.stars, const Color(0xFF8B5CF6), '/names'),
-      _ToolItem(
-        'Audio',
-        Icons.headphones,
-        const Color(0xFF3B82F6),
-        '/reciters',
-      ),
       _ToolItem('Courses', Icons.school, const Color(0xFFEC4899), '/courses'),
+      _ToolItem(
+        'History',
+        Icons.history_edu,
+        const Color(0xFF7C3AED),
+        '/history',
+      ),
       // Explore Items
       _ToolItem('Quran', Icons.book, const Color(0xFF10B981), '/quran'),
       _ToolItem('Hadith', Icons.menu_book, const Color(0xFF3B82F6), '/hadith'),
@@ -80,12 +79,7 @@ class AllToolsScreen extends StatelessWidget {
         const Color(0xFF9333EA),
         '/politics',
       ),
-      _ToolItem(
-        'Settings',
-        Icons.settings,
-        const Color(0xFF6B7280),
-        '/settings',
-      ),
+      _ToolItem('News', Icons.newspaper, const Color(0xFF059669), '/news'),
     ];
 
     return Scaffold(

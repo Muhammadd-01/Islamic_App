@@ -57,6 +57,7 @@ dependencies:
   permission_handler: ^11.3.0
   flutter_compass: ^0.8.1
   adhan: ^2.0.0+1
+  flutter_tts: ^4.2.0
 
 dev_dependencies:
   flutter_test:

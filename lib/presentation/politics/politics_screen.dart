@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-/// Politics Screen - Islamic and Western Political Content
+/// Politics Screen - Islamic and Western Political Content with Documents & Videos
 class PoliticsScreen extends ConsumerStatefulWidget {
   const PoliticsScreen({super.key});
+
+  static const String youtubeChannelUrl = 'https://www.youtube.com/@DeenSphere';
 
   @override
   ConsumerState<PoliticsScreen> createState() => _PoliticsScreenState();
@@ -14,6 +18,7 @@ class PoliticsScreen extends ConsumerStatefulWidget {
 class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  String _contentType = 'videos'; // 'videos' or 'documents'
 
   @override
   void initState() {
@@ -27,6 +32,17 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
     super.dispose();
   }
 
+  Future<void> _launchYouTube() async {
+    final Uri url = Uri.parse(PoliticsScreen.youtubeChannelUrl);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Could not open YouTube')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -35,6 +51,13 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
       appBar: AppBar(
         title: const Text('Politics'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.play_circle_outline),
+            onPressed: _launchYouTube,
+            tooltip: 'Open YouTube Channel',
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppColors.primaryGold,
@@ -46,103 +69,145 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          _buildIslamicPoliticsTab(isDark),
-          _buildWesternPoliticsTab(isDark),
+          // Content Type Toggle
+          Container(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _ContentTypeButton(
+                    icon: Icons.video_library,
+                    label: 'Videos',
+                    isSelected: _contentType == 'videos',
+                    onTap: () => setState(() => _contentType = 'videos'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _ContentTypeButton(
+                    icon: Icons.description,
+                    label: 'Documents',
+                    isSelected: _contentType == 'documents',
+                    onTap: () => setState(() => _contentType = 'documents'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Content View
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildContentList(_getIslamicTopics(), isDark),
+                _buildContentList(_getWesternTopics(), isDark),
+              ],
+            ),
+          ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _launchYouTube,
+        backgroundColor: Colors.red,
+        icon: const Icon(Icons.play_arrow, color: Colors.white),
+        label: const Text('YouTube', style: TextStyle(color: Colors.white)),
       ),
     );
   }
 
-  Widget _buildIslamicPoliticsTab(bool isDark) {
-    final topics = [
-      _PoliticsTopic(
-        'Caliphate System',
-        'Understanding the historical Islamic governance model',
-        Icons.account_balance,
-        const Color(0xFF10B981),
-      ),
-      _PoliticsTopic(
-        'Shura (Consultation)',
-        'The Islamic principle of collective decision-making',
-        Icons.groups,
-        const Color(0xFF3B82F6),
-      ),
-      _PoliticsTopic(
-        'Islamic Economics',
-        'Principles of fair trade, zakat, and riba prohibition',
-        Icons.monetization_on,
-        const Color(0xFFF59E0B),
-      ),
-      _PoliticsTopic(
-        'Social Justice in Islam',
-        'Rights of citizens, minorities, and social equality',
-        Icons.balance,
-        const Color(0xFF8B5CF6),
-      ),
-      _PoliticsTopic(
-        'Contemporary Muslim Nations',
-        'Political systems in modern Muslim-majority countries',
-        Icons.public,
-        const Color(0xFFEC4899),
-      ),
-      _PoliticsTopic(
-        'Islamic Law & Governance',
-        'Application of Shariah in state affairs',
-        Icons.gavel,
-        const Color(0xFF14B8A6),
-      ),
-    ];
+  List<_PoliticsTopic> _getIslamicTopics() => [
+    _PoliticsTopic(
+      'Caliphate System',
+      'Understanding Islamic governance',
+      Icons.account_balance,
+      const Color(0xFF10B981),
+      'https://example.com/caliphate.pdf',
+    ),
+    _PoliticsTopic(
+      'Shura (Consultation)',
+      'Collective decision-making',
+      Icons.groups,
+      const Color(0xFF3B82F6),
+      'https://example.com/shura.pdf',
+    ),
+    _PoliticsTopic(
+      'Islamic Economics',
+      'Fair trade, zakat principles',
+      Icons.monetization_on,
+      const Color(0xFFF59E0B),
+      'https://example.com/economics.pdf',
+    ),
+    _PoliticsTopic(
+      'Social Justice',
+      'Rights and equality in Islam',
+      Icons.balance,
+      const Color(0xFF8B5CF6),
+      'https://example.com/justice.pdf',
+    ),
+    _PoliticsTopic(
+      'Modern Muslim Nations',
+      'Contemporary political systems',
+      Icons.public,
+      const Color(0xFFEC4899),
+      'https://example.com/nations.pdf',
+    ),
+    _PoliticsTopic(
+      'Islamic Law',
+      'Shariah in governance',
+      Icons.gavel,
+      const Color(0xFF14B8A6),
+      'https://example.com/law.pdf',
+    ),
+  ];
 
-    return _buildTopicsList(topics, isDark);
-  }
+  List<_PoliticsTopic> _getWesternTopics() => [
+    _PoliticsTopic(
+      'Democracy & Islam',
+      'Comparing democratic principles',
+      Icons.how_to_vote,
+      const Color(0xFF3B82F6),
+      'https://example.com/democracy.pdf',
+    ),
+    _PoliticsTopic(
+      'Secularism Analysis',
+      'Islamic perspective on secularism',
+      Icons.location_city,
+      const Color(0xFF6366F1),
+      'https://example.com/secularism.pdf',
+    ),
+    _PoliticsTopic(
+      'Human Rights',
+      'Western vs Islamic rights',
+      Icons.people,
+      const Color(0xFF10B981),
+      'https://example.com/rights.pdf',
+    ),
+    _PoliticsTopic(
+      'Global Politics',
+      'Muslim world relations',
+      Icons.public,
+      const Color(0xFFEA580C),
+      'https://example.com/global.pdf',
+    ),
+    _PoliticsTopic(
+      'Political Philosophy',
+      'Comparing political thought',
+      Icons.psychology,
+      const Color(0xFF8B5CF6),
+      'https://example.com/philosophy.pdf',
+    ),
+    _PoliticsTopic(
+      'Current Affairs',
+      'Contemporary analysis',
+      Icons.newspaper,
+      const Color(0xFFEF4444),
+      'https://example.com/affairs.pdf',
+    ),
+  ];
 
-  Widget _buildWesternPoliticsTab(bool isDark) {
-    final topics = [
-      _PoliticsTopic(
-        'Democracy & Islam',
-        'Comparing democratic principles with Islamic values',
-        Icons.how_to_vote,
-        const Color(0xFF3B82F6),
-      ),
-      _PoliticsTopic(
-        'Secularism Analysis',
-        'Understanding secular governance from an Islamic perspective',
-        Icons.location_city,
-        const Color(0xFF6366F1),
-      ),
-      _PoliticsTopic(
-        'Human Rights',
-        'Western human rights vs. Islamic conception of rights',
-        Icons.people,
-        const Color(0xFF10B981),
-      ),
-      _PoliticsTopic(
-        'Global Politics',
-        'Muslim world in international relations',
-        Icons.public,
-        const Color(0xFFEA580C),
-      ),
-      _PoliticsTopic(
-        'Political Philosophy',
-        'Comparing Western and Islamic political thought',
-        Icons.psychology,
-        const Color(0xFF8B5CF6),
-      ),
-      _PoliticsTopic(
-        'Current Affairs',
-        'Analysis of contemporary political events',
-        Icons.newspaper,
-        const Color(0xFFEF4444),
-      ),
-    ];
-
-    return _buildTopicsList(topics, isDark);
-  }
-
-  Widget _buildTopicsList(List<_PoliticsTopic> topics, bool isDark) {
+  Widget _buildContentList(List<_PoliticsTopic> topics, bool isDark) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: topics.length,
@@ -162,52 +227,204 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
               ),
             ],
           ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(16),
-            leading: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    topic.color.withValues(alpha: 0.2),
-                    topic.color.withValues(alpha: 0.1),
-                  ],
+          child: Column(
+            children: [
+              ListTile(
+                contentPadding: const EdgeInsets.all(16),
+                leading: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        topic.color.withValues(alpha: 0.2),
+                        topic.color.withValues(alpha: 0.1),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    _contentType == 'videos'
+                        ? Icons.play_circle
+                        : Icons.description,
+                    color: topic.color,
+                    size: 24,
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(12),
+                title: Text(
+                  topic.title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    topic.description,
+                    style: TextStyle(
+                      color: isDark ? Colors.grey[400] : Colors.grey[600],
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                trailing: Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16,
+                  color: Colors.grey[400],
+                ),
+                onTap: () {
+                  if (_contentType == 'videos') {
+                    _launchYouTube();
+                  } else {
+                    _showDocumentOptions(topic);
+                  }
+                },
               ),
-              child: Icon(topic.icon, color: topic.color, size: 24),
-            ),
-            title: Text(
-              topic.title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                topic.description,
-                style: TextStyle(
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  fontSize: 13,
+              // Action buttons for documents
+              if (_contentType == 'documents')
+                Container(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _downloadDocument(topic),
+                          icon: const Icon(Icons.download, size: 18),
+                          label: const Text('Download PDF'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: topic.color,
+                            side: BorderSide(color: topic.color),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _shareDocument(topic),
+                          icon: const Icon(Icons.share, size: 18),
+                          label: const Text('Share'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: topic.color,
+                            side: BorderSide(color: topic.color),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ),
-            trailing: Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: Colors.grey[400],
-            ),
-            onTap: () {
-              // TODO: Navigate to topic detail (connect to Firestore later)
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${topic.title} - Coming Soon'),
-                  backgroundColor: topic.color,
-                ),
-              );
-            },
+            ],
           ),
         ).animate(delay: (50 * index).ms).fade().slideX(begin: 0.1, end: 0);
       },
+    );
+  }
+
+  void _showDocumentOptions(_PoliticsTopic topic) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              topic.title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 24),
+            ListTile(
+              leading: const Icon(Icons.download),
+              title: const Text('Download PDF'),
+              onTap: () {
+                Navigator.pop(context);
+                _downloadDocument(topic);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.share),
+              title: const Text('Share Document'),
+              onTap: () {
+                Navigator.pop(context);
+                _shareDocument(topic);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _downloadDocument(_PoliticsTopic topic) async {
+    final Uri url = Uri.parse(topic.documentUrl);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open document')),
+        );
+      }
+    }
+  }
+
+  void _shareDocument(_PoliticsTopic topic) {
+    final content =
+        '${topic.title}\n\n${topic.description}\n\nDocument: ${topic.documentUrl}\n\nShared from DeenSphere App';
+    Clipboard.setData(ClipboardData(text: content));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Document info copied to clipboard!'),
+        backgroundColor: AppColors.primaryGold,
+      ),
+    );
+  }
+}
+
+class _ContentTypeButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ContentTypeButton({
+    required this.icon,
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryGold : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primaryGold
+                : Colors.grey.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: isSelected ? Colors.black : Colors.grey,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: isSelected ? Colors.black : Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -217,6 +434,13 @@ class _PoliticsTopic {
   final String description;
   final IconData icon;
   final Color color;
+  final String documentUrl;
 
-  _PoliticsTopic(this.title, this.description, this.icon, this.color);
+  _PoliticsTopic(
+    this.title,
+    this.description,
+    this.icon,
+    this.color,
+    this.documentUrl,
+  );
 }

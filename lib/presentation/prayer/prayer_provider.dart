@@ -30,23 +30,128 @@ final hijriDateProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   return repository.getHijriDate();
 });
 
-final nextPrayerProvider = StreamProvider<String>((ref) {
-  return Stream.periodic(const Duration(seconds: 1), (_) {
-    // In a real app, we would parse the actual prayer times from the provider
-    // and calculate the difference. For now, we'll keep the mock countdown
-    // but it's ready to be connected to the real data.
+/// Cached prayer times for countdown calculation
+class PrayerTimeCache {
+  static Map<String, DateTime>? _todayPrayerTimes;
+  static DateTime? _cacheDate;
+
+  static void setPrayerTimes(Map<String, dynamic> timings) {
     final now = DateTime.now();
-    final target = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      18,
-      15,
-    ); // Maghrib mock
-    if (now.isAfter(target)) {
-      return "Next Prayer: Isha";
+    _cacheDate = now;
+    _todayPrayerTimes = {};
+
+    // Parse prayer times from API response
+    final prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+    for (final prayer in prayers) {
+      final timeStr = timings[prayer] as String?;
+      if (timeStr != null) {
+        final parts = timeStr.split(':');
+        if (parts.length >= 2) {
+          final hour = int.tryParse(parts[0]) ?? 0;
+          final minute = int.tryParse(parts[1].split(' ')[0]) ?? 0;
+          _todayPrayerTimes![prayer] = DateTime(
+            now.year,
+            now.month,
+            now.day,
+            hour,
+            minute,
+          );
+        }
+      }
     }
-    final diff = target.difference(now);
-    return "${diff.inHours.toString().padLeft(2, '0')}:${(diff.inMinutes % 60).toString().padLeft(2, '0')}:${(diff.inSeconds % 60).toString().padLeft(2, '0')}";
+  }
+
+  static Map<String, DateTime>? get prayerTimes {
+    final now = DateTime.now();
+    if (_cacheDate != null &&
+        _cacheDate!.day == now.day &&
+        _cacheDate!.month == now.month &&
+        _todayPrayerTimes != null) {
+      return _todayPrayerTimes;
+    }
+    return null;
+  }
+}
+
+/// Next prayer name provider
+final nextPrayerNameProvider = Provider<String>((ref) {
+  final prayerTimes = PrayerTimeCache.prayerTimes;
+  if (prayerTimes == null) return 'Loading...';
+
+  final now = DateTime.now();
+  final orderedPrayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+
+  for (final prayer in orderedPrayers) {
+    final prayerTime = prayerTimes[prayer];
+    if (prayerTime != null && prayerTime.isAfter(now)) {
+      return prayer;
+    }
+  }
+
+  // All prayers passed, next is tomorrow's Fajr
+  return 'Fajr';
+});
+
+/// Stream provider for real-time countdown
+final nextPrayerProvider = StreamProvider<String>((ref) {
+  final prayerTimesAsync = ref.watch(prayerTimesProvider);
+
+  return Stream.periodic(const Duration(seconds: 1), (_) {
+    final now = DateTime.now();
+
+    // Try to get cached prayer times
+    var prayerTimes = PrayerTimeCache.prayerTimes;
+
+    // If no cache, try to set from provider data
+    if (prayerTimes == null) {
+      prayerTimesAsync.whenData((data) {
+        final timings = data['timings'] as Map<String, dynamic>?;
+        if (timings != null) {
+          PrayerTimeCache.setPrayerTimes(timings);
+        }
+      });
+      prayerTimes = PrayerTimeCache.prayerTimes;
+    }
+
+    if (prayerTimes == null) {
+      return '--:--:--';
+    }
+
+    // Find next prayer time
+    DateTime? nextPrayerTime;
+    final orderedPrayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+
+    for (final prayer in orderedPrayers) {
+      final prayerTime = prayerTimes[prayer];
+      if (prayerTime != null && prayerTime.isAfter(now)) {
+        nextPrayerTime = prayerTime;
+        break;
+      }
+    }
+
+    // If all prayers have passed, calculate time to tomorrow's Fajr
+    if (nextPrayerTime == null) {
+      final fajr = prayerTimes['Fajr'];
+      if (fajr != null) {
+        nextPrayerTime = DateTime(
+          now.year,
+          now.month,
+          now.day + 1,
+          fajr.hour,
+          fajr.minute,
+        );
+      }
+    }
+
+    if (nextPrayerTime == null) {
+      return '--:--:--';
+    }
+
+    final diff = nextPrayerTime.difference(now);
+    final hours = diff.inHours;
+    final minutes = diff.inMinutes % 60;
+    final seconds = diff.inSeconds % 60;
+
+    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   });
 });

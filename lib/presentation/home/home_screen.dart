@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -92,6 +91,16 @@ class HomeScreen extends ConsumerWidget {
                       ).animate().fade(delay: 500.ms),
                       const SizedBox(height: 16),
                       _QuickActionsGrid().animate().fade(delay: 550.ms),
+
+                      const SizedBox(height: 28),
+
+                      // News Section
+                      _SectionHeader(
+                        title: 'Global News',
+                        onSeeAll: () => context.push('/news'),
+                      ).animate().fade(delay: 600.ms),
+                      const SizedBox(height: 16),
+                      _NewsPreviewCard().animate().fade(delay: 650.ms),
 
                       const SizedBox(height: 100), // Bottom padding
                     ],
@@ -349,18 +358,27 @@ class _AnimatedBackground extends StatelessWidget {
                   ),
         ),
 
-        // Decorative pattern overlay
+        // Decorative Islamic pattern overlay (Mosque/Calligraphy)
         Positioned(
           top: 0,
           right: 0,
           child: Opacity(
-            opacity: isDark ? 0.03 : 0.05,
+            opacity: isDark ? 0.04 : 0.06,
             child: Transform.rotate(
-              angle: math.pi / 6,
-              child: const Icon(
-                Icons.star_border,
-                size: 300,
-                color: AppColors.primary,
+              angle: 0,
+              child: Column(
+                children: [
+                  Icon(Icons.mosque, size: 150, color: AppColors.primaryGold),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'ﷺ',
+                    style: TextStyle(
+                      fontSize: 60,
+                      fontFamily: 'Amiri',
+                      color: AppColors.primaryGold,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -825,16 +843,87 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// Daily Inspiration Card
-class _DailyInspirationCard extends StatelessWidget {
+// Daily Inspiration Card - Animated Carousel
+class _DailyInspirationCard extends StatefulWidget {
   final Map<String, dynamic> hadith;
 
   const _DailyInspirationCard({required this.hadith});
 
   @override
+  State<_DailyInspirationCard> createState() => _DailyInspirationCardState();
+}
+
+class _DailyInspirationCardState extends State<_DailyInspirationCard> {
+  int _currentIndex = 0;
+  late PageController _pageController;
+
+  // Sample ayat and quotes - in production these would come from Firebase
+  final List<Map<String, dynamic>> _inspirations = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+    _initInspirations();
+    _startAutoScroll();
+  }
+
+  void _initInspirations() {
+    _inspirations.addAll([
+      {
+        'type': 'hadith',
+        'title': 'Hadith of the Day',
+        'icon': Icons.auto_stories,
+        'text':
+            widget.hadith['text_en'] ??
+            'The best of you are those who are best to their families.',
+        'source': widget.hadith['narrator'] ?? 'Sahih Bukhari',
+        'color': const Color(0xFF3B82F6),
+      },
+      {
+        'type': 'ayat',
+        'title': 'Ayat of the Day',
+        'icon': Icons.menu_book,
+        'text': 'Indeed, with hardship comes ease.',
+        'source': 'Surah Ash-Sharh (94:6)',
+        'color': const Color(0xFF10B981),
+      },
+      {
+        'type': 'quote',
+        'title': 'Quote of the Day',
+        'icon': Icons.format_quote,
+        'text':
+            'The ink of the scholar is more sacred than the blood of the martyr.',
+        'source': 'Prophet Muhammad ﷺ',
+        'color': const Color(0xFF8B5CF6),
+      },
+    ]);
+  }
+
+  void _startAutoScroll() {
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        final nextIndex = (_currentIndex + 1) % _inspirations.length;
+        _pageController.animateToPage(
+          nextIndex,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+        _startAutoScroll();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      height: 220,
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(24),
@@ -848,6 +937,72 @@ class _DailyInspirationCard extends StatelessWidget {
         ],
       ),
       child: Column(
+        children: [
+          Expanded(
+            child: PageView.builder(
+              controller: _pageController,
+              onPageChanged: (index) => setState(() => _currentIndex = index),
+              itemCount: _inspirations.length,
+              itemBuilder: (context, index) {
+                final item = _inspirations[index];
+                return _InspirationSlide(
+                  title: item['title'],
+                  text: item['text'],
+                  source: item['source'],
+                  icon: item['icon'],
+                  color: item['color'],
+                );
+              },
+            ),
+          ),
+          // Page indicators
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                _inspirations.length,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: _currentIndex == index ? 24 : 8,
+                  height: 8,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: _currentIndex == index
+                        ? AppColors.primaryGold
+                        : Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ).animate().fade().slideY(begin: 0.2, end: 0, delay: 400.ms);
+  }
+}
+
+class _InspirationSlide extends StatelessWidget {
+  final String title;
+  final String text;
+  final String source;
+  final IconData icon;
+  final Color color;
+
+  const _InspirationSlide({
+    required this.title,
+    required this.text,
+    required this.source,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -856,60 +1011,50 @@ class _DailyInspirationCard extends StatelessWidget {
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      AppColors.accent,
-                      AppColors.accent.withValues(alpha: 0.7),
-                    ],
+                    colors: [color, color.withValues(alpha: 0.7)],
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
-                  Icons.lightbulb,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                child: Icon(icon, color: Colors.white, size: 20),
               ),
               const SizedBox(width: 12),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Daily Inspiration',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  Text(
-                    'Hadith of the Day',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          Text(
-            '"${hadith['text_en']}"',
-            style: const TextStyle(
-              fontSize: 16,
-              fontStyle: FontStyle.italic,
-              height: 1.6,
+          const SizedBox(height: 16),
+          Expanded(
+            child: Text(
+              '"$text"',
+              style: const TextStyle(
+                fontSize: 15,
+                fontStyle: FontStyle.italic,
+                height: 1.5,
+              ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(height: 16),
           Row(
             children: [
               Container(
                 width: 4,
                 height: 20,
                 decoration: BoxDecoration(
-                  color: AppColors.primary,
+                  color: color,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
               const SizedBox(width: 10),
               Text(
-                '${hadith['narrator']}',
+                source,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 12,
                   color: Colors.grey[600],
                   fontWeight: FontWeight.w500,
                 ),
@@ -918,7 +1063,7 @@ class _DailyInspirationCard extends StatelessWidget {
           ),
         ],
       ),
-    ).animate().fade().slideY(begin: 0.2, end: 0, delay: 400.ms);
+    );
   }
 }
 
@@ -1308,5 +1453,77 @@ class _ShimmerCard extends StatelessWidget {
         )
         .animate(onPlay: (c) => c.repeat())
         .shimmer(duration: 1200.ms, color: Colors.white.withValues(alpha: 0.1));
+  }
+}
+
+// News Preview Card for Home Screen
+class _NewsPreviewCard extends StatelessWidget {
+  const _NewsPreviewCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: () => context.push('/news'),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              const Color(0xFF059669),
+              const Color(0xFF059669).withValues(alpha: 0.8),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF059669).withValues(alpha: 0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(Icons.newspaper, color: Colors.white, size: 28),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Stay Updated',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Get the latest global news and updates',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 20),
+          ],
+        ),
+      ),
+    );
   }
 }

@@ -15,6 +15,8 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  bool _isLoggingOut = false;
+
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
@@ -215,16 +217,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () async {
-                await ref.read(authRepositoryProvider).signOut();
-                if (context.mounted) context.go('/login');
-              },
+              onPressed: _isLoggingOut
+                  ? null
+                  : () async {
+                      setState(() => _isLoggingOut = true);
+                      await ref.read(authRepositoryProvider).signOut();
+                      if (context.mounted) context.go('/login');
+                    },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: _isLoggingOut ? Colors.grey : Colors.red,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: const Text('Logout'),
+              child: _isLoggingOut
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text('Logout'),
             ),
           ),
         ],

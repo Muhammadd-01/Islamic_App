@@ -2,6 +2,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
     // Helper function to check if user is admin
     function isAdmin() {
       return request.auth != null && 
@@ -12,9 +17,9 @@ service cloud.firestore {
     // Users Collection
     match /users/{userId} {
       // Allow user to create their own profile during signup
-      allow create: if request.auth != null && request.auth.uid == userId;
+      allow create: if isAuthenticated() && request.auth.uid == userId;
       // Allow user to read/update their own profile
-      allow read, update: if request.auth != null && request.auth.uid == userId;
+      allow read, update: if isAuthenticated() && request.auth.uid == userId;
       // Admins can read all users
       allow read, write: if isAdmin();
     }
@@ -28,25 +33,70 @@ service cloud.firestore {
     // Questions Collection (Q&A)
     match /questions/{questionId} {
       allow read: if true;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
-      allow delete: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
-    // Notifications
+    // Notifications - Allow users to read and UPDATE their own notifications
     match /notifications/{notificationId} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow write: if isAdmin(); // Usually server writes these, but allowing admin is safe
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // Allow users to update their own notifications (mark as read)
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create, delete: if isAdmin();
+    }
+    
+    // Bookmarks Collection - Allow users to manage their own bookmarks
+    match /bookmarks/{bookmarkId} {
+      allow read, write: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+    }
+    
+    // User Bookmarks - subcollection under users
+    match /users/{userId}/bookmarks/{bookmarkId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
     }
     
     // Carts Collection
     match /carts/{userId} {
-       allow read, write: if request.auth != null && request.auth.uid == userId;
+       allow read, write: if isAuthenticated() && request.auth.uid == userId;
     }
-
-    // Default deny
-    match /{document=**} {
-      allow read, write: if false;
+    
+    // Carts with subcollection items
+    match /carts/{userId}/items/{itemId} {
+       allow read, write: if isAuthenticated() && request.auth.uid == userId;
     }
+    
+    // Hadiths Collection - Public read
+    match /hadiths/{hadithId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Scholars Collection - Public read
+    match /scholars/{scholarId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Courses Collection - Public read
+    match /courses/{courseId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // History Collection - Public read
+    match /history/{historyId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Beliefs Collection - Public read
+    match /beliefs/{beliefId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Default: Allow read for public collections (should be last, but not catch-all deny)
   }
 }

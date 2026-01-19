@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:islamic_app/data/repositories/politics_repository.dart';
+import 'package:islamic_app/domain/entities/politics_topic.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Politics Screen - Islamic and Western Political Content with Documents & Videos
@@ -43,9 +45,24 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
     }
   }
 
+  List<PoliticsTopic> _filterTopics(
+    List<PoliticsTopic> topics,
+    String category,
+  ) {
+    return topics.where((t) {
+      if (category == 'Islamic') {
+        return t.category.toLowerCase() == 'islamic' ||
+            t.category.toLowerCase() == 'muslim';
+      } else {
+        return t.category.toLowerCase() == 'western';
+      }
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final politicsAsync = ref.watch(politicsStreamProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -69,44 +86,53 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
           ],
         ),
       ),
-      body: Column(
-        children: [
-          // Content Type Toggle
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _ContentTypeButton(
-                    icon: Icons.video_library,
-                    label: 'Videos',
-                    isSelected: _contentType == 'videos',
-                    onTap: () => setState(() => _contentType = 'videos'),
-                  ),
+      body: politicsAsync.when(
+        data: (topics) {
+          final islamicTopics = _filterTopics(topics, 'Islamic');
+          final westernTopics = _filterTopics(topics, 'Western');
+
+          return Column(
+            children: [
+              // Content Type Toggle
+              Container(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _ContentTypeButton(
+                        icon: Icons.video_library,
+                        label: 'Videos',
+                        isSelected: _contentType == 'videos',
+                        onTap: () => setState(() => _contentType = 'videos'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _ContentTypeButton(
+                        icon: Icons.description,
+                        label: 'Documents',
+                        isSelected: _contentType == 'documents',
+                        onTap: () => setState(() => _contentType = 'documents'),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _ContentTypeButton(
-                    icon: Icons.description,
-                    label: 'Documents',
-                    isSelected: _contentType == 'documents',
-                    onTap: () => setState(() => _contentType = 'documents'),
-                  ),
+              ),
+              // Content View
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildContentList(islamicTopics, isDark),
+                    _buildContentList(westernTopics, isDark),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          // Content View
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildContentList(_getIslamicTopics(), isDark),
-                _buildContentList(_getWesternTopics(), isDark),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _launchYouTube,
@@ -117,108 +143,49 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
     );
   }
 
-  List<_PoliticsTopic> _getIslamicTopics() => [
-    _PoliticsTopic(
-      'Caliphate System',
-      'Understanding Islamic governance',
-      Icons.account_balance,
-      const Color(0xFF10B981),
-      'https://example.com/caliphate.pdf',
-    ),
-    _PoliticsTopic(
-      'Shura (Consultation)',
-      'Collective decision-making',
-      Icons.groups,
-      const Color(0xFF3B82F6),
-      'https://example.com/shura.pdf',
-    ),
-    _PoliticsTopic(
-      'Islamic Economics',
-      'Fair trade, zakat principles',
-      Icons.monetization_on,
-      const Color(0xFFF59E0B),
-      'https://example.com/economics.pdf',
-    ),
-    _PoliticsTopic(
-      'Social Justice',
-      'Rights and equality in Islam',
-      Icons.balance,
-      const Color(0xFF8B5CF6),
-      'https://example.com/justice.pdf',
-    ),
-    _PoliticsTopic(
-      'Modern Muslim Nations',
-      'Contemporary political systems',
-      Icons.public,
-      const Color(0xFFEC4899),
-      'https://example.com/nations.pdf',
-    ),
-    _PoliticsTopic(
-      'Islamic Law',
-      'Shariah in governance',
-      Icons.gavel,
-      const Color(0xFF14B8A6),
-      'https://example.com/law.pdf',
-    ),
-  ];
+  Widget _buildContentList(List<PoliticsTopic> topics, bool isDark) {
+    // Filter by content type availability
+    final filteredTopics = topics.where((t) {
+      if (_contentType == 'videos') return t.videoUrl.isNotEmpty;
+      return t.documentUrl.isNotEmpty;
+    }).toList();
 
-  List<_PoliticsTopic> _getWesternTopics() => [
-    _PoliticsTopic(
-      'Democracy & Islam',
-      'Comparing democratic principles',
-      Icons.how_to_vote,
-      const Color(0xFF3B82F6),
-      'https://example.com/democracy.pdf',
-    ),
-    _PoliticsTopic(
-      'Secularism Analysis',
-      'Islamic perspective on secularism',
-      Icons.location_city,
-      const Color(0xFF6366F1),
-      'https://example.com/secularism.pdf',
-    ),
-    _PoliticsTopic(
-      'Human Rights',
-      'Western vs Islamic rights',
-      Icons.people,
-      const Color(0xFF10B981),
-      'https://example.com/rights.pdf',
-    ),
-    _PoliticsTopic(
-      'Global Politics',
-      'Muslim world relations',
-      Icons.public,
-      const Color(0xFFEA580C),
-      'https://example.com/global.pdf',
-    ),
-    _PoliticsTopic(
-      'Political Philosophy',
-      'Comparing political thought',
-      Icons.psychology,
-      const Color(0xFF8B5CF6),
-      'https://example.com/philosophy.pdf',
-    ),
-    _PoliticsTopic(
-      'Current Affairs',
-      'Contemporary analysis',
-      Icons.newspaper,
-      const Color(0xFFEF4444),
-      'https://example.com/affairs.pdf',
-    ),
-  ];
+    if (filteredTopics.isEmpty) {
+      return const Center(child: Text("No content available"));
+    }
 
-  Widget _buildContentList(List<_PoliticsTopic> topics, bool isDark) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: topics.length,
+      itemCount: filteredTopics.length,
       itemBuilder: (context, index) {
-        final topic = topics[index];
+        final topic = filteredTopics[index];
+        // Determine icon and color based on title keywords or default
+        // Since we don't store icon/color in DB, we'll assign defaults here
+        IconData icon = Icons.article;
+        Color color = AppColors.primaryGold;
+
+        if (topic.title.toLowerCase().contains('democracy')) {
+          icon = Icons.how_to_vote;
+          color = const Color(0xFF3B82F6);
+        } else if (topic.title.toLowerCase().contains('money') ||
+            topic.title.toLowerCase().contains('economics')) {
+          icon = Icons.monetization_on;
+          color = const Color(0xFFF59E0B);
+        } else if (topic.title.toLowerCase().contains('caliphate')) {
+          icon = Icons.account_balance;
+          color = const Color(0xFF10B981);
+        } else if (topic.title.toLowerCase().contains('law') ||
+            topic.title.toLowerCase().contains('shariah')) {
+          icon = Icons.gavel;
+          color = const Color(0xFF14B8A6);
+        }
+
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
             color: isDark ? AppColors.cardDark : Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: topic.color.withValues(alpha: 0.2)),
+            border: Border.all(color: color.withValues(alpha: 0.2)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
@@ -236,8 +203,8 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        topic.color.withValues(alpha: 0.2),
-                        topic.color.withValues(alpha: 0.1),
+                        color.withValues(alpha: 0.2),
+                        color.withValues(alpha: 0.1),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(12),
@@ -246,7 +213,7 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
                     _contentType == 'videos'
                         ? Icons.play_circle
                         : Icons.description,
-                    color: topic.color,
+                    color: color,
                     size: 24,
                   ),
                 ),
@@ -292,8 +259,8 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
                           icon: const Icon(Icons.download, size: 18),
                           label: const Text('Download PDF'),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: topic.color,
-                            side: BorderSide(color: topic.color),
+                            foregroundColor: color,
+                            side: BorderSide(color: color),
                           ),
                         ),
                       ),
@@ -304,8 +271,8 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
                           icon: const Icon(Icons.share, size: 18),
                           label: const Text('Share'),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: topic.color,
-                            side: BorderSide(color: topic.color),
+                            foregroundColor: color,
+                            side: BorderSide(color: color),
                           ),
                         ),
                       ),
@@ -319,7 +286,7 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
     );
   }
 
-  void _showDocumentOptions(_PoliticsTopic topic) {
+  void _showDocumentOptions(PoliticsTopic topic) {
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -354,7 +321,7 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
     );
   }
 
-  Future<void> _downloadDocument(_PoliticsTopic topic) async {
+  Future<void> _downloadDocument(PoliticsTopic topic) async {
     final Uri url = Uri.parse(topic.documentUrl);
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       if (mounted) {
@@ -365,7 +332,7 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
     }
   }
 
-  void _shareDocument(_PoliticsTopic topic) {
+  void _shareDocument(PoliticsTopic topic) {
     final content =
         '${topic.title}\n\n${topic.description}\n\nDocument: ${topic.documentUrl}\n\nShared from DeenSphere App';
     Clipboard.setData(ClipboardData(text: content));
@@ -427,20 +394,4 @@ class _ContentTypeButton extends StatelessWidget {
       ),
     );
   }
-}
-
-class _PoliticsTopic {
-  final String title;
-  final String description;
-  final IconData icon;
-  final Color color;
-  final String documentUrl;
-
-  _PoliticsTopic(
-    this.title,
-    this.description,
-    this.icon,
-    this.color,
-    this.documentUrl,
-  );
 }

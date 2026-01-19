@@ -118,8 +118,8 @@ export default function PoliticsPage() {
                 <button
                     onClick={() => setActiveTab('islamic')}
                     className={`px-6 py-2 rounded-lg font-medium transition-colors ${activeTab === 'islamic'
-                            ? 'bg-gold-primary text-black'
-                            : 'bg-dark-card text-light-muted hover:text-light-primary'
+                        ? 'bg-gold-primary text-black'
+                        : 'bg-dark-card text-light-muted hover:text-light-primary'
                         }`}
                 >
                     Islamic Politics
@@ -127,8 +127,8 @@ export default function PoliticsPage() {
                 <button
                     onClick={() => setActiveTab('western')}
                     className={`px-6 py-2 rounded-lg font-medium transition-colors ${activeTab === 'western'
-                            ? 'bg-gold-primary text-black'
-                            : 'bg-dark-card text-light-muted hover:text-light-primary'
+                        ? 'bg-gold-primary text-black'
+                        : 'bg-dark-card text-light-muted hover:text-light-primary'
                         }`}
                 >
                     Western Politics
@@ -142,8 +142,8 @@ export default function PoliticsPage() {
                         key={type}
                         onClick={() => setContentType(type)}
                         className={`px-4 py-1 rounded-full text-sm font-medium transition-colors ${contentType === type
-                                ? 'bg-gold-primary text-black'
-                                : 'bg-dark-icon text-light-muted hover:text-light-primary'
+                            ? 'bg-gold-primary text-black'
+                            : 'bg-dark-icon text-light-muted hover:text-light-primary'
                             }`}
                     >
                         {type === 'all' ? 'All' : type === 'document' ? 'Documents' : 'Videos'}
@@ -273,17 +273,40 @@ export default function PoliticsPage() {
                                     </select>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm text-light-muted mb-1">URL</label>
-                                <input
-                                    type="url"
-                                    value={form.url}
-                                    onChange={(e) => setForm({ ...form, url: e.target.value })}
-                                    className="w-full bg-dark-secondary border border-dark-icon rounded-lg px-3 py-2 text-light-primary"
-                                    placeholder="https://"
-                                    required
-                                />
-                            </div>
+                            {/* Dynamic input based on type */}
+                            {form.type === 'video' ? (
+                                <div>
+                                    <label className="block text-sm text-light-muted mb-1">YouTube URL</label>
+                                    <input
+                                        type="url"
+                                        value={form.url}
+                                        onChange={(e) => setForm({ ...form, url: e.target.value })}
+                                        className="w-full bg-dark-secondary border border-dark-icon rounded-lg px-3 py-2 text-light-primary"
+                                        placeholder="https://youtube.com/watch?v=..."
+                                        required
+                                    />
+                                    <p className="text-xs text-light-muted mt-1">Enter a YouTube video URL</p>
+                                </div>
+                            ) : (
+                                <div>
+                                    <label className="block text-sm text-light-muted mb-1">Upload Document</label>
+                                    <input
+                                        type="file"
+                                        accept=".pdf,.doc,.docx"
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                setForm({ ...form, documentFile: file, url: URL.createObjectURL(file) });
+                                            }
+                                        }}
+                                        className="w-full bg-dark-secondary border border-dark-icon rounded-lg px-3 py-2 text-light-primary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gold-primary file:text-dark-main hover:file:bg-gold-dark"
+                                    />
+                                    <p className="text-xs text-light-muted mt-1">Upload PDF or Word document (max 10MB)</p>
+                                    {form.url && (
+                                        <p className="text-xs text-green-400 mt-1">✓ Document selected</p>
+                                    )}
+                                </div>
+                            )}
                             <div className="flex gap-3 pt-4">
                                 <button
                                     type="button"

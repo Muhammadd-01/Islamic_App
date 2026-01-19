@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
+import 'package:islamic_app/data/repositories/history_repository.dart';
+import 'package:islamic_app/domain/entities/history_topic.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
@@ -22,112 +24,6 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
 
   final _youtubeChannelUrl = 'https://www.youtube.com/@DeenSphere';
 
-  // Mock data - will be fetched from Firebase
-  final List<_HistoryTopic> _islamicTopics = [
-    _HistoryTopic(
-      title: 'Prophet Muhammad ﷺ',
-      description: 'The life and teachings of the final Prophet',
-      videoUrl: 'https://www.youtube.com/watch?v=example1',
-      documentUrl: 'https://example.com/prophet-life.pdf',
-      era: 'Early Islam (570-632 CE)',
-      imageUrl:
-          'https://images.unsplash.com/photo-1564769625905-50e93615e769?w=400',
-    ),
-    _HistoryTopic(
-      title: 'The Rashidun Caliphate',
-      description: 'The era of the four rightly guided caliphs',
-      videoUrl: 'https://www.youtube.com/watch?v=example2',
-      documentUrl: 'https://example.com/rashidun.pdf',
-      era: '632-661 CE',
-      imageUrl:
-          'https://images.unsplash.com/photo-1585036156171-384164a8c942?w=400',
-    ),
-    _HistoryTopic(
-      title: 'Golden Age of Islam',
-      description: 'Scientific and cultural achievements',
-      videoUrl: 'https://www.youtube.com/watch?v=example3',
-      documentUrl: 'https://example.com/golden-age.pdf',
-      era: '8th-14th Century',
-      imageUrl:
-          'https://images.unsplash.com/photo-1564769625391-2f4c2b4d65fc?w=400',
-    ),
-    _HistoryTopic(
-      title: 'Islamic Spain (Al-Andalus)',
-      description: 'Islamic civilization in the Iberian Peninsula',
-      videoUrl: 'https://www.youtube.com/watch?v=example4',
-      documentUrl: 'https://example.com/andalus.pdf',
-      era: '711-1492 CE',
-      imageUrl:
-          'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400',
-    ),
-    _HistoryTopic(
-      title: 'Ottoman Empire',
-      description: 'Rise and fall of the Ottoman dynasty',
-      videoUrl: 'https://www.youtube.com/watch?v=example5',
-      documentUrl: 'https://example.com/ottoman.pdf',
-      era: '1299-1922 CE',
-      imageUrl:
-          'https://images.unsplash.com/photo-1527838832700-5059252407fa?w=400',
-    ),
-    _HistoryTopic(
-      title: 'Mughal Empire',
-      description: 'Islamic rule in Indian subcontinent',
-      videoUrl: 'https://www.youtube.com/watch?v=example6',
-      documentUrl: 'https://example.com/mughal.pdf',
-      era: '1526-1857 CE',
-      imageUrl:
-          'https://images.unsplash.com/photo-1564507592333-c60657eea523?w=400',
-    ),
-  ];
-
-  final List<_HistoryTopic> _westernTopics = [
-    _HistoryTopic(
-      title: 'Ancient Greece',
-      description: 'Birthplace of democracy and philosophy',
-      videoUrl: 'https://www.youtube.com/watch?v=western1',
-      documentUrl: 'https://example.com/greece.pdf',
-      era: '800-31 BCE',
-      imageUrl:
-          'https://images.unsplash.com/photo-1555993539-1732b0258235?w=400',
-    ),
-    _HistoryTopic(
-      title: 'Roman Empire',
-      description: 'From Republic to Empire',
-      videoUrl: 'https://www.youtube.com/watch?v=western2',
-      documentUrl: 'https://example.com/rome.pdf',
-      era: '27 BCE - 476 CE',
-      imageUrl:
-          'https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=400',
-    ),
-    _HistoryTopic(
-      title: 'Medieval Europe',
-      description: 'The Dark Ages and feudal system',
-      videoUrl: 'https://www.youtube.com/watch?v=western3',
-      documentUrl: 'https://example.com/medieval.pdf',
-      era: '5th-15th Century',
-      imageUrl:
-          'https://images.unsplash.com/photo-1533154683220-1c1dc8672d42?w=400',
-    ),
-    _HistoryTopic(
-      title: 'Renaissance',
-      description: 'Rebirth of arts and science in Europe',
-      videoUrl: 'https://www.youtube.com/watch?v=western4',
-      documentUrl: 'https://example.com/renaissance.pdf',
-      era: '14th-17th Century',
-      imageUrl:
-          'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400',
-    ),
-    _HistoryTopic(
-      title: 'Industrial Revolution',
-      description: 'Transformation of manufacturing',
-      videoUrl: 'https://www.youtube.com/watch?v=western5',
-      documentUrl: 'https://example.com/industrial.pdf',
-      era: '1760-1840',
-      imageUrl:
-          'https://images.unsplash.com/photo-1565793298595-6a879b1d9492?w=400',
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -141,12 +37,19 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
     super.dispose();
   }
 
-  List<_HistoryTopic> get _filteredTopics {
-    final topics = _selectedCategory == 'Islamic'
-        ? _islamicTopics
-        : _westernTopics;
-    if (_searchQuery.isEmpty) return topics;
-    return topics
+  List<HistoryTopic> _filterTopics(List<HistoryTopic> topics) {
+    final categoryFiltered = topics.where((t) {
+      if (_selectedCategory == 'Islamic') {
+        return t.category.toLowerCase() == 'islamic' ||
+            t.category.toLowerCase() == 'muslim';
+      } else {
+        return t.category.toLowerCase() == 'western';
+      }
+    }).toList();
+
+    if (_searchQuery.isEmpty) return categoryFiltered;
+
+    return categoryFiltered
         .where(
           (t) =>
               t.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -168,6 +71,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final historyAsync = ref.watch(historyStreamProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -188,9 +92,18 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [_buildBrowseView(isDark), _buildTimelineView(isDark)],
+      body: historyAsync.when(
+        data: (topics) {
+          return TabBarView(
+            controller: _tabController,
+            children: [
+              _buildBrowseView(topics, isDark),
+              _buildTimelineView(topics, isDark),
+            ],
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (err, stack) => Center(child: Text('Error: $err')),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openYouTube,
@@ -204,7 +117,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
     );
   }
 
-  Widget _buildBrowseView(bool isDark) {
+  Widget _buildBrowseView(List<HistoryTopic> allTopics, bool isDark) {
+    final filteredTopics = _filterTopics(allTopics);
+
     return Column(
       children: [
         // Search bar
@@ -284,7 +199,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
 
         // Topics list
         Expanded(
-          child: _filteredTopics.isEmpty
+          child: filteredTopics.isEmpty
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -300,9 +215,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
                 )
               : ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _filteredTopics.length,
+                  itemCount: filteredTopics.length,
                   itemBuilder: (context, index) {
-                    final topic = _filteredTopics[index];
+                    final topic = filteredTopics[index];
                     return _TopicCard(
                       topic: topic,
                       contentType: _selectedContentType,
@@ -315,10 +230,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
     );
   }
 
-  Widget _buildTimelineView(bool isDark) {
-    final topics = _selectedCategory == 'Islamic'
-        ? _islamicTopics
-        : _westernTopics;
+  Widget _buildTimelineView(List<HistoryTopic> allTopics, bool isDark) {
+    final filteredTopics = _filterTopics(allTopics);
 
     return Column(
       children: [
@@ -346,13 +259,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
         Expanded(
           child: ListView.builder(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: topics.length,
+            itemCount: filteredTopics.length,
             itemBuilder: (context, index) {
-              final topic = topics[index];
+              final topic = filteredTopics[index];
               return _TimelineItem(
                 topic: topic,
                 isFirst: index == 0,
-                isLast: index == topics.length - 1,
+                isLast: index == filteredTopics.length - 1,
                 index: index,
               );
             },
@@ -468,7 +381,7 @@ class _ContentTypeButton extends StatelessWidget {
 }
 
 class _TopicCard extends StatelessWidget {
-  final _HistoryTopic topic;
+  final HistoryTopic topic;
   final String contentType;
   final int index;
 
@@ -494,6 +407,15 @@ class _TopicCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Show card if videoUrl exists and user selected Videos
+    if (contentType == 'Videos' && topic.videoUrl.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    // Show card if documentUrl exists and user selected Documents
+    if (contentType == 'Documents' && topic.documentUrl.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
@@ -508,20 +430,31 @@ class _TopicCard extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.network(
-                  topic.imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: AppColors.primaryGold.withValues(alpha: 0.2),
-                    child: const Center(
-                      child: Icon(
-                        Icons.history_edu,
-                        size: 40,
-                        color: AppColors.primaryGold,
+                topic.imageUrl.isNotEmpty
+                    ? Image.network(
+                        topic.imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: AppColors.primaryGold.withValues(alpha: 0.2),
+                          child: const Center(
+                            child: Icon(
+                              Icons.history_edu,
+                              size: 40,
+                              color: AppColors.primaryGold,
+                            ),
+                          ),
+                        ),
+                      )
+                    : Container(
+                        color: AppColors.primaryGold.withValues(alpha: 0.2),
+                        child: const Center(
+                          child: Icon(
+                            Icons.history_edu,
+                            size: 40,
+                            color: AppColors.primaryGold,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ),
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -580,7 +513,7 @@ class _TopicCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    if (contentType == 'Videos')
+                    if (contentType == 'Videos' && topic.videoUrl.isNotEmpty)
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _openUrl(topic.videoUrl),
@@ -592,7 +525,8 @@ class _TopicCard extends StatelessWidget {
                           ),
                         ),
                       )
-                    else
+                    else if (contentType == 'Documents' &&
+                        topic.documentUrl.isNotEmpty)
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _openUrl(topic.documentUrl),
@@ -631,7 +565,7 @@ class _TopicCard extends StatelessWidget {
 }
 
 class _TimelineItem extends StatelessWidget {
-  final _HistoryTopic topic;
+  final HistoryTopic topic;
   final bool isFirst;
   final bool isLast;
   final int index;
@@ -732,22 +666,4 @@ class _TimelineItem extends StatelessWidget {
       delay: Duration(milliseconds: index * 100),
     );
   }
-}
-
-class _HistoryTopic {
-  final String title;
-  final String description;
-  final String videoUrl;
-  final String documentUrl;
-  final String era;
-  final String imageUrl;
-
-  _HistoryTopic({
-    required this.title,
-    required this.description,
-    required this.videoUrl,
-    required this.documentUrl,
-    required this.era,
-    required this.imageUrl,
-  });
 }

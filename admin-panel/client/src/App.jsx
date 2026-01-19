@@ -2,7 +2,8 @@ import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import {
     LayoutDashboard, Users, ShoppingCart, BookOpen, MessageCircle,
     Menu, X, LogOut, Lightbulb, Newspaper, Landmark, GraduationCap,
-    History, FlaskConical, Star, Heart, ChevronLeft, ChevronRight, User, Settings
+    History, FlaskConical, Star, Heart, ChevronLeft, ChevronRight, User, Settings,
+    Scroll, BookOpenText
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -24,6 +25,8 @@ import CoursesPage from './pages/Courses';
 import HistoryPage from './pages/History';
 import BeliefsPage from './pages/Beliefs';
 import AdminProfilePage from './pages/AdminProfile';
+import HadithPage from './pages/Hadith';
+import QuranPage from './pages/Quran';
 import Login from './pages/Login';
 
 function AuthGuard({ children }) {
@@ -66,6 +69,8 @@ function App() {
         { to: '/users', icon: Users, label: 'Users' },
         { to: '/orders', icon: ShoppingCart, label: 'Orders' },
         { to: '/books', icon: BookOpen, label: 'Books' },
+        { to: '/quran', icon: BookOpenText, label: 'Quran' },
+        { to: '/hadith', icon: Scroll, label: 'Hadith' },
         { to: '/questions', icon: MessageCircle, label: 'Questions' },
         { to: '/inventions', icon: FlaskConical, label: 'Inventions' },
         { to: '/scientists', icon: GraduationCap, label: 'Scientists' },
@@ -84,15 +89,15 @@ function App() {
     return (
         <BrowserRouter>
             <AuthGuard>
-                <div className="min-h-screen bg-dark-main flex">
+                <div className="h-screen bg-dark-main flex overflow-hidden">
                     {/* Sidebar */}
                     <aside
-                        className={`fixed inset-y-0 left-0 z-50 ${sidebarCollapsed ? 'w-20' : 'w-64'} bg-dark-card shadow-lg border-r border-dark-icon transform transition-all duration-300 lg:translate-x-0 lg:static ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                        className={`fixed inset-y-0 left-0 z-50 ${sidebarCollapsed ? 'w-20' : 'w-64'} bg-dark-card shadow-lg border-r border-dark-icon transform transition-all duration-300 lg:translate-x-0 lg:static flex-shrink-0 flex flex-col ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
                             }`}
                     >
                         <div className="flex flex-col h-full">
                             {/* Logo */}
-                            <div className={`p-4 border-b border-dark-icon flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
+                            <div className={`p-4 border-b border-dark-icon flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'} flex-shrink-0`}>
                                 {!sidebarCollapsed && (
                                     <div className="flex items-center gap-3">
                                         <img src="/deensphere_logo.png" alt="DeenSphere" className="w-10 h-10 rounded-lg" />
@@ -142,7 +147,7 @@ function App() {
                             </nav>
 
                             {/* Logout Button */}
-                            <div className="p-4 border-t border-dark-icon">
+                            <div className="p-4 border-t border-dark-icon flex-shrink-0">
                                 <button
                                     onClick={handleLogout}
                                     className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-3'} w-full px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors`}
@@ -164,9 +169,9 @@ function App() {
                     )}
 
                     {/* Main Content */}
-                    <main className="flex-1 min-h-screen">
+                    <main className="flex-1 h-full overflow-y-auto bg-dark-main">
                         {/* Top Header */}
-                        <header className="bg-dark-card border-b border-dark-icon py-4 px-6 flex items-center justify-between lg:justify-end">
+                        <header className="bg-dark-card border-b border-dark-icon py-4 px-6 flex items-center justify-between lg:justify-end sticky top-0 z-30">
                             <button
                                 onClick={() => setSidebarOpen(true)}
                                 className="lg:hidden text-light-muted hover:text-light-primary"
@@ -185,6 +190,8 @@ function App() {
                                 <Route path="/users" element={<UsersPage />} />
                                 <Route path="/orders" element={<OrdersPage />} />
                                 <Route path="/books" element={<BooksPage />} />
+                                <Route path="/quran" element={<QuranPage />} />
+                                <Route path="/hadith" element={<HadithPage />} />
                                 <Route path="/questions" element={<QuestionsPage />} />
                                 <Route path="/inventions" element={<InventionsPage />} />
                                 <Route path="/scientists" element={<ScientistsPage />} />

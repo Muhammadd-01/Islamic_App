@@ -7,6 +7,9 @@ class Invention {
   final String year;
   final String imageUrl;
   final List<String> details; // Bullet points of history
+  final String? videoUrl;
+  final String? documentUrl;
+  final String contentType; // 'video' or 'document'
 
   Invention({
     required this.id,
@@ -17,6 +20,9 @@ class Invention {
     required this.year,
     required this.imageUrl,
     required this.details,
+    this.videoUrl,
+    this.documentUrl,
+    this.contentType = 'video',
   });
 
   factory Invention.fromMap(Map<String, dynamic> map, String id) {
@@ -29,6 +35,9 @@ class Invention {
       year: map['year'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
       details: List<String>.from(map['details'] ?? []),
+      videoUrl: map['videoUrl'],
+      documentUrl: map['documentUrl'],
+      contentType: map['contentType'] ?? 'video',
     );
   }
 
@@ -41,6 +50,9 @@ class Invention {
       'year': year,
       'imageUrl': imageUrl,
       'details': details,
+      'videoUrl': videoUrl,
+      'documentUrl': documentUrl,
+      'contentType': contentType,
     };
   }
 }

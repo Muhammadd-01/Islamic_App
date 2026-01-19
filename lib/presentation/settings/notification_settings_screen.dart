@@ -5,11 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Provider for notification settings
 final notificationSettingsProvider =
-    StateNotifierProvider<NotificationSettingsNotifier, NotificationSettings>((
-      ref,
-    ) {
-      return NotificationSettingsNotifier();
-    });
+    NotifierProvider<NotificationSettingsNotifier, NotificationSettings>(
+      NotificationSettingsNotifier.new,
+    );
 
 class NotificationSettings {
   final bool pushNotificationsEnabled;
@@ -44,9 +42,11 @@ class NotificationSettings {
   }
 }
 
-class NotificationSettingsNotifier extends StateNotifier<NotificationSettings> {
-  NotificationSettingsNotifier() : super(NotificationSettings()) {
+class NotificationSettingsNotifier extends Notifier<NotificationSettings> {
+  @override
+  NotificationSettings build() {
     _loadSettings();
+    return NotificationSettings();
   }
 
   Future<void> _loadSettings() async {

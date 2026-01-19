@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:islamic_app/presentation/navigation/scaffold_with_nav_bar.dart';
 import 'package:islamic_app/presentation/qa/qa_screen.dart';
@@ -123,14 +124,23 @@ final goRouter = GoRouter(
               path: ':bookId',
               builder: (context, state) {
                 final bookId = state.pathParameters['bookId']!;
-                final bookName = state.extra as String;
+                final bookName = state.extra as String? ?? bookId;
                 return HadithListScreen(bookId: bookId, bookName: bookName);
               },
               routes: [
                 GoRoute(
                   path: ':hadithId',
                   builder: (context, state) {
-                    final hadith = state.extra as Hadith;
+                    final hadith = state.extra as Hadith?;
+                    if (hadith == null) {
+                      // If no hadith data, redirect to hadith categories
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        context.go('/hadith');
+                      });
+                      return const Scaffold(
+                        body: Center(child: CircularProgressIndicator()),
+                      );
+                    }
                     return HadithDetailScreen(hadith: hadith);
                   },
                 ),

@@ -230,81 +230,81 @@ function BooksPage() {
 
             {/* Add/Edit Modal */}
             {showForm && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b flex items-center justify-between">
-                            <h2 className="text-xl font-bold">{editingBook ? 'Edit Book' : 'Add New Book'}</h2>
-                            <button onClick={() => setShowForm(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                    <div className="bg-dark-card rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-dark-icon">
+                        <div className="p-6 border-b border-dark-icon flex items-center justify-between">
+                            <h2 className="text-xl font-bold text-light-primary">{editingBook ? 'Edit Book' : 'Add New Book'}</h2>
+                            <button onClick={() => setShowForm(false)} className="p-2 hover:bg-dark-icon rounded-lg text-light-muted">
                                 <X size={20} />
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1">Title *</label>
+                                <label className="block text-sm font-medium mb-1 text-light-muted">Title *</label>
                                 <input
                                     type="text"
                                     required
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                                    className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary focus:border-gold-primary focus:outline-none"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Author *</label>
+                                <label className="block text-sm font-medium mb-1 text-light-muted">Author *</label>
                                 <input
                                     type="text"
                                     required
                                     value={formData.author}
                                     onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                                    className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary focus:border-gold-primary focus:outline-none"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Description</label>
+                                <label className="block text-sm font-medium mb-1 text-light-muted">Description</label>
                                 <textarea
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                                    className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary focus:border-gold-primary focus:outline-none"
                                     rows="3"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium mb-1">Book Cover Image (Upload)</label>
+                                <label className="block text-sm font-medium mb-1 text-light-muted">Book Cover Image (Upload)</label>
                                 <input
                                     type="file"
                                     accept="image/*"
                                     onChange={(e) => setImageFile(e.target.files[0])}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                                    className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:bg-gold-primary file:text-dark-main file:font-medium"
                                 />
-                                <p className="text-xs text-gray-500 mt-1">Or enter URL below</p>
+                                <p className="text-xs text-light-muted mt-1">Or enter URL below</p>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium mb-1">Cover URL (Optional)</label>
+                                <label className="block text-sm font-medium mb-1 text-light-muted">Cover URL (Optional)</label>
                                 <input
                                     type="text"
                                     value={formData.coverUrl}
                                     onChange={(e) => setFormData({ ...formData, coverUrl: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                                    className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary focus:border-gold-primary focus:outline-none"
                                     placeholder="https://example.com/cover.jpg"
                                 />
                             </div>
 
-                            <div className="flex gap-4">
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium mb-1">Price</label>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 text-light-muted">Price</label>
                                     <input
                                         type="number"
                                         step="0.01"
                                         value={formData.price}
                                         onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                                        className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary focus:border-gold-primary focus:outline-none disabled:opacity-50"
                                         disabled={formData.isFree}
                                     />
                                 </div>
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium mb-1">Rating</label>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 text-light-muted">Rating</label>
                                     <input
                                         type="number"
                                         step="0.1"
@@ -312,7 +312,7 @@ function BooksPage() {
                                         max="5"
                                         value={formData.rating}
                                         onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
-                                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500"
+                                        className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary focus:border-gold-primary focus:outline-none"
                                     />
                                 </div>
                             </div>
@@ -322,21 +322,21 @@ function BooksPage() {
                                     id="isFree"
                                     checked={formData.isFree}
                                     onChange={(e) => setFormData({ ...formData, isFree: e.target.checked, price: e.target.checked ? '0' : formData.price })}
-                                    className="w-4 h-4"
+                                    className="w-4 h-4 accent-gold-primary"
                                 />
-                                <label htmlFor="isFree" className="text-sm">This book is free</label>
+                                <label htmlFor="isFree" className="text-sm text-light-muted">This book is free</label>
                             </div>
                             <div className="flex gap-3 pt-4">
                                 <button
                                     type="button"
                                     onClick={() => setShowForm(false)}
-                                    className="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50"
+                                    className="flex-1 px-4 py-2 bg-dark-icon text-light-muted rounded-lg hover:bg-dark-icon/80 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600"
+                                    className="flex-1 px-4 py-2 bg-gold-primary text-dark-main rounded-lg hover:bg-gold-dark font-medium transition-colors"
                                 >
                                     {editingBook ? 'Update' : 'Create'}
                                 </button>

@@ -318,26 +318,41 @@ export default function History() {
                                     </select>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-light-muted mb-2">Video URL</label>
-                                <input
-                                    type="url"
-                                    value={formData.videoUrl}
-                                    onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                                    placeholder="YouTube or video URL"
-                                    className="w-full px-4 py-2 bg-dark-main border border-dark-icon rounded-lg focus:ring-2 focus:ring-gold-primary"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-light-muted mb-2">Document URL</label>
-                                <input
-                                    type="url"
-                                    value={formData.documentUrl}
-                                    onChange={(e) => setFormData({ ...formData, documentUrl: e.target.value })}
-                                    placeholder="PDF or document URL"
-                                    className="w-full px-4 py-2 bg-dark-main border border-dark-icon rounded-lg focus:ring-2 focus:ring-gold-primary"
-                                />
-                            </div>
+                            {/* Dynamic input based on content type */}
+                            {formData.contentType === 'video' ? (
+                                <div>
+                                    <label className="block text-sm font-medium text-light-muted mb-2">YouTube URL</label>
+                                    <input
+                                        type="url"
+                                        value={formData.videoUrl}
+                                        onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                                        placeholder="https://youtube.com/watch?v=..."
+                                        className="w-full px-4 py-2 bg-dark-main border border-dark-icon rounded-lg focus:ring-2 focus:ring-gold-primary"
+                                    />
+                                    <p className="text-xs text-light-muted mt-1">Enter a YouTube video URL</p>
+                                </div>
+                            ) : (
+                                <div>
+                                    <label className="block text-sm font-medium text-light-muted mb-2">Upload Document</label>
+                                    <input
+                                        type="file"
+                                        accept=".pdf,.doc,.docx"
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                // For now, we'll upload to Firebase Storage and get URL
+                                                // This is a placeholder - actual upload logic needed
+                                                setFormData({ ...formData, documentFile: file, documentUrl: URL.createObjectURL(file) });
+                                            }
+                                        }}
+                                        className="w-full px-4 py-2 bg-dark-main border border-dark-icon rounded-lg focus:ring-2 focus:ring-gold-primary file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gold-primary file:text-dark-main hover:file:bg-gold-dark"
+                                    />
+                                    <p className="text-xs text-light-muted mt-1">Upload PDF or Word document (max 10MB)</p>
+                                    {formData.documentUrl && (
+                                        <p className="text-xs text-green-400 mt-1">✓ Document selected</p>
+                                    )}
+                                </div>
+                            )}
                             <div>
                                 <label className="block text-sm font-medium text-light-muted mb-2">Image URL</label>
                                 <input

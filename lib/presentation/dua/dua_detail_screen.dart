@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/core/services/audio_player_service.dart';
 import 'package:islamic_app/domain/entities/dua.dart';
+import 'package:islamic_app/domain/entities/bookmark.dart';
+import 'package:islamic_app/data/repositories/bookmark_repository.dart';
 import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 
 class DuaDetailScreen extends ConsumerStatefulWidget {
@@ -16,6 +18,52 @@ class DuaDetailScreen extends ConsumerStatefulWidget {
 
 class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
   bool _isPlaying = false;
+  bool _isBookmarked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBookmarkStatus();
+  }
+
+  Future<void> _checkBookmarkStatus() async {
+    final repo = ref.read(bookmarkRepositoryProvider);
+    final isBookmarked = await repo.isBookmarked(
+      'dua',
+      widget.dua.id.toString(),
+    );
+    if (mounted) {
+      setState(() => _isBookmarked = isBookmarked);
+    }
+  }
+
+  Future<void> _toggleBookmark() async {
+    final repo = ref.read(bookmarkRepositoryProvider);
+    if (_isBookmarked) {
+      await repo.removeBookmark(widget.dua.id.toString(), 'dua');
+      if (mounted) {
+        AppSnackbar.showInfo(context, 'Bookmark removed');
+        setState(() => _isBookmarked = false);
+      }
+    } else {
+      final bookmark = Bookmark(
+        id: widget.dua.id.toString(),
+        type: 'dua',
+        title: widget.dua.arabic.length > 50
+            ? '${widget.dua.arabic.substring(0, 50)}...'
+            : widget.dua.arabic,
+        subtitle: widget.dua.reference,
+        content: widget.dua.translation,
+        route: '/dua-detail',
+        timestamp: DateTime.now(),
+      );
+      await repo.addBookmark(bookmark);
+      if (mounted) {
+        AppSnackbar.showSuccess(context, 'Bookmarked!');
+        setState(() => _isBookmarked = true);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +74,9 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
         title: const Text('Dua Details'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.bookmark_border),
-            onPressed: () {
-              // TODO: Implement bookmark
-              AppSnackbar.showInfo(context, 'Bookmark feature coming soon!');
-            },
+            icon: Icon(_isBookmarked ? Icons.bookmark : Icons.bookmark_border),
+            color: _isBookmarked ? AppColors.primaryGold : null,
+            onPressed: _toggleBookmark,
           ),
         ],
       ),

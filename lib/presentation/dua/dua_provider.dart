@@ -1,12 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:islamic_app/data/datasources/dua_data_source.dart';
+import 'package:islamic_app/data/datasources/firebase_dua_data_source.dart';
 import 'package:islamic_app/data/repositories/dua_repository_impl.dart';
 import 'package:islamic_app/domain/entities/dua.dart';
 import 'package:islamic_app/domain/entities/dua_category.dart';
 import 'package:islamic_app/domain/repositories/dua_repository.dart';
 
 final duaDataSourceProvider = Provider<DuaDataSource>((ref) {
-  return LocalDuaDataSource();
+  return FirebaseDuaDataSource();
 });
 
 final duaRepositoryProvider = Provider<DuaRepository>((ref) {

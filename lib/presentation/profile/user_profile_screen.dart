@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
 import 'package:islamic_app/data/services/supabase_storage_service.dart';
+import 'package:islamic_app/data/repositories/bookmark_repository.dart';
 
 // Provider for user profile data from Firestore
 final userProfileProvider = StreamProvider<Map<String, dynamic>?>((ref) {
@@ -37,6 +38,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   Widget build(BuildContext context) {
     final user = ref.watch(firebaseAuthProvider).currentUser;
     final profileAsync = ref.watch(userProfileProvider);
+    final bookmarksAsync = ref.watch(bookmarksStreamProvider);
 
     // Get profile image URL and display name from Firestore
     final profileData = profileAsync.value;
@@ -44,8 +46,10 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     final displayName =
         profileData?['displayName'] as String? ?? user?.displayName ?? 'User';
 
-    // Mock data
-    const totalBookmarks = 12;
+    // Real bookmark count
+    final totalBookmarks = bookmarksAsync.value?.length ?? 0;
+
+    // Mock last read for now (needs Quran tracking implementation)
     const lastReadSurah = 'Al-Kahf';
     const lastReadAyah = 10;
 

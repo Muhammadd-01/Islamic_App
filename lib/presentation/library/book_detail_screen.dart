@@ -71,6 +71,9 @@ class BookDetailScreen extends ConsumerWidget {
                   final repo = ref.read(bookmarkRepositoryProvider);
                   if (isBookmarked) {
                     await repo.removeBookmark(book.id, 'book');
+                    if (context.mounted) {
+                      AppSnackbar.showInfo(context, 'Removed from bookmarks');
+                    }
                   } else {
                     await repo.addBookmark(
                       Bookmark(
@@ -83,6 +86,9 @@ class BookDetailScreen extends ConsumerWidget {
                         timestamp: DateTime.now(),
                       ),
                     );
+                    if (context.mounted) {
+                      AppSnackbar.showSuccess(context, 'Added to bookmarks!');
+                    }
                   }
                   // ignore: unused_result
                   ref.refresh(bookmarksProvider);

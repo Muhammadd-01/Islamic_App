@@ -154,6 +154,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 ),
                 _buildPaymentOption('paypal', 'PayPal', Icons.payment),
                 _buildPaymentOption('applepay', 'Apple Pay', Icons.apple),
+                _buildPaymentOption(
+                  'cod',
+                  'Cash on Delivery',
+                  Icons.local_shipping,
+                ),
 
                 const SizedBox(height: 32),
 

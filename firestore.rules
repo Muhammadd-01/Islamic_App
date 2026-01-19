@@ -97,6 +97,95 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
-    // Default: Allow read for public collections (should be last, but not catch-all deny)
+    // Politics Collection - Public read
+    match /politics/{politicsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // News Collection - Public read
+    match /news/{newsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Duas Collection - Public read
+    match /duas/{duaId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Names of Allah Collection - Public read
+    match /names_of_allah/{nameId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Orders Collection - Users can create and read their own orders
+    match /orders/{orderId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+    
+    // Dua Categories Collection - Public read
+    match /dua_categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Prayer Tracking - subcollection under users
+    match /users/{userId}/prayerTracking/{trackingId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Inventions Collection - Public read
+    match /inventions/{inventionId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Scientists Collection - Public read
+    match /scientists/{scientistId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Articles Collection - Public read
+    match /articles/{articleId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Quran Collection - Public read
+    match /quran/{surahId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Quran Ayahs subcollection
+    match /quran/{surahId}/ayahs/{ayahId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Settings/Config Collection - Public read
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // App Config Collection
+    match /config/{configId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Catch-all for any other public read collections
+    match /{document=**} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }
+

@@ -1,5 +1,6 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:geocoding/geocoding.dart';
 
 class LocationService {
   /// Check if location services are enabled
@@ -51,16 +52,36 @@ class LocationService {
     }
   }
 
-  /// Get location as formatted string (City, Country)
+  /// Get location as formatted string (Street, City, Country)
   Future<String> getLocationString() async {
     final position = await getCurrentLocation();
     if (position == null) {
       return 'Location not available';
     }
 
-    // For now, return coordinates
-    // In production, use geocoding to get city/country
-    return '${position.latitude.toStringAsFixed(2)}, ${position.longitude.toStringAsFixed(2)}';
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        final street = place.street ?? '';
+        final subLocality = place.subLocality ?? '';
+        final locality = place.locality ?? '';
+        final country = place.country ?? '';
+
+        // Construct full address: "Street, Sector/Area, City, Country"
+        List<String> parts = [street, subLocality, locality, country];
+        return parts.where((p) => p.isNotEmpty).join(', ');
+      }
+    } catch (e) {
+      print('Geocoding error: $e');
+    }
+
+    // Fallback to coordinates if geocoding fails
+    return '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
   }
 
   /// Calculate distance between two points in kilometers

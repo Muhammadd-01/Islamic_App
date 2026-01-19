@@ -20,7 +20,7 @@ class BookmarkRepository {
         .snapshots()
         .map((snapshot) {
           return snapshot.docs
-              .map((doc) => Bookmark.fromJson({...doc.data(), 'id': doc.id}))
+              .map((doc) => Bookmark.fromJson(doc.data()))
               .toList();
         });
   }
@@ -37,9 +37,7 @@ class BookmarkRepository {
         .orderBy('timestamp', descending: true)
         .get();
 
-    return snapshot.docs
-        .map((doc) => Bookmark.fromJson({...doc.data(), 'id': doc.id}))
-        .toList();
+    return snapshot.docs.map((doc) => Bookmark.fromJson(doc.data())).toList();
   }
 
   /// Add bookmark to Firestore

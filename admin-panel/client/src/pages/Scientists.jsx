@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Trash2, Loader2, RefreshCw, Plus, X, User } from 'lucide-react';
+import { Trash2, Loader2, RefreshCw, Plus, X, User, Play, FileText } from 'lucide-react';
 import { scientistsApi } from '../services/api';
 
 function ScientistsPage() {
@@ -15,7 +15,10 @@ function ScientistsPage() {
         birthDeath: '',
         achievements: '',
         imageUrl: '',
-        category: 'islamic'
+        category: 'muslim',
+        contentType: 'video',
+        videoUrl: '',
+        documentUrl: ''
     });
 
     useEffect(() => {
@@ -48,6 +51,9 @@ function ScientistsPage() {
             data.append('achievements', JSON.stringify(achievementsArray));
 
             data.append('category', formData.category);
+            data.append('contentType', formData.contentType);
+            if (formData.videoUrl) data.append('videoUrl', formData.videoUrl);
+            if (formData.documentUrl) data.append('documentUrl', formData.documentUrl);
 
             if (imageFile) data.append('image', imageFile);
 
@@ -56,7 +62,7 @@ function ScientistsPage() {
             setShowForm(false);
             setImageFile(null);
             setFormData({
-                name: '', bio: '', field: '', birthDeath: '', achievements: '', imageUrl: '', category: 'islamic'
+                name: '', bio: '', field: '', birthDeath: '', achievements: '', imageUrl: '', category: 'muslim', contentType: 'video', videoUrl: '', documentUrl: ''
             });
             fetchScientists();
         } catch (err) {
@@ -152,7 +158,7 @@ function ScientistsPage() {
                                 <div>
                                     <label className="block text-sm font-medium mb-1 text-light-muted">Category</label>
                                     <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary focus:border-gold-primary focus:outline-none">
-                                        <option value="islamic">Islamic (Muslim Scientists)</option>
+                                        <option value="muslim">Islamic (Muslim Scientists)</option>
                                         <option value="western">Western Scientists</option>
                                     </select>
                                 </div>
@@ -169,6 +175,50 @@ function ScientistsPage() {
                                 <label className="block text-sm font-medium mb-1 text-light-muted">Profile Image (Upload from Device)</label>
                                 <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files[0])} className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:bg-gold-primary file:text-dark-main file:font-medium" />
                             </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-2 text-light-muted">Content Type</label>
+                                <div className="flex gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, contentType: 'video' })}
+                                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors ${formData.contentType === 'video' ? 'bg-red-500/20 border border-red-500 text-red-400' : 'bg-dark-main border border-dark-icon text-light-muted hover:border-light-muted'}`}
+                                    >
+                                        <Play size={18} /> Video
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, contentType: 'document' })}
+                                        className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors ${formData.contentType === 'document' ? 'bg-purple-500/20 border border-purple-500 text-purple-400' : 'bg-dark-main border border-dark-icon text-light-muted hover:border-light-muted'}`}
+                                    >
+                                        <FileText size={18} /> Document
+                                    </button>
+                                </div>
+                            </div>
+                            {formData.contentType === 'video' && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 text-light-muted">YouTube Video URL</label>
+                                    <input type="url" value={formData.videoUrl} onChange={e => setFormData({ ...formData, videoUrl: e.target.value })} placeholder="https://youtube.com/watch?v=..." className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary focus:border-gold-primary focus:outline-none" />
+                                    <p className="text-xs text-light-muted mt-1">Enter a YouTube video URL</p>
+                                </div>
+                            )}
+                            {formData.contentType === 'document' && (
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 text-light-muted">Upload Document</label>
+                                    <input
+                                        type="file"
+                                        accept=".pdf,.doc,.docx"
+                                        onChange={e => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                setFormData({ ...formData, documentFile: file, documentUrl: URL.createObjectURL(file) });
+                                            }
+                                        }}
+                                        className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary focus:border-gold-primary focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gold-primary file:text-dark-main"
+                                    />
+                                    <p className="text-xs text-light-muted mt-1">Upload PDF or Word document (max 10MB)</p>
+                                    {formData.documentUrl && <p className="text-xs text-green-400 mt-1">✓ Document selected</p>}
+                                </div>
+                            )}
                             <button type="submit" className="w-full bg-gold-primary text-dark-main py-3 rounded-lg hover:bg-gold-dark font-medium transition-colors">Create Scientist</button>
                         </form>
                     </div>

@@ -43,7 +43,7 @@ class Bookmark {
       title: json['title'],
       subtitle: json['subtitle'],
       content: json['content'] ?? '',
-      route: json['route'],
+      route: json['route'] ?? '',
       timestamp: DateTime.parse(json['timestamp']),
       sourceUrl: json['sourceUrl'],
       metadata: json['metadata'],

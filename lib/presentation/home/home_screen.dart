@@ -931,6 +931,7 @@ class _DailyInspirationCard extends StatefulWidget {
 class _DailyInspirationCardState extends State<_DailyInspirationCard> {
   int _currentIndex = 0;
   late PageController _pageController;
+  bool _isPaused = false;
 
   // Sample ayat and quotes - in production these would come from Firebase
   final List<Map<String, dynamic>> _inspirations = [];
@@ -977,13 +978,15 @@ class _DailyInspirationCardState extends State<_DailyInspirationCard> {
 
   void _startAutoScroll() {
     Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) {
+      if (mounted && !_isPaused) {
         final nextIndex = (_currentIndex + 1) % _inspirations.length;
         _pageController.animateToPage(
           nextIndex,
           duration: const Duration(milliseconds: 600),
           curve: Curves.easeInOut,
         );
+      }
+      if (mounted) {
         _startAutoScroll();
       }
     });
@@ -1014,20 +1017,25 @@ class _DailyInspirationCardState extends State<_DailyInspirationCard> {
       child: Column(
         children: [
           Expanded(
-            child: PageView.builder(
-              controller: _pageController,
-              onPageChanged: (index) => setState(() => _currentIndex = index),
-              itemCount: _inspirations.length,
-              itemBuilder: (context, index) {
-                final item = _inspirations[index];
-                return _InspirationSlide(
-                  title: item['title'],
-                  text: item['text'],
-                  source: item['source'],
-                  icon: item['icon'],
-                  color: item['color'],
-                );
-              },
+            child: GestureDetector(
+              onPanDown: (_) => setState(() => _isPaused = true),
+              onPanEnd: (_) => setState(() => _isPaused = false),
+              onPanCancel: () => setState(() => _isPaused = false),
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: (index) => setState(() => _currentIndex = index),
+                itemCount: _inspirations.length,
+                itemBuilder: (context, index) {
+                  final item = _inspirations[index];
+                  return _InspirationSlide(
+                    title: item['title'],
+                    text: item['text'],
+                    source: item['source'],
+                    icon: item['icon'],
+                    color: item['color'],
+                  );
+                },
+              ),
             ),
           ),
           // Page indicators

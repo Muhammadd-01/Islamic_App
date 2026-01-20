@@ -97,7 +97,7 @@ class FirebaseAuthRepository implements AuthRepository {
       if (result.status != LoginStatus.success) return null;
 
       final OAuthCredential credential = FacebookAuthProvider.credential(
-        result.accessToken!.token,
+        result.accessToken!.tokenString,
       );
 
       final userCredential = await _firebaseAuth.signInWithCredential(

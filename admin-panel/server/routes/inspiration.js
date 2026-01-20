@@ -7,16 +7,31 @@ const router = express.Router();
 router.get('/', async (req, res) => {
     try {
         const { type } = req.query;
-        let query = db.collection('daily_inspiration');
+        let snapshot;
+
         if (type) {
-            query = query.where('type', '==', type);
+            // When filtering by type, don't use orderBy to avoid composite index
+            snapshot = await db.collection('daily_inspiration')
+                .where('type', '==', type)
+                .get();
+        } else {
+            // For all items, just get without ordering
+            snapshot = await db.collection('daily_inspiration').get();
         }
-        const snapshot = await query.orderBy('createdAt', 'desc').get();
-        const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        let items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Sort in memory by createdAt
+        items.sort((a, b) => {
+            const dateA = a.createdAt?.toDate?.() || new Date(a.createdAt) || new Date(0);
+            const dateB = b.createdAt?.toDate?.() || new Date(b.createdAt) || new Date(0);
+            return dateB - dateA;
+        });
+
         res.json(items);
     } catch (error) {
         console.error('Error fetching inspirations:', error);
-        res.status(500).json({ error: 'Failed to fetch inspirations' });
+        res.status(500).json({ error: 'Failed to fetch inspirations', details: error.message });
     }
 });
 

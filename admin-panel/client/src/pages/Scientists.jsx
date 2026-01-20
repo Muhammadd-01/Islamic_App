@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Trash2, Loader2, RefreshCw, Plus, X, User, Play, FileText } from 'lucide-react';
+import { Trash2, Loader2, RefreshCw, Plus, X, User, Play, FileText, Check, Edit } from 'lucide-react';
 import { scientistsApi } from '../services/api';
+import ImageUpload from '../components/ImageUpload';
+import { useNotification } from '../components/NotificationSystem';
 
 function ScientistsPage() {
+    const { notify } = useNotification();
     const [scientists, setScientists] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+    const [deletingId, setDeletingId] = useState(null);
     const [error, setError] = useState(null);
     const [showForm, setShowForm] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
     const [imageFile, setImageFile] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
@@ -31,6 +37,7 @@ function ScientistsPage() {
             const { data } = await scientistsApi.getAll();
             setScientists(data.scientists);
         } catch (err) {
+            notify.error('Failed to load scientists');
             setError(err.response?.data?.error || 'Failed to load scientists');
         } finally {
             setLoading(false);
@@ -39,6 +46,7 @@ function ScientistsPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
         try {
             const data = new FormData();
             data.append('name', formData.name);
@@ -57,26 +65,59 @@ function ScientistsPage() {
 
             if (imageFile) data.append('image', imageFile);
 
-            await scientistsApi.create(data);
+            if (editingItem) {
+                await scientistsApi.update(editingItem.id, data);
+                notify.success('Scientist updated successfully');
+            } else {
+                await scientistsApi.create(data);
+                notify.success('Scientist created successfully');
+            }
 
             setShowForm(false);
+            setEditingItem(null);
             setImageFile(null);
-            setFormData({
-                name: '', bio: '', field: '', birthDeath: '', achievements: '', imageUrl: '', category: 'muslim', contentType: 'video', videoUrl: '', documentUrl: ''
-            });
+            resetForm();
             fetchScientists();
         } catch (err) {
-            alert('Failed to save: ' + (err.response?.data?.error || err.message));
+            notify.error('Failed to save: ' + (err.response?.data?.error || err.message));
+        } finally {
+            setSubmitting(false);
         }
     };
 
+    const resetForm = () => {
+        setFormData({
+            name: '', bio: '', field: '', birthDeath: '', achievements: '', imageUrl: '', category: 'muslim', contentType: 'video', videoUrl: '', documentUrl: ''
+        });
+    };
+
+    const handleEdit = (item) => {
+        setEditingItem(item);
+        setFormData({
+            name: item.name,
+            bio: item.bio,
+            field: item.field,
+            birthDeath: item.birthDeath,
+            achievements: Array.isArray(item.achievements) ? item.achievements.join('\n') : item.achievements || '',
+            imageUrl: item.imageUrl || '',
+            category: item.category || 'muslim',
+            contentType: item.contentType || 'video',
+            videoUrl: item.videoUrl || '',
+            documentUrl: item.documentUrl || ''
+        });
+        setShowForm(true);
+    };
+
     const handleDelete = async (id) => {
-        if (!confirm('Delete this scientist?')) return;
+        setDeletingId(id);
         try {
             await scientistsApi.delete(id);
             setScientists(scientists.filter(s => s.id !== id));
+            notify.success('Scientist deleted successfully');
         } catch (err) {
-            alert('Failed to delete: ' + err.message);
+            notify.error('Failed to delete: ' + err.message);
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -89,7 +130,11 @@ function ScientistsPage() {
                 </div>
                 <div className="flex gap-3">
                     <button
-                        onClick={() => setShowForm(true)}
+                        onClick={() => {
+                            setEditingItem(null);
+                            resetForm();
+                            setShowForm(true);
+                        }}
                         className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
                     >
                         <Plus size={18} /> Add Scientist
@@ -100,20 +145,23 @@ function ScientistsPage() {
                 </div>
             </div>
 
-            {error && <div className="bg-red-50 text-red-600 p-4 rounded-lg">{error}</div>}
-
             {loading ? (
                 <div className="flex justify-center h-64 items-center"><Loader2 className="animate-spin text-primary-500 w-8 h-8" /></div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {scientists.map(item => (
-                        <div key={item.id} className="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col">
+                        <div key={item.id} className="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col group">
                             <div className="h-48 bg-gray-100 overflow-hidden relative">
                                 {item.imageUrl ? (
-                                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                 ) : (
                                     <div className="flex items-center justify-center h-full text-gray-400"><User size={48} /></div>
                                 )}
+                                <div className="absolute top-2 right-2 flex gap-2">
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${item.contentType === 'video' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'}`}>
+                                        {item.contentType === 'video' ? 'Video' : 'Doc'}
+                                    </span>
+                                </div>
                             </div>
                             <div className="p-4 flex-1">
                                 <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
@@ -121,9 +169,19 @@ function ScientistsPage() {
                                 <p className="text-xs text-gray-500 mb-2">{item.birthDeath}</p>
                                 <p className="text-gray-600 text-sm line-clamp-3">{item.bio}</p>
                             </div>
-                            <div className="p-4 border-t bg-gray-50 flex justify-end">
-                                <button onClick={() => handleDelete(item.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg">
-                                    <Trash2 size={18} />
+                            <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
+                                <button
+                                    onClick={() => handleEdit(item)}
+                                    className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                >
+                                    <Edit size={18} />
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(item.id)}
+                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                    disabled={deletingId === item.id}
+                                >
+                                    {deletingId === item.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 size={18} />}
                                 </button>
                             </div>
                         </div>
@@ -134,9 +192,9 @@ function ScientistsPage() {
 
             {showForm && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-dark-card rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-dark-icon">
-                        <div className="p-6 border-b border-dark-icon flex justify-between items-center">
-                            <h2 className="text-xl font-bold text-light-primary">Add Scientist</h2>
+                    <div className="bg-dark-card rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-dark-icon scrollbar-thin scrollbar-thumb-dark-icon scrollbar-track-transparent">
+                        <div className="p-6 border-b border-dark-icon flex justify-between items-center sticky top-0 bg-dark-card z-10">
+                            <h2 className="text-xl font-bold text-light-primary">{editingItem ? 'Edit Scientist' : 'Add Scientist'}</h2>
                             <button onClick={() => setShowForm(false)} className="p-2 hover:bg-dark-icon rounded text-light-muted"><X size={20} /></button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -171,10 +229,15 @@ function ScientistsPage() {
                                 <label className="block text-sm font-medium mb-1 text-light-muted">Achievements (One per line)</label>
                                 <textarea value={formData.achievements} onChange={e => setFormData({ ...formData, achievements: e.target.value })} className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary focus:border-gold-primary focus:outline-none" rows="4"></textarea>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1 text-light-muted">Profile Image (Upload from Device)</label>
-                                <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files[0])} className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:bg-gold-primary file:text-dark-main file:font-medium" />
-                            </div>
+
+                            <ImageUpload
+                                label="Profile Image"
+                                value={formData.imageUrl}
+                                onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                                onFileSelect={setImageFile}
+                                bucket="scientist-images"
+                            />
+
                             <div>
                                 <label className="block text-sm font-medium mb-2 text-light-muted">Content Type</label>
                                 <div className="flex gap-3">
@@ -198,7 +261,6 @@ function ScientistsPage() {
                                 <div>
                                     <label className="block text-sm font-medium mb-1 text-light-muted">YouTube Video URL</label>
                                     <input type="url" value={formData.videoUrl} onChange={e => setFormData({ ...formData, videoUrl: e.target.value })} placeholder="https://youtube.com/watch?v=..." className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary focus:border-gold-primary focus:outline-none" />
-                                    <p className="text-xs text-light-muted mt-1">Enter a YouTube video URL</p>
                                 </div>
                             )}
                             {formData.contentType === 'document' && (
@@ -216,10 +278,16 @@ function ScientistsPage() {
                                         className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary focus:border-gold-primary focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gold-primary file:text-dark-main"
                                     />
                                     <p className="text-xs text-light-muted mt-1">Upload PDF or Word document (max 10MB)</p>
-                                    {formData.documentUrl && <p className="text-xs text-green-400 mt-1">✓ Document selected</p>}
                                 </div>
                             )}
-                            <button type="submit" className="w-full bg-gold-primary text-dark-main py-3 rounded-lg hover:bg-gold-dark font-medium transition-colors">Create Scientist</button>
+                            <button
+                                type="submit"
+                                disabled={submitting}
+                                className="w-full bg-gold-primary text-dark-main py-3 rounded-lg hover:bg-gold-dark font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+                                {editingItem ? 'Update Scientist' : 'Create Scientist'}
+                            </button>
                         </form>
                     </div>
                 </div>

@@ -4,7 +4,7 @@ import { db } from '../config/firebase.js';
 import { uploadToSupabase } from '../config/supabase.js';
 
 const router = express.Router();
-const collection = 'politics';
+const collection = 'quran';
 
 // Multer config
 const upload = multer({
@@ -14,17 +14,17 @@ const upload = multer({
 
 // Upload helper
 const uploadImage = async (file) => {
-    const result = await uploadToSupabase(file.buffer, file.originalname, 'politics-images');
+    const result = await uploadToSupabase(file.buffer, file.originalname, 'quran-images');
     if (result.error) {
         throw new Error(result.error);
     }
     return result.url;
 };
 
-// Get all politics content
+// Get all quran entries
 router.get('/', async (req, res) => {
     try {
-        const snapshot = await db.collection(collection).orderBy('createdAt', 'desc').get();
+        const snapshot = await db.collection(collection).orderBy('surahNumber').get();
         const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         res.json(items);
     } catch (error) {
@@ -32,10 +32,10 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Create politics content
+// Create quran entry (Surah or Ayah)
 router.post('/', upload.single('image'), async (req, res) => {
     try {
-        const { title, content, author, source, category, imageUrl } = req.body;
+        const { surahName, surahNumber, ayahs, revelationType, description, imageUrl, audioUrl } = req.body;
 
         let finalImageUrl = imageUrl || '';
         if (req.file) {
@@ -43,12 +43,13 @@ router.post('/', upload.single('image'), async (req, res) => {
         }
 
         const data = {
-            title,
-            content,
-            author,
-            source,
-            category: category || 'general',
+            surahName,
+            surahNumber: parseInt(surahNumber),
+            ayahs: parseInt(ayahs),
+            revelationType: revelationType || 'Meccan',
+            description,
             imageUrl: finalImageUrl,
+            audioUrl: audioUrl || '',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
@@ -59,20 +60,21 @@ router.post('/', upload.single('image'), async (req, res) => {
     }
 });
 
-// Update politics content
+// Update quran entry
 router.put('/:id', upload.single('image'), async (req, res) => {
     try {
-        const { title, content, author, source, category, imageUrl } = req.body;
+        const { surahName, surahNumber, ayahs, revelationType, description, imageUrl, audioUrl } = req.body;
 
         const updateData = {
             updatedAt: new Date().toISOString()
         };
 
-        if (title) updateData.title = title;
-        if (content) updateData.content = content;
-        if (author) updateData.author = author;
-        if (source) updateData.source = source;
-        if (category) updateData.category = category;
+        if (surahName) updateData.surahName = surahName;
+        if (surahNumber) updateData.surahNumber = parseInt(surahNumber);
+        if (ayahs) updateData.ayahs = parseInt(ayahs);
+        if (revelationType) updateData.revelationType = revelationType;
+        if (description) updateData.description = description;
+        if (audioUrl !== undefined) updateData.audioUrl = audioUrl;
         if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
 
         if (req.file) {
@@ -86,7 +88,7 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     }
 });
 
-// Delete politics content
+// Delete quran entry
 router.delete('/:id', async (req, res) => {
     try {
         await db.collection(collection).doc(req.params.id).delete();

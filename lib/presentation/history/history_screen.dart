@@ -118,7 +118,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
   }
 
   Widget _buildBrowseView(List<HistoryTopic> allTopics, bool isDark) {
-    final filteredTopics = _filterTopics(allTopics);
+    // Filter to only show 'browse' displayMode items
+    final browseTopics = allTopics
+        .where((t) => t.displayMode == 'browse')
+        .toList();
+    final filteredTopics = _filterTopics(browseTopics);
 
     return Column(
       children: [
@@ -231,7 +235,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
   }
 
   Widget _buildTimelineView(List<HistoryTopic> allTopics, bool isDark) {
-    final filteredTopics = _filterTopics(allTopics);
+    // Filter to only show 'timeline' displayMode items
+    final timelineTopics = allTopics
+        .where((t) => t.displayMode == 'timeline')
+        .toList();
+    final filteredTopics = _filterTopics(timelineTopics);
 
     return Column(
       children: [

@@ -10,6 +10,7 @@ class Invention {
   final String? videoUrl;
   final String? documentUrl;
   final String contentType; // 'video' or 'document'
+  final String category; // 'muslim' or 'western'
 
   Invention({
     required this.id,
@@ -23,6 +24,7 @@ class Invention {
     this.videoUrl,
     this.documentUrl,
     this.contentType = 'video',
+    this.category = 'muslim',
   });
 
   factory Invention.fromMap(Map<String, dynamic> map, String id) {
@@ -38,6 +40,7 @@ class Invention {
       videoUrl: map['videoUrl'],
       documentUrl: map['documentUrl'],
       contentType: map['contentType'] ?? 'video',
+      category: map['category'] ?? 'muslim',
     );
   }
 
@@ -53,6 +56,7 @@ class Invention {
       'videoUrl': videoUrl,
       'documentUrl': documentUrl,
       'contentType': contentType,
+      'category': category,
     };
   }
 }

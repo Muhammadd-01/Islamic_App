@@ -1,7 +1,24 @@
 import express from 'express';
+import multer from 'multer';
 import { db } from '../config/firebase.js';
+import { uploadToSupabase } from '../config/supabase.js';
 
 const router = express.Router();
+
+// Multer config
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+});
+
+// Upload helper
+const uploadImage = async (file) => {
+    const result = await uploadToSupabase(file.buffer, file.originalname, 'scholar-images');
+    if (result.error) {
+        throw new Error(result.error);
+    }
+    return result.url;
+};
 
 // GET all scholars
 router.get('/', async (req, res) => {
@@ -32,16 +49,22 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST create scholar
-router.post('/', async (req, res) => {
+router.post('/', upload.single('image'), async (req, res) => {
     try {
         const { name, specialty, bio, imageUrl, isAvailableFor1on1, consultationFee } = req.body;
+
+        let finalImageUrl = imageUrl || '';
+        if (req.file) {
+            finalImageUrl = await uploadImage(req.file);
+        }
+
         const docRef = await db.collection('scholars').add({
             name,
             specialty,
             bio,
-            imageUrl: imageUrl || '',
-            isAvailableFor1on1: isAvailableFor1on1 || false,
-            consultationFee: consultationFee || 0,
+            imageUrl: finalImageUrl,
+            isAvailableFor1on1: isAvailableFor1on1 === 'true' || isAvailableFor1on1 === true,
+            consultationFee: parseFloat(consultationFee) || 0,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         });
@@ -53,18 +76,26 @@ router.post('/', async (req, res) => {
 });
 
 // PUT update scholar
-router.put('/:id', async (req, res) => {
+router.put('/:id', upload.single('image'), async (req, res) => {
     try {
         const { name, specialty, bio, imageUrl, isAvailableFor1on1, consultationFee } = req.body;
-        await db.collection('scholars').doc(req.params.id).update({
-            name,
-            specialty,
-            bio,
-            imageUrl: imageUrl || '',
-            isAvailableFor1on1: isAvailableFor1on1 || false,
-            consultationFee: consultationFee || 0,
+
+        const updateData = {
             updatedAt: new Date().toISOString()
-        });
+        };
+
+        if (name) updateData.name = name;
+        if (specialty) updateData.specialty = specialty;
+        if (bio) updateData.bio = bio;
+        if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+        if (isAvailableFor1on1 !== undefined) updateData.isAvailableFor1on1 = isAvailableFor1on1 === 'true' || isAvailableFor1on1 === true;
+        if (consultationFee !== undefined) updateData.consultationFee = parseFloat(consultationFee);
+
+        if (req.file) {
+            updateData.imageUrl = await uploadImage(req.file);
+        }
+
+        await db.collection('scholars').doc(req.params.id).update(updateData);
         res.json({ message: 'Scholar updated successfully' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to update scholar' });

@@ -48,6 +48,7 @@ import 'package:islamic_app/presentation/profile/edit_profile_screen.dart';
 import 'package:islamic_app/presentation/cart/cart_screen.dart';
 import 'package:islamic_app/presentation/checkout/checkout_screen.dart';
 import 'package:islamic_app/presentation/muslim_scientists/muslim_scientists_screen.dart';
+import 'package:islamic_app/presentation/orders/my_orders_screen.dart';
 
 import 'package:islamic_app/presentation/auth/auth_gate.dart';
 import 'package:islamic_app/presentation/tools/all_tools_screen.dart';
@@ -314,6 +315,10 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/checkout',
       builder: (context, state) => const CheckoutScreen(),
+    ),
+    GoRoute(
+      path: '/my-orders',
+      builder: (context, state) => const MyOrdersScreen(),
     ),
     GoRoute(
       path: '/muslim-scientists',

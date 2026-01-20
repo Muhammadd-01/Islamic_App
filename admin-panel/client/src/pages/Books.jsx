@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Trash2, Loader2, BookOpen, RefreshCw, Plus, Edit, X } from 'lucide-react';
+import { Trash2, Loader2, BookOpen, RefreshCw, Plus, Edit, X, Check } from 'lucide-react';
 import { booksApi } from '../services/api';
+import { useNotification } from '../components/NotificationSystem';
 
 function BooksPage() {
+    const { notify } = useNotification();
     const [books, setBooks] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+    const [deletingId, setDeletingId] = useState(null);
     const [error, setError] = useState(null);
     const [showForm, setShowForm] = useState(false);
     const [editingBook, setEditingBook] = useState(null);
@@ -29,6 +33,7 @@ function BooksPage() {
             const { data } = await booksApi.getAll();
             setBooks(data.books);
         } catch (err) {
+            notify.error('Failed to load books');
             setError(err.response?.data?.message || 'Failed to load books');
         } finally {
             setLoading(false);
@@ -37,6 +42,7 @@ function BooksPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
         try {
             const data = new FormData();
             data.append('title', formData.title);
@@ -51,8 +57,10 @@ function BooksPage() {
 
             if (editingBook) {
                 await booksApi.update(editingBook.id, data);
+                notify.success(`"${formData.title}" updated successfully!`);
             } else {
                 await booksApi.create(data);
+                notify.success(`"${formData.title}" added successfully!`);
             }
             setShowForm(false);
             setEditingBook(null);
@@ -68,7 +76,9 @@ function BooksPage() {
             });
             fetchBooks();
         } catch (err) {
-            alert('Failed to save book: ' + (err.response?.data?.message || err.message));
+            notify.error('Failed to save book: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -88,15 +98,15 @@ function BooksPage() {
     };
 
     const handleDelete = async (bookId, bookTitle) => {
-        if (!confirm(`Are you sure you want to delete "${bookTitle}"?`)) {
-            return;
-        }
-
+        setDeletingId(bookId);
         try {
             await booksApi.delete(bookId);
             setBooks(books.filter(b => b.id !== bookId));
+            notify.success(`"${bookTitle}" deleted successfully!`);
         } catch (err) {
-            alert('Failed to delete book: ' + (err.response?.data?.message || err.message));
+            notify.error('Failed to delete book: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -208,14 +218,20 @@ function BooksPage() {
                                                     <button
                                                         onClick={() => handleEdit(book)}
                                                         className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                                        disabled={deletingId === book.id}
                                                     >
                                                         <Edit className="w-5 h-5" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(book.id, book.title)}
                                                         className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                        disabled={deletingId === book.id}
                                                     >
-                                                        <Trash2 className="w-5 h-5" />
+                                                        {deletingId === book.id ? (
+                                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                                        ) : (
+                                                            <Trash2 className="w-5 h-5" />
+                                                        )}
                                                     </button>
                                                 </div>
                                             </td>
@@ -331,14 +347,21 @@ function BooksPage() {
                                     type="button"
                                     onClick={() => setShowForm(false)}
                                     className="flex-1 px-4 py-2 bg-dark-icon text-light-muted rounded-lg hover:bg-dark-icon/80 transition-colors"
+                                    disabled={submitting}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 px-4 py-2 bg-gold-primary text-dark-main rounded-lg hover:bg-gold-dark font-medium transition-colors"
+                                    className="flex-1 px-4 py-2 bg-gold-primary text-dark-main rounded-lg hover:bg-gold-dark font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                    disabled={submitting}
                                 >
-                                    {editingBook ? 'Update' : 'Create'}
+                                    {submitting ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <Check className="w-5 h-5" />
+                                    )}
+                                    {submitting ? 'Saving...' : (editingBook ? 'Update' : 'Create')}
                                 </button>
                             </div>
                         </form>

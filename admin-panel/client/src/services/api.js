@@ -49,18 +49,99 @@ export const questionsApi = {
     getStats: () => api.get('/questions/stats/summary'),
 };
 
-// Inventions API
-export const inventionsApi = {
-    getAll: () => api.get('/inventions'),
-    create: (data) => api.post('/inventions', data),
-    delete: (id) => api.delete(`/inventions/${id}`),
-};
-
 // Scientists API
 export const scientistsApi = {
     getAll: () => api.get('/scientists'),
     create: (data) => api.post('/scientists', data),
+    update: (id, data) => api.put(`/scientists/${id}`, data),
     delete: (id) => api.delete(`/scientists/${id}`),
+};
+
+// Inventions API
+export const inventionsApi = {
+    getAll: () => api.get('/inventions'),
+    create: (data) => api.post('/inventions', data),
+    update: (id, data) => api.put(`/inventions/${id}`, data),
+    delete: (id) => api.delete(`/inventions/${id}`),
+};
+
+// History API
+export const historyApi = {
+    getAll: () => api.get('/history'),
+    create: (data) => api.post('/history', data),
+    update: (id, data) => api.put(`/history/${id}`, data),
+    delete: (id) => api.delete(`/history/${id}`),
+};
+
+// Courses API
+export const coursesApi = {
+    getAll: () => api.get('/courses'),
+    create: (data) => api.post('/courses', data),
+    update: (id, data) => api.put(`/courses/${id}`, data),
+    delete: (id) => api.delete(`/courses/${id}`),
+};
+
+// Duas API
+export const duasApi = {
+    getAll: () => api.get('/duas'),
+    create: (data) => api.post('/duas', data),
+    update: (id, data) => api.put(`/duas/${id}`, data),
+    delete: (id) => api.delete(`/duas/${id}`),
+};
+
+// News API
+export const newsApi = {
+    getAll: () => api.get('/news'),
+    create: (data) => api.post('/news', data),
+    update: (id, data) => api.put(`/news/${id}`, data),
+    delete: (id) => api.delete(`/news/${id}`),
+};
+
+// Scholars API
+export const scholarsApi = {
+    getAll: () => api.get('/scholars'),
+    create: (data) => api.post('/scholars', data),
+    update: (id, data) => api.put(`/scholars/${id}`, data),
+    delete: (id) => api.delete(`/scholars/${id}`),
+};
+
+// Politics API
+export const politicsApi = {
+    getAll: () => api.get('/politics'),
+    create: (data) => api.post('/politics', data),
+    update: (id, data) => api.put(`/politics/${id}`, data),
+    delete: (id) => api.delete(`/politics/${id}`),
+};
+
+// Hadiths API
+export const hadithsApi = {
+    getAll: () => api.get('/hadiths'),
+    create: (data) => api.post('/hadiths', data),
+    update: (id, data) => api.put(`/hadiths/${id}`, data),
+    delete: (id) => api.delete(`/hadiths/${id}`),
+};
+
+// Quran API
+export const quranApi = {
+    getAll: () => api.get('/quran'),
+    create: (data) => api.post('/quran', data),
+    update: (id, data) => api.put(`/quran/${id}`, data),
+    delete: (id) => api.delete(`/quran/${id}`),
+};
+
+// Religions (Beliefs) API
+export const religionsApi = {
+    getAll: () => api.get('/religions'),
+    create: (data) => api.post('/religions', data),
+    update: (id, data) => api.put(`/religions/${id}`, data),
+    delete: (id) => api.delete(`/religions/${id}`),
+};
+
+// Daily Inspiration API
+export const inspirationApi = {
+    getAll: () => api.get('/inspiration'),
+    create: (data) => api.post('/inspiration', data),
+    delete: (id) => api.delete(`/inspiration/${id}`),
 };
 
 export default api;

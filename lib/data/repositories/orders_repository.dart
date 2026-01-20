@@ -118,6 +118,13 @@ class OrdersRepository {
 // Riverpod Providers
 final ordersRepositoryProvider = Provider((ref) => OrdersRepository());
 
+/// FutureProvider for one-time fetch (prevents auto-refresh)
+final ordersFutureProvider = FutureProvider<List<Order>>((ref) async {
+  final repo = ref.watch(ordersRepositoryProvider);
+  return repo.getOrders();
+});
+
+/// StreamProvider for real-time updates (use with caution)
 final ordersStreamProvider = StreamProvider<List<Order>>((ref) {
   final repo = ref.watch(ordersRepositoryProvider);
   return repo.getOrdersStream();

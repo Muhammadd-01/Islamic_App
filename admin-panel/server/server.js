@@ -22,7 +22,9 @@ import politicsRoutes from './routes/politics.js';
 import scholarsRoutes from './routes/scholars.js';
 import coursesRoutes from './routes/courses.js';
 import historyRoutes from './routes/history.js';
-import beliefsRoutes from './routes/beliefs.js';
+import religionsRoutes from './routes/religions.js';
+import hadithsRoutes from './routes/hadiths.js';
+import quranRoutes from './routes/quran.js';
 import { seedSuperAdmin } from './utils/seed_admin.js';
 
 seedSuperAdmin();
@@ -62,7 +64,9 @@ app.use('/api/politics', politicsRoutes);
 app.use('/api/scholars', scholarsRoutes);
 app.use('/api/courses', coursesRoutes);
 app.use('/api/history', historyRoutes);
-app.use('/api/beliefs', beliefsRoutes);
+app.use('/api/religions', religionsRoutes);
+app.use('/api/hadiths', hadithsRoutes);
+app.use('/api/quran', quranRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

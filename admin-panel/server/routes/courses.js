@@ -1,7 +1,24 @@
 import express from 'express';
+import multer from 'multer';
 import { db } from '../config/firebase.js';
+import { uploadToSupabase } from '../config/supabase.js';
 
 const router = express.Router();
+
+// Multer config
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+});
+
+// Upload helper
+const uploadImage = async (file) => {
+    const result = await uploadToSupabase(file.buffer, file.originalname, 'course-images');
+    if (result.error) {
+        throw new Error(result.error);
+    }
+    return result.url;
+};
 
 // GET all courses
 router.get('/', async (req, res) => {
@@ -32,19 +49,25 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST create course
-router.post('/', async (req, res) => {
+router.post('/', upload.single('image'), async (req, res) => {
     try {
         const { title, description, instructor, duration, level, imageUrl, enrollUrl, isFree, price } = req.body;
+
+        let finalImageUrl = imageUrl || '';
+        if (req.file) {
+            finalImageUrl = await uploadImage(req.file);
+        }
+
         const docRef = await db.collection('courses').add({
             title,
             description,
             instructor,
             duration,
             level: level || 'Beginner',
-            imageUrl: imageUrl || '',
+            imageUrl: finalImageUrl,
             enrollUrl: enrollUrl || '',
-            isFree: isFree || false,
-            price: price || 0,
+            isFree: isFree === 'true' || isFree === true,
+            price: parseFloat(price) || 0,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         });
@@ -56,21 +79,29 @@ router.post('/', async (req, res) => {
 });
 
 // PUT update course
-router.put('/:id', async (req, res) => {
+router.put('/:id', upload.single('image'), async (req, res) => {
     try {
         const { title, description, instructor, duration, level, imageUrl, enrollUrl, isFree, price } = req.body;
-        await db.collection('courses').doc(req.params.id).update({
-            title,
-            description,
-            instructor,
-            duration,
-            level: level || 'Beginner',
-            imageUrl: imageUrl || '',
-            enrollUrl: enrollUrl || '',
-            isFree: isFree || false,
-            price: price || 0,
+
+        const updateData = {
             updatedAt: new Date().toISOString()
-        });
+        };
+
+        if (title) updateData.title = title;
+        if (description) updateData.description = description;
+        if (instructor) updateData.instructor = instructor;
+        if (duration) updateData.duration = duration;
+        if (level) updateData.level = level;
+        if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+        if (enrollUrl !== undefined) updateData.enrollUrl = enrollUrl;
+        if (isFree !== undefined) updateData.isFree = isFree === 'true' || isFree === true;
+        if (price !== undefined) updateData.price = parseFloat(price);
+
+        if (req.file) {
+            updateData.imageUrl = await uploadImage(req.file);
+        }
+
+        await db.collection('courses').doc(req.params.id).update(updateData);
         res.json({ message: 'Course updated successfully' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to update course' });

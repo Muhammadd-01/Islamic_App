@@ -63,10 +63,12 @@ class HomeScreen extends ConsumerWidget {
 
                       // Daily Inspiration (Hadith)
                       dailyHadithAsync.when(
-                        data: (hadith) => _DailyInspirationCard(hadith: hadith)
-                            .animate()
-                            .fade(duration: 500.ms, delay: 300.ms)
-                            .slideY(begin: 0.1, end: 0),
+                        data: (hadith) => hadith != null
+                            ? _DailyInspirationCard(hadith: hadith)
+                                  .animate()
+                                  .fade(duration: 500.ms, delay: 300.ms)
+                                  .slideY(begin: 0.1, end: 0)
+                            : const SizedBox.shrink(),
                         loading: () => const _ShimmerCard(height: 140),
                         error: (_, __) => const SizedBox.shrink(),
                       ),
@@ -566,7 +568,7 @@ class _GreetingSection extends StatelessWidget {
 }
 
 // Enhanced Prayer Card with Dynamic Colors
-class _EnhancedPrayerCard extends StatelessWidget {
+class _EnhancedPrayerCard extends ConsumerWidget {
   final AsyncValue<String> nextPrayerAsync;
 
   const _EnhancedPrayerCard({required this.nextPrayerAsync});
@@ -595,8 +597,8 @@ class _EnhancedPrayerCard extends StatelessWidget {
   }
 
   // Get gradient colors based on prayer time
-  List<Color> _getPrayerGradient() {
-    final prayerName = _getNextPrayerName();
+  List<Color> _getPrayerGradient(WidgetRef ref) {
+    final prayerName = ref.watch(nextPrayerNameProvider);
     switch (prayerName) {
       case 'Fajr':
         // Dawn - deep purple to soft blue
@@ -638,8 +640,8 @@ class _EnhancedPrayerCard extends StatelessWidget {
   }
 
   // Get icon based on prayer time
-  IconData _getPrayerIcon() {
-    final prayerName = _getNextPrayerName();
+  IconData _getPrayerIcon(WidgetRef ref) {
+    final prayerName = ref.watch(nextPrayerNameProvider);
     switch (prayerName) {
       case 'Fajr':
         return Icons.wb_twilight;
@@ -656,10 +658,10 @@ class _EnhancedPrayerCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final gradientColors = _getPrayerGradient();
-    final nextPrayer = _getNextPrayerName();
-    final prayerIcon = _getPrayerIcon();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final gradientColors = _getPrayerGradient(ref);
+    final nextPrayer = ref.watch(nextPrayerNameProvider);
+    final prayerIcon = _getPrayerIcon(ref);
 
     return Container(
       decoration: BoxDecoration(
@@ -836,10 +838,23 @@ class _EnhancedPrayerCard extends StatelessWidget {
   }
 }
 
-// Quick Stats Row
-class _QuickStatsRow extends StatelessWidget {
+// Quick Stats Row - Now fetches dynamic prayer tracking data
+class _QuickStatsRow extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch prayer tracking for today
+    final prayerTrackingAsync = ref.watch(todayPrayerTrackingProvider);
+
+    final prayerStats = prayerTrackingAsync.when(
+      data: (tracking) {
+        if (tracking == null) return '0/5';
+        final completed = tracking['completedCount'] ?? 0;
+        return '$completed/5';
+      },
+      loading: () => '...',
+      error: (_, __) => '0/5',
+    );
+
     return Row(
       children: [
         Expanded(
@@ -864,7 +879,7 @@ class _QuickStatsRow extends StatelessWidget {
           child: _StatCard(
             icon: Icons.check_circle_outline,
             iconColor: Colors.green,
-            value: '4/5',
+            value: prayerStats,
             label: 'Prayers',
           ),
         ),

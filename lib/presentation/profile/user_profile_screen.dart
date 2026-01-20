@@ -20,20 +20,6 @@ class UserProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
-  bool _isUploadingImage = false;
-
-  Future<void> _pickAndUploadImage() async {
-    setState(() => _isUploadingImage = true);
-    try {
-      final service = SupabaseStorageService();
-      await service.uploadAndSaveProfileImage();
-    } finally {
-      if (mounted) {
-        setState(() => _isUploadingImage = false);
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(firebaseAuthProvider).currentUser;
@@ -42,7 +28,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
 
     // Get profile image URL and display name from Firestore
     final profileData = profileAsync.value;
-    final profileImageUrl = profileData?['profileImageUrl'] as String?;
+    final profileImageUrl =
+        profileData?['profileImageUrl'] as String? ?? user?.photoURL;
     final displayName =
         profileData?['displayName'] as String? ?? user?.displayName ?? 'User';
 
@@ -72,55 +59,46 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // Profile Avatar with Upload
-            GestureDetector(
-              onTap: _isUploadingImage ? null : _pickAndUploadImage,
-              child: Stack(
-                children: [
-                  Container(
-                    width: 110,
-                    height: 110,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: AppColors.primaryGoldGradient,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryGold.withValues(alpha: 0.3),
-                          blurRadius: 20,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(3),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Theme.of(context).scaffoldBackgroundColor,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(3),
-                          child: ClipOval(
-                            child: profileImageUrl != null
-                                ? Image.network(
-                                    profileImageUrl,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder: (context, child, progress) {
-                                      if (progress == null) return child;
-                                      return const Center(
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      );
-                                    },
-                                    errorBuilder: (context, error, stack) =>
-                                        const Icon(
-                                          Icons.person,
-                                          size: 50,
-                                          color: AppColors.primary,
-                                        ),
-                                  )
-                                : Container(
+            // Profile Avatar (view only - edit in Edit Profile screen)
+            Container(
+              width: 110,
+              height: 110,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: AppColors.primaryGoldGradient,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryGold.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(3),
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(3),
+                    child: ClipOval(
+                      child:
+                          profileImageUrl != null && profileImageUrl.isNotEmpty
+                          ? Image.network(
+                              profileImageUrl,
+                              fit: BoxFit.cover,
+                              loadingBuilder: (context, child, progress) {
+                                if (progress == null) return child;
+                                return const Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                );
+                              },
+                              errorBuilder: (context, error, stack) =>
+                                  Container(
                                     color: AppColors.primary.withValues(
                                       alpha: 0.1,
                                     ),
@@ -130,42 +108,18 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                                       color: AppColors.primary,
                                     ),
                                   ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Camera Icon Overlay
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryGold,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Theme.of(context).scaffoldBackgroundColor,
-                          width: 2,
-                        ),
-                      ),
-                      child: _isUploadingImage
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.black,
-                              ),
                             )
-                          : const Icon(
-                              Icons.camera_alt,
-                              size: 16,
-                              color: Colors.black,
+                          : Container(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              child: const Icon(
+                                Icons.person,
+                                size: 50,
+                                color: AppColors.primary,
+                              ),
                             ),
                     ),
                   ),
-                ],
+                ),
               ),
             ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack),
             const SizedBox(height: 16),
@@ -201,6 +155,11 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                           icon: Icons.bookmark,
                           title: 'Bookmarks',
                           onTap: () => context.push('/bookmarks'),
+                        ),
+                        _buildMenuButton(
+                          icon: Icons.shopping_bag,
+                          title: 'My Orders',
+                          onTap: () => context.push('/my-orders'),
                         ),
                         _buildMenuButton(
                           icon: Icons.logout,

@@ -1,7 +1,24 @@
 import express from 'express';
+import multer from 'multer';
 import { db } from '../config/firebase.js';
+import { uploadToSupabase } from '../config/supabase.js';
 
 const router = express.Router();
+
+// Multer config
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+});
+
+// Upload helper
+const uploadImage = async (file) => {
+    const result = await uploadToSupabase(file.buffer, file.originalname, 'dua-images');
+    if (result.error) {
+        throw new Error(result.error);
+    }
+    return result.url;
+};
 
 // Get all Duas
 router.get('/', async (req, res) => {
@@ -29,9 +46,15 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create dua
-router.post('/', async (req, res) => {
+router.post('/', upload.single('image'), async (req, res) => {
     try {
-        const { title, arabic, transliteration, translation, category, reference, benefits } = req.body;
+        const { title, arabic, transliteration, translation, category, reference, benefits, imageUrl } = req.body;
+
+        let finalImageUrl = imageUrl || '';
+        if (req.file) {
+            finalImageUrl = await uploadImage(req.file);
+        }
+
         const docRef = await db.collection('duas').add({
             title,
             arabic,
@@ -40,6 +63,7 @@ router.post('/', async (req, res) => {
             category,
             reference,
             benefits,
+            imageUrl: finalImageUrl,
             createdAt: new Date(),
             updatedAt: new Date()
         });
@@ -50,19 +74,28 @@ router.post('/', async (req, res) => {
 });
 
 // Update dua
-router.put('/:id', async (req, res) => {
+router.put('/:id', upload.single('image'), async (req, res) => {
     try {
-        const { title, arabic, transliteration, translation, category, reference, benefits } = req.body;
-        await db.collection('duas').doc(req.params.id).update({
-            title,
-            arabic,
-            transliteration,
-            translation,
-            category,
-            reference,
-            benefits,
+        const { title, arabic, transliteration, translation, category, reference, benefits, imageUrl } = req.body;
+
+        const updateData = {
             updatedAt: new Date()
-        });
+        };
+
+        if (title) updateData.title = title;
+        if (arabic) updateData.arabic = arabic;
+        if (transliteration) updateData.transliteration = transliteration;
+        if (translation) updateData.translation = translation;
+        if (category) updateData.category = category;
+        if (reference) updateData.reference = reference;
+        if (benefits) updateData.benefits = benefits;
+        if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+
+        if (req.file) {
+            updateData.imageUrl = await uploadImage(req.file);
+        }
+
+        await db.collection('duas').doc(req.params.id).update(updateData);
         res.json({ message: 'Dua updated successfully' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to update dua' });

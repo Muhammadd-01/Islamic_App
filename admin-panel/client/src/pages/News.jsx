@@ -1,33 +1,40 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, ExternalLink, Youtube, Newspaper, RefreshCw } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Loader2, Image as ImageIcon, X } from 'lucide-react';
+import { newsApi } from '../services/api';
+import ImageUpload from '../components/ImageUpload';
+import { useNotification } from '../components/NotificationSystem';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-export default function NewsPage() {
-    const [items, setItems] = useState([]);
+export default function News() {
+    const { notify } = useNotification();
+    const [news, setNews] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState('');
     const [showModal, setShowModal] = useState(false);
-    const [editItem, setEditItem] = useState(null);
-    const [form, setForm] = useState({
+    const [editingNews, setEditingNews] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
+    const [deletingId, setDeletingId] = useState(null);
+    const [imageFile, setImageFile] = useState(null);
+
+    const [formData, setFormData] = useState({
         title: '',
-        description: '',
+        content: '',
+        author: '',
         source: '',
-        url: '',
-        imageUrl: '',
-        category: 'world',
+        imageUrl: ''
     });
 
     useEffect(() => {
-        fetchItems();
+        fetchNews();
     }, []);
 
-    const fetchItems = async () => {
+    const fetchNews = async () => {
         try {
-            const res = await fetch(`${API_URL}/news`);
-            const data = await res.json();
-            setItems(data);
+            setLoading(true);
+            const { data } = await newsApi.getAll();
+            setNews(data);
         } catch (error) {
             console.error('Error fetching news:', error);
+            notify.error('Failed to fetch news');
         } finally {
             setLoading(false);
         }
@@ -35,231 +42,230 @@ export default function NewsPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
         try {
-            const method = editItem ? 'PUT' : 'POST';
-            const url = editItem ? `${API_URL}/news/${editItem.id}` : `${API_URL}/news`;
+            const data = new FormData();
+            data.append('title', formData.title);
+            data.append('content', formData.content);
+            data.append('author', formData.author);
+            data.append('source', formData.source);
+            if (formData.imageUrl) data.append('imageUrl', formData.imageUrl);
 
-            await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(form),
-            });
+            if (imageFile) {
+                data.append('image', imageFile);
+            }
 
-            fetchItems();
-            resetForm();
+            if (editingNews) {
+                await newsApi.update(editingNews.id, data);
+                notify.success('News updated successfully');
+            } else {
+                await newsApi.create(data);
+                notify.success('News created successfully');
+            }
+
+            fetchNews();
+            closeModal();
         } catch (error) {
-            console.error('Error saving:', error);
+            console.error('Error saving news:', error);
+            notify.error('Failed to save news: ' + (error.response?.data?.error || error.message));
+        } finally {
+            setSubmitting(false);
         }
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure?')) return;
+        if (!window.confirm('Are you sure you want to delete this news item?')) return;
+        setDeletingId(id);
         try {
-            await fetch(`${API_URL}/news/${id}`, { method: 'DELETE' });
-            fetchItems();
+            await newsApi.delete(id);
+            setNews(news.filter(n => n.id !== id));
+            notify.success('News deleted successfully');
         } catch (error) {
-            console.error('Error deleting:', error);
+            console.error('Error deleting news:', error);
+            notify.error('Failed to delete news');
+        } finally {
+            setDeletingId(null);
         }
     };
 
-    const resetForm = () => {
-        setForm({
-            title: '',
-            description: '',
-            source: '',
-            url: '',
-            imageUrl: '',
-            category: 'world',
-        });
-        setEditItem(null);
-        setShowModal(false);
-    };
-
-    const openEdit = (item) => {
-        setForm(item);
-        setEditItem(item);
+    const openModal = (newsItem = null) => {
+        if (newsItem) {
+            setEditingNews(newsItem);
+            setFormData({
+                title: newsItem.title || '',
+                content: newsItem.content || '',
+                author: newsItem.author || '',
+                source: newsItem.source || '',
+                imageUrl: newsItem.imageUrl || ''
+            });
+        } else {
+            setEditingNews(null);
+            setFormData({
+                title: '',
+                content: '',
+                author: '',
+                source: '',
+                imageUrl: ''
+            });
+        }
+        setImageFile(null);
         setShowModal(true);
     };
 
-    const categories = ['world', 'technology', 'science', 'health', 'business', 'islamic'];
+    const closeModal = () => {
+        setShowModal(false);
+        setEditingNews(null);
+        setImageFile(null);
+    };
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-primary"></div>
-            </div>
-        );
-    }
+    const filteredNews = news.filter(item =>
+        item.title?.toLowerCase().includes(search.toLowerCase()) ||
+        item.content?.toLowerCase().includes(search.toLowerCase())
+    );
 
     return (
-        <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-2xl font-bold text-light-primary">News Management</h1>
-                    <p className="text-light-muted">Manage news articles and YouTube videos</p>
+                    <p className="text-light-muted">Manage Islamic news and updates</p>
                 </div>
-                <div className="flex gap-3">
-                    <button
-                        onClick={fetchItems}
-                        className="flex items-center gap-2 bg-dark-card border border-dark-icon hover:border-gold-primary text-light-primary px-4 py-2 rounded-lg transition-colors"
-                    >
-                        <RefreshCw size={18} />
-                        Refresh
-                    </button>
-                    <button
-                        onClick={() => setShowModal(true)}
-                        className="flex items-center gap-2 bg-gold-primary hover:bg-gold-highlight text-black px-4 py-2 rounded-lg font-medium transition-colors"
-                    >
-                        <Plus size={20} />
-                        Add News
-                    </button>
-                </div>
+                <button
+                    onClick={() => openModal()}
+                    className="flex items-center gap-2 bg-gold-primary text-dark-main px-4 py-2 rounded-lg font-medium hover:bg-gold-dark transition"
+                >
+                    <Plus size={20} />
+                    Add News
+                </button>
             </div>
 
-            {/* News Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {items.map(item => (
-                    <div key={item.id} className="bg-dark-card rounded-xl overflow-hidden border border-dark-icon">
-                        {item.imageUrl && (
-                            <img
-                                src={item.imageUrl}
-                                alt={item.title}
-                                className="w-full h-40 object-cover"
-                                onError={(e) => { e.target.style.display = 'none'; }}
-                            />
-                        )}
-                        <div className="p-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="px-2 py-0.5 bg-gold-primary/20 text-gold-primary text-xs rounded-full">
-                                    {item.category}
-                                </span>
-                                <span className="text-xs text-light-muted">{item.source}</span>
-                            </div>
-                            <h3 className="font-semibold text-light-primary line-clamp-2 mb-2">{item.title}</h3>
-                            <p className="text-sm text-light-muted line-clamp-2">{item.description}</p>
+            <div className="relative">
+                <Search className="absolute left-3 top-2.5 w-5 h-5 text-light-muted" />
+                <input
+                    type="text"
+                    placeholder="Search news..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-dark-card border border-dark-icon text-light-primary rounded-lg focus:ring-2 focus:ring-gold-primary outline-none"
+                />
+            </div>
 
-                            <div className="flex justify-between items-center mt-4">
-                                <a
-                                    href={item.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-1 text-gold-primary hover:text-gold-highlight text-sm"
-                                >
-                                    <ExternalLink size={14} />
-                                    Open Link
-                                </a>
+            {loading ? (
+                <div className="flex items-center justify-center h-64">
+                    <Loader2 className="w-8 h-8 animate-spin text-gold-primary" />
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredNews.map((item) => (
+                        <div key={item.id} className="bg-dark-card border border-dark-icon rounded-xl overflow-hidden hover:border-gold-primary/50 transition-colors">
+                            <div className="h-48 bg-dark-icon relative">
+                                {item.imageUrl ? (
+                                    <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="flex items-center justify-center h-full">
+                                        <ImageIcon size={40} className="text-light-muted opacity-50" />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="p-4">
+                                <h3 className="text-lg font-semibold text-light-primary mb-2 line-clamp-1">{item.title}</h3>
+                                <p className="text-light-muted text-sm mb-4 line-clamp-2">{item.content}</p>
+                                <div className="flex justify-between items-center text-xs text-light-muted mb-4">
+                                    <span>By {item.author}</span>
+                                    <span>{new Date(item.createdAt).toLocaleDateString()}</span>
+                                </div>
                                 <div className="flex gap-2">
                                     <button
-                                        onClick={() => openEdit(item)}
-                                        className="p-2 bg-dark-icon rounded-lg hover:bg-dark-secondary transition-colors"
+                                        onClick={() => openModal(item)}
+                                        className="flex-1 flex items-center justify-center gap-1 bg-dark-icon text-gold-primary py-2 rounded-lg hover:bg-dark-icon/80"
                                     >
-                                        <Edit size={16} className="text-gold-primary" />
+                                        <Edit size={16} />
+                                        Edit
                                     </button>
                                     <button
                                         onClick={() => handleDelete(item.id)}
-                                        className="p-2 bg-dark-icon rounded-lg hover:bg-red-500/20 transition-colors"
+                                        className="flex-1 flex items-center justify-center gap-1 bg-red-500/10 text-red-400 py-2 rounded-lg hover:bg-red-500/20"
+                                        disabled={deletingId === item.id}
                                     >
-                                        <Trash2 size={16} className="text-red-400" />
+                                        {deletingId === item.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 size={16} />}
                                     </button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                ))}
-            </div>
-
-            {items.length === 0 && (
-                <div className="text-center py-12">
-                    <Newspaper size={48} className="mx-auto text-light-muted mb-4" />
-                    <p className="text-light-muted">No news articles yet. Add some!</p>
+                    ))}
                 </div>
             )}
 
-            {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-dark-card rounded-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-                        <h2 className="text-xl font-bold text-light-primary mb-4">
-                            {editItem ? 'Edit News' : 'Add News'}
-                        </h2>
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-dark-card border border-dark-icon rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto custom-scrollbar">
+                        <div className="flex items-center justify-between p-6 border-b border-dark-icon sticky top-0 bg-dark-card z-10">
+                            <h2 className="text-xl font-bold text-light-primary">
+                                {editingNews ? 'Edit News' : 'Add News'}
+                            </h2>
+                            <button onClick={closeModal} className="text-light-muted hover:text-light-primary">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm text-light-muted mb-1">Title</label>
+                                <label className="block text-sm font-medium text-light-muted mb-1">Title</label>
                                 <input
                                     type="text"
-                                    value={form.title}
-                                    onChange={(e) => setForm({ ...form, title: e.target.value })}
-                                    className="w-full bg-dark-secondary border border-dark-icon rounded-lg px-3 py-2 text-light-primary"
+                                    value={formData.title}
+                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                    className="w-full px-4 py-2 bg-dark-main border border-dark-icon text-light-primary rounded-lg focus:ring-2 focus:ring-gold-primary"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm text-light-muted mb-1">Description</label>
+                                <label className="block text-sm font-medium text-light-muted mb-1">Content</label>
                                 <textarea
-                                    value={form.description}
-                                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                                    className="w-full bg-dark-secondary border border-dark-icon rounded-lg px-3 py-2 text-light-primary"
-                                    rows={3}
+                                    value={formData.content}
+                                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                                    className="w-full px-4 py-2 bg-dark-main border border-dark-icon text-light-primary rounded-lg focus:ring-2 focus:ring-gold-primary h-32 resize-none"
+                                    required
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm text-light-muted mb-1">Source</label>
+                                    <label className="block text-sm font-medium text-light-muted mb-1">Author</label>
                                     <input
                                         type="text"
-                                        value={form.source}
-                                        onChange={(e) => setForm({ ...form, source: e.target.value })}
-                                        className="w-full bg-dark-secondary border border-dark-icon rounded-lg px-3 py-2 text-light-primary"
-                                        placeholder="BBC, CNN, etc."
+                                        value={formData.author}
+                                        onChange={(e) => setFormData({ ...formData, author: e.target.value })}
+                                        className="w-full px-4 py-2 bg-dark-main border border-dark-icon text-light-primary rounded-lg focus:ring-2 focus:ring-gold-primary"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm text-light-muted mb-1">Category</label>
-                                    <select
-                                        value={form.category}
-                                        onChange={(e) => setForm({ ...form, category: e.target.value })}
-                                        className="w-full bg-dark-secondary border border-dark-icon rounded-lg px-3 py-2 text-light-primary"
-                                    >
-                                        {categories.map(cat => (
-                                            <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
-                                        ))}
-                                    </select>
+                                    <label className="block text-sm font-medium text-light-muted mb-1">Source</label>
+                                    <input
+                                        type="text"
+                                        value={formData.source}
+                                        onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+                                        className="w-full px-4 py-2 bg-dark-main border border-dark-icon text-light-primary rounded-lg focus:ring-2 focus:ring-gold-primary"
+                                    />
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm text-light-muted mb-1">URL</label>
-                                <input
-                                    type="url"
-                                    value={form.url}
-                                    onChange={(e) => setForm({ ...form, url: e.target.value })}
-                                    className="w-full bg-dark-secondary border border-dark-icon rounded-lg px-3 py-2 text-light-primary"
-                                    placeholder="https://"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm text-light-muted mb-1">Image URL (optional)</label>
-                                <input
-                                    type="url"
-                                    value={form.imageUrl}
-                                    onChange={(e) => setForm({ ...form, imageUrl: e.target.value })}
-                                    className="w-full bg-dark-secondary border border-dark-icon rounded-lg px-3 py-2 text-light-primary"
-                                    placeholder="https://..."
-                                />
-                            </div>
+
+                            <ImageUpload
+                                label="Cover Image"
+                                value={formData.imageUrl}
+                                onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                                onFileSelect={setImageFile}
+                                bucket="news-images"
+                            />
+
                             <div className="flex gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={resetForm}
-                                    className="flex-1 px-4 py-2 bg-dark-icon text-light-muted rounded-lg hover:bg-dark-secondary transition-colors"
-                                >
+                                <button type="button" onClick={closeModal} className="flex-1 px-4 py-2 border border-dark-icon text-light-muted rounded-lg hover:bg-dark-icon">
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 px-4 py-2 bg-gold-primary text-black rounded-lg hover:bg-gold-highlight font-medium transition-colors"
+                                    disabled={submitting}
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gold-primary text-dark-main rounded-lg hover:bg-gold-dark disabled:opacity-50"
                                 >
-                                    {editItem ? 'Update' : 'Create'}
+                                    {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingNews ? 'Update' : 'Create')}
                                 </button>
                             </div>
                         </form>

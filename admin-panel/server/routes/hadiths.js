@@ -4,7 +4,7 @@ import { db } from '../config/firebase.js';
 import { uploadToSupabase } from '../config/supabase.js';
 
 const router = express.Router();
-const collection = 'politics';
+const collection = 'hadiths';
 
 // Multer config
 const upload = multer({
@@ -14,14 +14,14 @@ const upload = multer({
 
 // Upload helper
 const uploadImage = async (file) => {
-    const result = await uploadToSupabase(file.buffer, file.originalname, 'politics-images');
+    const result = await uploadToSupabase(file.buffer, file.originalname, 'hadith-images');
     if (result.error) {
         throw new Error(result.error);
     }
     return result.url;
 };
 
-// Get all politics content
+// Get all hadiths
 router.get('/', async (req, res) => {
     try {
         const snapshot = await db.collection(collection).orderBy('createdAt', 'desc').get();
@@ -32,10 +32,10 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Create politics content
+// Create hadith
 router.post('/', upload.single('image'), async (req, res) => {
     try {
-        const { title, content, author, source, category, imageUrl } = req.body;
+        const { title, content, narrator, book, chapter, grade, imageUrl } = req.body;
 
         let finalImageUrl = imageUrl || '';
         if (req.file) {
@@ -45,9 +45,10 @@ router.post('/', upload.single('image'), async (req, res) => {
         const data = {
             title,
             content,
-            author,
-            source,
-            category: category || 'general',
+            narrator,
+            book,
+            chapter,
+            grade,
             imageUrl: finalImageUrl,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
@@ -59,10 +60,10 @@ router.post('/', upload.single('image'), async (req, res) => {
     }
 });
 
-// Update politics content
+// Update hadith
 router.put('/:id', upload.single('image'), async (req, res) => {
     try {
-        const { title, content, author, source, category, imageUrl } = req.body;
+        const { title, content, narrator, book, chapter, grade, imageUrl } = req.body;
 
         const updateData = {
             updatedAt: new Date().toISOString()
@@ -70,9 +71,10 @@ router.put('/:id', upload.single('image'), async (req, res) => {
 
         if (title) updateData.title = title;
         if (content) updateData.content = content;
-        if (author) updateData.author = author;
-        if (source) updateData.source = source;
-        if (category) updateData.category = category;
+        if (narrator) updateData.narrator = narrator;
+        if (book) updateData.book = book;
+        if (chapter) updateData.chapter = chapter;
+        if (grade) updateData.grade = grade;
         if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
 
         if (req.file) {
@@ -86,7 +88,7 @@ router.put('/:id', upload.single('image'), async (req, res) => {
     }
 });
 
-// Delete politics content
+// Delete hadith
 router.delete('/:id', async (req, res) => {
     try {
         await db.collection(collection).doc(req.params.id).delete();

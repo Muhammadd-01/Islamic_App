@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, Loader2, Quote, BookOpen, Star } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Loader2, Quote, BookOpen, Star, Check } from 'lucide-react';
+import { useNotification } from '../components/NotificationSystem';
 
 const API_URL = 'http://localhost:5000/api';
 
 export default function DailyInspiration() {
+    const { notify } = useNotification();
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+    const [deletingId, setDeletingId] = useState(null);
     const [activeTab, setActiveTab] = useState('all');
     const [showModal, setShowModal] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
@@ -29,15 +33,18 @@ export default function DailyInspiration() {
     }, [activeTab]);
 
     const fetchItems = async () => {
+        setLoading(true);
         try {
             const url = activeTab === 'all'
                 ? `${API_URL}/inspiration`
                 : `${API_URL}/inspiration?type=${activeTab}`;
             const res = await fetch(url);
             const data = await res.json();
-            setItems(data);
+            // Ensure items is always an array
+            setItems(Array.isArray(data) ? data : (data.items || data.inspirations || []));
         } catch (error) {
             console.error('Error fetching inspirations:', error);
+            setItems([]); // Set to empty array on error
         } finally {
             setLoading(false);
         }
@@ -45,6 +52,7 @@ export default function DailyInspiration() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
         try {
             const url = editingItem ? `${API_URL}/inspiration/${editingItem.id}` : `${API_URL}/inspiration`;
             const method = editingItem ? 'PUT' : 'POST';
@@ -55,21 +63,27 @@ export default function DailyInspiration() {
                 body: JSON.stringify(formData)
             });
 
+            notify.success(editingItem ? 'Inspiration updated!' : 'Inspiration added!');
             fetchItems();
             setShowModal(false);
             resetForm();
         } catch (error) {
-            console.error('Error saving inspiration:', error);
+            notify.error('Error saving inspiration');
+        } finally {
+            setSubmitting(false);
         }
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this?')) return;
+        setDeletingId(id);
         try {
             await fetch(`${API_URL}/inspiration/${id}`, { method: 'DELETE' });
+            notify.success('Inspiration deleted!');
             fetchItems();
         } catch (error) {
-            console.error('Error deleting:', error);
+            notify.error('Error deleting');
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -129,8 +143,8 @@ export default function DailyInspiration() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${activeTab === tab.id
-                                ? 'bg-gold-primary text-iconBlack'
-                                : 'text-light-muted hover:bg-dark-icon'
+                            ? 'bg-gold-primary text-iconBlack'
+                            : 'text-light-muted hover:bg-dark-icon'
                             }`}
                     >
                         <tab.icon size={16} />

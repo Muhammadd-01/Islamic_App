@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react';
-import { Trash2, Loader2, RefreshCw, Plus, X, Image as ImageIcon, Play, FileText } from 'lucide-react';
+import { Trash2, Loader2, RefreshCw, Plus, X, Image as ImageIcon, Play, FileText, Check, Edit } from 'lucide-react';
 import { inventionsApi } from '../services/api';
+import ImageUpload from '../components/ImageUpload';
+import { useNotification } from '../components/NotificationSystem';
 
 function InventionsPage() {
+    const { notify } = useNotification();
     const [inventions, setInventions] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+    const [deletingId, setDeletingId] = useState(null);
     const [error, setError] = useState(null);
     const [showForm, setShowForm] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
     const [imageFile, setImageFile] = useState(null);
     const [formData, setFormData] = useState({
         title: '',
@@ -32,6 +38,7 @@ function InventionsPage() {
             const { data } = await inventionsApi.getAll();
             setInventions(data.inventions);
         } catch (err) {
+            notify.error('Failed to load inventions');
             setError(err.response?.data?.error || 'Failed to load inventions');
         } finally {
             setLoading(false);
@@ -40,6 +47,7 @@ function InventionsPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
         try {
             const data = new FormData();
             data.append('title', formData.title);
@@ -51,8 +59,7 @@ function InventionsPage() {
 
             // Convert details text to JSON array
             const detailsArray = formData.details.split('\n').filter(line => line.trim());
-            data.append('details', JSON.stringify(detailsArray)); // Send as JSON string for array parsing on server or use multiple keys
-            // The server expects array or JSON string. JSON string is easier with FormData.
+            data.append('details', JSON.stringify(detailsArray));
 
             data.append('category', formData.category);
             data.append('contentType', formData.contentType);
@@ -61,27 +68,61 @@ function InventionsPage() {
 
             if (imageFile) data.append('image', imageFile);
 
-            await inventionsApi.create(data);
+            if (editingItem) {
+                await inventionsApi.update(editingItem.id, data);
+                notify.success('Invention updated successfully');
+            } else {
+                await inventionsApi.create(data);
+                notify.success('Invention created successfully');
+            }
 
             setShowForm(false);
+            setEditingItem(null);
             setImageFile(null);
-            setFormData({
-                title: '', description: '', discoveredBy: '', refinedBy: '',
-                year: '', details: '', imageUrl: '', category: 'muslim', contentType: 'video', videoUrl: '', documentUrl: ''
-            });
+            resetForm();
             fetchInventions();
         } catch (err) {
-            alert('Failed to save: ' + (err.response?.data?.error || err.message));
+            notify.error('Failed to save: ' + (err.response?.data?.error || err.message));
+        } finally {
+            setSubmitting(false);
         }
     };
 
+    const resetForm = () => {
+        setFormData({
+            title: '', description: '', discoveredBy: '', refinedBy: '',
+            year: '', details: '', imageUrl: '', category: 'muslim', contentType: 'video', videoUrl: '', documentUrl: ''
+        });
+    };
+
+    const handleEdit = (item) => {
+        setEditingItem(item);
+        setFormData({
+            title: item.title,
+            description: item.description,
+            discoveredBy: item.discoveredBy,
+            refinedBy: item.refinedBy || '',
+            year: item.year,
+            details: Array.isArray(item.details) ? item.details.join('\n') : item.details || '',
+            imageUrl: item.imageUrl || '',
+            category: item.category || 'muslim',
+            contentType: item.contentType || 'video',
+            videoUrl: item.videoUrl || '',
+            documentUrl: item.documentUrl || ''
+        });
+        setShowForm(true);
+    };
+
     const handleDelete = async (id) => {
-        if (!confirm('Delete this invention?')) return;
+        setDeletingId(id);
         try {
             await inventionsApi.delete(id);
             setInventions(inventions.filter(i => i.id !== id));
+            notify.success('Invention deleted successfully');
         } catch (err) {
-            alert('Failed to delete: ' + err.message);
+            notify.error('Failed to delete: ' + err.message);
+        } finally {
+            setDeletingId(null);
         }
     };
 
@@ -94,7 +135,11 @@ function InventionsPage() {
                 </div>
                 <div className="flex gap-3">
                     <button
-                        onClick={() => setShowForm(true)}
+                        onClick={() => {
+                            setEditingItem(null);
+                            resetForm();
+                            setShowForm(true);
+                        }}
                         className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
                     >
                         <Plus size={18} /> Add Invention
@@ -105,29 +150,42 @@ function InventionsPage() {
                 </div>
             </div>
 
-            {error && <div className="bg-red-50 text-red-600 p-4 rounded-lg">{error}</div>}
-
             {loading ? (
                 <div className="flex justify-center h-64 items-center"><Loader2 className="animate-spin text-primary-500 w-8 h-8" /></div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {inventions.map(item => (
-                        <div key={item.id} className="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col">
+                        <div key={item.id} className="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col group">
                             <div className="h-48 bg-gray-100 overflow-hidden relative">
                                 {item.imageUrl ? (
-                                    <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                                    <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                 ) : (
                                     <div className="flex items-center justify-center h-full text-gray-400"><ImageIcon size={48} /></div>
                                 )}
+                                <div className="absolute top-2 right-2 flex gap-2">
+                                    <span className={`px-2 py-1 rounded text-xs font-medium ${item.contentType === 'video' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'}`}>
+                                        {item.contentType === 'video' ? 'Video' : 'Doc'}
+                                    </span>
+                                </div>
                             </div>
                             <div className="p-4 flex-1">
                                 <h3 className="text-lg font-bold text-gray-800">{item.title}</h3>
                                 <p className="text-sm text-primary-600 mb-2">{item.discoveredBy} ({item.year})</p>
                                 <p className="text-gray-600 text-sm line-clamp-3">{item.description}</p>
                             </div>
-                            <div className="p-4 border-t bg-gray-50 flex justify-end">
-                                <button onClick={() => handleDelete(item.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg">
-                                    <Trash2 size={18} />
+                            <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
+                                <button
+                                    onClick={() => handleEdit(item)}
+                                    className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                >
+                                    <Edit size={18} />
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(item.id)}
+                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                    disabled={deletingId === item.id}
+                                >
+                                    {deletingId === item.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 size={18} />}
                                 </button>
                             </div>
                         </div>
@@ -138,9 +196,9 @@ function InventionsPage() {
 
             {showForm && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-                    <div className="bg-dark-card rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-dark-icon">
-                        <div className="p-6 border-b border-dark-icon flex justify-between items-center">
-                            <h2 className="text-xl font-bold text-light-primary">Add Invention</h2>
+                    <div className="bg-dark-card rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-dark-icon scrollbar-thin scrollbar-thumb-dark-icon scrollbar-track-transparent">
+                        <div className="p-6 border-b border-dark-icon flex justify-between items-center sticky top-0 bg-dark-card z-10">
+                            <h2 className="text-xl font-bold text-light-primary">{editingItem ? 'Edit Invention' : 'Add Invention'}</h2>
                             <button onClick={() => setShowForm(false)} className="p-2 hover:bg-dark-icon rounded text-light-muted"><X size={20} /></button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -165,6 +223,7 @@ function InventionsPage() {
                                 </div>
                             </div>
                             <div>
+                                <label className="block text-sm font-medium mb-1 text-light-muted">Category</label>
                                 <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })} className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary focus:border-gold-primary focus:outline-none">
                                     <option value="muslim">Islamic Invention</option>
                                     <option value="western">Western Invention</option>
@@ -178,10 +237,15 @@ function InventionsPage() {
                                 <label className="block text-sm font-medium mb-1 text-light-muted">Details (One per line)</label>
                                 <textarea value={formData.details} onChange={e => setFormData({ ...formData, details: e.target.value })} className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary focus:border-gold-primary focus:outline-none" rows="4" placeholder="• Fact 1&#10;• Fact 2"></textarea>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1 text-light-muted">Image (Upload from Device)</label>
-                                <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files[0])} className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:bg-gold-primary file:text-dark-main file:font-medium" />
-                            </div>
+
+                            <ImageUpload
+                                label="Invention Image"
+                                value={formData.imageUrl}
+                                onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                                onFileSelect={setImageFile}
+                                bucket="invention-images"
+                            />
+
                             <div>
                                 <label className="block text-sm font-medium mb-2 text-light-muted">Content Type</label>
                                 <div className="flex gap-3">
@@ -205,7 +269,6 @@ function InventionsPage() {
                                 <div>
                                     <label className="block text-sm font-medium mb-1 text-light-muted">YouTube Video URL</label>
                                     <input type="url" value={formData.videoUrl} onChange={e => setFormData({ ...formData, videoUrl: e.target.value })} placeholder="https://youtube.com/watch?v=..." className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary focus:border-gold-primary focus:outline-none" />
-                                    <p className="text-xs text-light-muted mt-1">Enter a YouTube video URL</p>
                                 </div>
                             )}
                             {formData.contentType === 'document' && (
@@ -223,16 +286,21 @@ function InventionsPage() {
                                         className="w-full bg-dark-main border border-dark-icon rounded-lg px-3 py-2 text-light-primary focus:border-gold-primary focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-gold-primary file:text-dark-main"
                                     />
                                     <p className="text-xs text-light-muted mt-1">Upload PDF or Word document (max 10MB)</p>
-                                    {formData.documentUrl && <p className="text-xs text-green-400 mt-1">✓ Document selected</p>}
                                 </div>
                             )}
-                            <button type="submit" className="w-full bg-gold-primary text-dark-main py-3 rounded-lg hover:bg-gold-dark font-medium transition-colors">Create Invention</button>
+                            <button
+                                type="submit"
+                                disabled={submitting}
+                                className="w-full bg-gold-primary text-dark-main py-3 rounded-lg hover:bg-gold-dark font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+                                {editingItem ? 'Update Invention' : 'Create Invention'}
+                            </button>
                         </form>
                     </div>
-                </div >
-            )
-            }
-        </div >
+                </div>
+            )}
+        </div>
     );
 }
 

@@ -9,6 +9,7 @@ class Scientist {
   final String? videoUrl;
   final String? documentUrl;
   final String contentType; // 'video' or 'document'
+  final String category; // 'muslim' or 'western'
 
   Scientist({
     required this.id,
@@ -21,6 +22,7 @@ class Scientist {
     this.videoUrl,
     this.documentUrl,
     this.contentType = 'video',
+    this.category = 'muslim',
   });
 
   factory Scientist.fromMap(Map<String, dynamic> map, String id) {
@@ -35,6 +37,7 @@ class Scientist {
       videoUrl: map['videoUrl'],
       documentUrl: map['documentUrl'],
       contentType: map['contentType'] ?? 'video',
+      category: map['category'] ?? 'muslim',
     );
   }
 
@@ -49,6 +52,7 @@ class Scientist {
       'videoUrl': videoUrl,
       'documentUrl': documentUrl,
       'contentType': contentType,
+      'category': category,
     };
   }
 }

@@ -1,39 +1,23 @@
 import express from 'express';
 import multer from 'multer';
-import { db, admin } from '../config/firebase.js';
+import { db } from '../config/firebase.js';
+import { uploadToSupabase } from '../config/supabase.js';
 
 const router = express.Router();
 
-// Multer config for memory storage (for Firebase Upload)
+// Multer config for memory storage
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 });
 
-// Helper to upload to firebase
+// Helper to upload to Supabase
 const uploadImage = async (file) => {
-    const bucket = admin.storage().bucket();
-    // Unique filename
-    const filename = `books/${Date.now()}_${file.originalname.replace(/\s+/g, '_')}`;
-    const fileUpload = bucket.file(filename);
-
-    const stream = fileUpload.createWriteStream({
-        metadata: {
-            contentType: file.mimetype
-        }
-    });
-
-    return new Promise((resolve, reject) => {
-        stream.on('error', (err) => reject(err));
-        stream.on('finish', async () => {
-            // Make the file public
-            await fileUpload.makePublic();
-            // Get public URL
-            const publicUrl = `https://storage.googleapis.com/${bucket.name}/${filename}`;
-            resolve(publicUrl);
-        });
-        stream.end(file.buffer);
-    });
+    const result = await uploadToSupabase(file.buffer, file.originalname, 'book-covers');
+    if (result.error) {
+        throw new Error(result.error);
+    }
+    return result.url;
 };
 
 // Get all books
@@ -107,7 +91,16 @@ router.post('/', upload.single('image'), async (req, res) => {
         });
     } catch (error) {
         console.error('Error creating book:', error);
-        res.status(500).json({ error: 'Failed to create book', message: error.message });
+        console.error('Stack:', error.stack);
+        // Check if it's a Supabase error
+        if (error.message && error.message.includes('Supabase')) {
+            return res.status(500).json({
+                error: 'Image upload failed',
+                message: error.message,
+                suggestion: 'Check server SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY'
+            });
+        }
+        res.status(500).json({ error: 'Failed to create book', message: error.message, stack: error.stack });
     }
 });
 

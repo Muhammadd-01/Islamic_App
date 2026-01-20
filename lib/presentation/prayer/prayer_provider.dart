@@ -1,8 +1,43 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:islamic_app/data/services/location_service.dart';
 import 'package:islamic_app/data/services/aladhan_service.dart';
 import 'package:islamic_app/data/repositories/prayer_repository_impl.dart';
+
+/// Provider for today's prayer tracking data from Firestore
+final todayPrayerTrackingProvider = StreamProvider<Map<String, dynamic>?>((
+  ref,
+) {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return Stream.value(null);
+
+  // Get today's date as document ID
+  final today = DateTime.now();
+  final dateId =
+      '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+
+  return FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .collection('prayertracking')
+      .doc(dateId)
+      .snapshots()
+      .map((doc) {
+        if (!doc.exists) return null;
+        final data = doc.data() ?? {};
+
+        // Count completed prayers
+        int completedCount = 0;
+        final prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
+        for (final prayer in prayers) {
+          if (data[prayer] == true) completedCount++;
+        }
+
+        return {...data, 'completedCount': completedCount};
+      });
+});
 
 final locationServiceProvider = Provider<LocationService>((ref) {
   return LocationService();

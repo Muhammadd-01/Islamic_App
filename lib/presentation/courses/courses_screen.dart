@@ -3,9 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Course model
 class Course {
+  final String id;
   final String title;
   final String description;
   final String instructor;
@@ -17,6 +19,7 @@ class Course {
   final double? price;
 
   Course({
+    required this.id,
     required this.title,
     required this.description,
     required this.instructor,
@@ -27,13 +30,47 @@ class Course {
     this.isFree = false,
     this.price,
   });
+
+  factory Course.fromMap(Map<String, dynamic> map, String id) {
+    return Course(
+      id: id,
+      title: map['title'] ?? '',
+      description: map['description'] ?? '',
+      instructor: map['instructor'] ?? '',
+      duration: map['duration'] ?? '',
+      level: map['level'] ?? 'Beginner',
+      imageUrl: map['imageUrl'] ?? '',
+      enrollUrl: map['enrollUrl'] ?? '',
+      isFree: map['isFree'] ?? false,
+      price: (map['price'] is num) ? (map['price'] as num).toDouble() : null,
+    );
+  }
 }
 
-/// Courses provider
+/// Courses provider - fetches from Firebase
 final coursesProvider = FutureProvider<List<Course>>((ref) async {
-  // Mock courses - in production, fetch from Firebase
+  try {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('courses')
+        .get();
+    if (snapshot.docs.isEmpty) {
+      // Return some default courses if none exist
+      return _getDefaultCourses();
+    }
+    return snapshot.docs
+        .map((doc) => Course.fromMap(doc.data(), doc.id))
+        .toList();
+  } catch (e) {
+    print('Error fetching courses: $e');
+    // Return default courses on error
+    return _getDefaultCourses();
+  }
+});
+
+List<Course> _getDefaultCourses() {
   return [
     Course(
+      id: 'default_1',
       title: 'Introduction to Arabic',
       description:
           'Learn the fundamentals of Arabic language for Quran understanding',
@@ -46,6 +83,7 @@ final coursesProvider = FutureProvider<List<Course>>((ref) async {
       isFree: true,
     ),
     Course(
+      id: 'default_2',
       title: 'Tajweed Masterclass',
       description: 'Perfect your Quran recitation with proper tajweed rules',
       instructor: 'Qari Muhammad Yusuf',
@@ -57,17 +95,7 @@ final coursesProvider = FutureProvider<List<Course>>((ref) async {
       price: 49.99,
     ),
     Course(
-      title: 'Islamic Fiqh Foundations',
-      description: 'Understand the principles of Islamic jurisprudence',
-      instructor: 'Dr. Bilal Philips',
-      duration: '16 weeks',
-      level: 'Advanced',
-      imageUrl:
-          'https://images.unsplash.com/photo-1585036156171-384164a8c675?w=400',
-      enrollUrl: 'https://deen-sphere.vercel.app/courses/fiqh',
-      price: 79.99,
-    ),
-    Course(
+      id: 'default_3',
       title: 'Seerah of the Prophet ﷺ',
       description: 'A complete study of the life of Prophet Muhammad ﷺ',
       instructor: 'Sheikh Yasir Qadhi',
@@ -78,20 +106,8 @@ final coursesProvider = FutureProvider<List<Course>>((ref) async {
       enrollUrl: 'https://deen-sphere.vercel.app/courses/seerah',
       isFree: true,
     ),
-    Course(
-      title: 'Islamic Finance & Economics',
-      description:
-          'Learn halal financial principles and modern Islamic banking',
-      instructor: 'Dr. Mufti Taqi Usmani',
-      duration: '10 weeks',
-      level: 'Intermediate',
-      imageUrl:
-          'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400',
-      enrollUrl: 'https://deen-sphere.vercel.app/courses/finance',
-      price: 99.99,
-    ),
   ];
-});
+}
 
 class CoursesScreen extends ConsumerWidget {
   const CoursesScreen({super.key});

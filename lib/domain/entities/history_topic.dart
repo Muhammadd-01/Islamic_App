@@ -7,6 +7,7 @@ class HistoryTopic {
   final String era;
   final String imageUrl;
   final String category; // 'islamic' | 'western'
+  final String displayMode; // 'browse' | 'timeline'
 
   HistoryTopic({
     required this.id,
@@ -17,6 +18,7 @@ class HistoryTopic {
     required this.era,
     required this.imageUrl,
     required this.category,
+    required this.displayMode,
   });
 
   factory HistoryTopic.fromMap(Map<String, dynamic> map, String id) {
@@ -29,6 +31,7 @@ class HistoryTopic {
       era: map['era'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
       category: map['category'] ?? 'islamic',
+      displayMode: map['displayMode'] ?? 'browse',
     );
   }
 
@@ -41,6 +44,7 @@ class HistoryTopic {
       'era': era,
       'imageUrl': imageUrl,
       'category': category,
+      'displayMode': displayMode,
     };
   }
 }

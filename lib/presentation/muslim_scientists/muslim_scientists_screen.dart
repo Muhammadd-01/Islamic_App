@@ -181,14 +181,14 @@ class InventionsList extends ConsumerWidget {
 
     return inventionsAsync.when(
       data: (inventions) {
-        // Filter by category
+        // Filter by category and contentType from Firebase data
         final filtered = inventions.where((i) {
-          if (category == 'muslim') {
-            return i.discoveredBy.toLowerCase().contains('muslim') ||
-                i.discoveredBy.toLowerCase().contains('ibn') ||
-                i.discoveredBy.toLowerCase().contains('al-');
-          }
-          return true;
+          final categoryMatch =
+              i.category.toLowerCase() == category.toLowerCase();
+          final contentMatch =
+              (contentType == 'videos' && i.contentType == 'video') ||
+              (contentType == 'documents' && i.contentType == 'document');
+          return categoryMatch && contentMatch;
         }).toList();
 
         if (filtered.isEmpty) {
@@ -203,8 +203,13 @@ class InventionsList extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'No ${category == "muslim" ? "Muslim" : "Western"} inventions found',
+                  'No ${category == "muslim" ? "Muslim" : "Western"} ${contentType == "videos" ? "video" : "document"} inventions found',
                   style: TextStyle(color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Add content via admin panel',
+                  style: TextStyle(color: Colors.grey[500], fontSize: 12),
                 ),
               ],
             ),
@@ -377,14 +382,42 @@ class ScientistsList extends ConsumerWidget {
 
     return scientistsAsync.when(
       data: (scientists) {
-        if (scientists.isEmpty) {
-          return const Center(child: Text('No scientists found.'));
+        // Filter by category and contentType from Firebase data
+        final filtered = scientists.where((s) {
+          final categoryMatch =
+              s.category.toLowerCase() == category.toLowerCase();
+          final contentMatch =
+              (contentType == 'videos' && s.contentType == 'video') ||
+              (contentType == 'documents' && s.contentType == 'document');
+          return categoryMatch && contentMatch;
+        }).toList();
+
+        if (filtered.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.person_outline, size: 64, color: Colors.grey[400]),
+                const SizedBox(height: 16),
+                Text(
+                  'No ${category == "muslim" ? "Muslim" : "Western"} ${contentType == "videos" ? "video" : "document"} scientists found',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Add content via admin panel',
+                  style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                ),
+              ],
+            ),
+          );
         }
+
         return ListView.builder(
           padding: const EdgeInsets.all(16),
-          itemCount: scientists.length,
+          itemCount: filtered.length,
           itemBuilder: (context, index) {
-            final scientist = scientists[index];
+            final scientist = filtered[index];
             return _ScientistCard(
               scientist: scientist,
               index: index,

@@ -13,7 +13,7 @@ const upload = multer({
 
 // Upload helper
 const uploadImage = async (file) => {
-    const result = await uploadToSupabase(file.buffer, file.originalname, 'scholar-images');
+    const result = await uploadToSupabase(file.buffer, file.originalname, 'scholars-images');
     if (result.error) {
         throw new Error(result.error);
     }
@@ -58,20 +58,22 @@ router.post('/', upload.single('image'), async (req, res) => {
             finalImageUrl = await uploadImage(req.file);
         }
 
-        const docRef = await db.collection('scholars').add({
-            name,
-            specialty,
-            bio,
+        const scholarData = {
+            name: name || 'Unknown Scholar',
+            specialty: specialty || 'General',
+            bio: bio || '',
             imageUrl: finalImageUrl,
             isAvailableFor1on1: isAvailableFor1on1 === 'true' || isAvailableFor1on1 === true,
             consultationFee: parseFloat(consultationFee) || 0,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
-        });
-        res.status(201).json({ id: docRef.id, message: 'Scholar created successfully' });
+        };
+
+        const docRef = await db.collection('scholars').add(scholarData);
+        res.status(201).json({ id: docRef.id, message: 'Scholar created successfully', ...scholarData });
     } catch (error) {
         console.error('Error creating scholar:', error);
-        res.status(500).json({ error: 'Failed to create scholar' });
+        res.status(500).json({ error: error.message || 'Failed to create scholar' });
     }
 });
 

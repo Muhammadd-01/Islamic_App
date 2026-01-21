@@ -7,7 +7,7 @@ import 'package:islamic_app/core/providers/user_provider.dart';
 import 'package:islamic_app/data/services/supabase_service.dart';
 import 'package:islamic_app/data/services/location_service.dart';
 import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:islamic_app/presentation/auth/auth_provider.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -125,7 +125,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     setState(() => _isLoading = true);
     try {
       final userRepo = ref.read(userRepositoryProvider);
-      final user = FirebaseAuth.instance.currentUser;
+      final authState = ref.read(authStateProvider);
+      final user = authState.value;
 
       String? imageUrl = _currentImageUrl;
 

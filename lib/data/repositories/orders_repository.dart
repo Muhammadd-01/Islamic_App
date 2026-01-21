@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:islamic_app/data/repositories/cart_repository.dart';
@@ -51,9 +52,11 @@ class Order {
 /// Orders Repository
 class OrdersRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final SupabaseClient _supabase = Supabase.instance.client;
+  final FirebaseAuth _fbAuth = FirebaseAuth.instance;
 
-  String? get _userId => _auth.currentUser?.uid;
+  String? get _userId =>
+      _fbAuth.currentUser?.uid ?? _supabase.auth.currentUser?.id;
 
   CollectionReference<Map<String, dynamic>> get _ordersCollection =>
       _firestore.collection('orders');

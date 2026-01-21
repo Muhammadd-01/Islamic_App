@@ -2,19 +2,17 @@ import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:path/path.dart' as path;
 
 /// Service for uploading images to Supabase Storage and saving URLs to Firestore
 class SupabaseStorageService {
   final SupabaseClient _supabase = Supabase.instance.client;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   /// The bucket name in Supabase Storage
   static const String _profileBucket = 'profile-images';
 
-  String? get _userId => _auth.currentUser?.uid;
+  String? get _userId => _supabase.auth.currentUser?.id;
 
   /// Pick and upload a profile image
   /// Returns the public URL of the uploaded image

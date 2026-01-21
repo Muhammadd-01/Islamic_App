@@ -1,31 +1,38 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb;
 
 class UserRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final SupabaseClient _supabase = Supabase.instance.client;
+  final fb.FirebaseAuth _fbAuth = fb.FirebaseAuth.instance;
+
+  String? get _userId =>
+      _fbAuth.currentUser?.uid ?? _supabase.auth.currentUser?.id;
 
   /// Create user profile in Firestore after signup
-  Future<void> createUserProfile(
-    User user, {
-    String? fullName,
+  Future<void> createUserProfile({
+    required String uid,
+    required String email,
+    String? name,
     String? phone,
+    String? imageUrl,
     String role = 'user',
   }) async {
     try {
-      final userDoc = _firestore.collection('users').doc(user.uid);
+      final userDoc = _firestore.collection('users').doc(uid);
 
       // Check if user already exists to avoid overwriting
       final docSnapshot = await userDoc.get();
       if (!docSnapshot.exists) {
         await userDoc.set({
-          'uid': user.uid,
-          'name': fullName ?? user.displayName ?? '',
-          'email': user.email ?? '',
+          'uid': uid,
+          'name': name ?? '',
+          'email': email,
           'phone': phone ?? '',
           'bio': '',
           'location': '',
-          'imageUrl': user.photoURL ?? '',
+          'imageUrl': imageUrl ?? '',
           'role': role,
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
@@ -34,7 +41,6 @@ class UserRepository {
         });
       }
     } catch (e) {
-      // Rethrow to let the UI handle the error
       print('Error creating user profile: $e');
       rethrow;
     }
@@ -47,8 +53,8 @@ class UserRepository {
     String? location,
     String? imageUrl,
   }) async {
-    final user = _auth.currentUser;
-    if (user == null) return;
+    final uid = _userId;
+    if (uid == null) return;
 
     final updates = <String, dynamic>{
       'updatedAt': FieldValue.serverTimestamp(),
@@ -56,29 +62,38 @@ class UserRepository {
 
     if (displayName != null) {
       updates['name'] = displayName;
-      await user.updateDisplayName(displayName);
+
+      // Update metadata in the active provider
+      if (_fbAuth.currentUser != null) {
+        await _fbAuth.currentUser?.updateDisplayName(displayName);
+      }
+      if (_supabase.auth.currentUser != null) {
+        await _supabase.auth.updateUser(
+          UserAttributes(data: {'full_name': displayName}),
+        );
+      }
     }
+
     if (phone != null) updates['phone'] = phone;
     if (bio != null) updates['bio'] = bio;
     if (location != null) updates['location'] = location;
     if (imageUrl != null) {
       updates['imageUrl'] = imageUrl;
-      await user.updatePhotoURL(imageUrl);
     }
 
-    await _firestore.collection('users').doc(user.uid).update(updates);
+    await _firestore.collection('users').doc(uid).update(updates);
   }
 
   Stream<DocumentSnapshot> getUserStream() {
-    final user = _auth.currentUser;
-    if (user == null) return const Stream.empty();
-    return _firestore.collection('users').doc(user.uid).snapshots();
+    final uid = _userId;
+    if (uid == null) return const Stream.empty();
+    return _firestore.collection('users').doc(uid).snapshots();
   }
 
   Future<Map<String, dynamic>?> getUserData() async {
-    final user = _auth.currentUser;
-    if (user == null) return null;
-    final doc = await _firestore.collection('users').doc(user.uid).get();
+    final uid = _userId;
+    if (uid == null) return null;
+    final doc = await _firestore.collection('users').doc(uid).get();
     return doc.data();
   }
 

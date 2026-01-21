@@ -73,6 +73,8 @@ router.put('/:id', upload.single('image'), async (req, res) => {
         if (author) updateData.author = author;
         if (source) updateData.source = source;
         if (category) updateData.category = category;
+        if (req.body.videoUrl !== undefined) updateData.videoUrl = req.body.videoUrl;
+        if (req.body.documentUrl !== undefined) updateData.documentUrl = req.body.documentUrl;
         if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
 
         if (req.file) {

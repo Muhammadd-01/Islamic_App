@@ -7,9 +7,11 @@ import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/core/providers/user_provider.dart';
 import 'package:islamic_app/presentation/prayer/prayer_provider.dart';
+import 'package:islamic_app/presentation/prayer/prayer_tracker_provider.dart';
 import 'package:islamic_app/presentation/hadith/hadith_provider.dart';
 import 'package:islamic_app/data/repositories/questions_repository.dart';
 import 'package:islamic_app/data/repositories/cart_repository.dart';
+import 'package:islamic_app/domain/entities/hadith.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -484,12 +486,11 @@ class _GreetingSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userProfileStream = ref.watch(userProfileStreamProvider);
+    final userProfileAsync = ref.watch(userProfileProvider);
 
-    return userProfileStream.when(
-      data: (snapshot) {
-        final userData = snapshot.data() as Map<String, dynamic>?;
-        final userName = userData?['name'] ?? 'User';
+    return userProfileAsync.when(
+      data: (user) {
+        final userName = user?.name ?? 'User';
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -847,8 +848,7 @@ class _QuickStatsRow extends ConsumerWidget {
 
     final prayerStats = prayerTrackingAsync.when(
       data: (tracking) {
-        if (tracking == null) return '0/5';
-        final completed = tracking['completedCount'] ?? 0;
+        final completed = tracking.completedCount;
         return '$completed/5';
       },
       loading: () => '...',
@@ -935,7 +935,7 @@ class _StatCard extends StatelessWidget {
 
 // Daily Inspiration Card - Animated Carousel
 class _DailyInspirationCard extends StatefulWidget {
-  final Map<String, dynamic> hadith;
+  final Hadith hadith;
 
   const _DailyInspirationCard({required this.hadith});
 
@@ -965,10 +965,8 @@ class _DailyInspirationCardState extends State<_DailyInspirationCard> {
         'type': 'hadith',
         'title': 'Hadith of the Day',
         'icon': Icons.auto_stories,
-        'text':
-            widget.hadith['text_en'] ??
-            'The best of you are those who are best to their families.',
-        'source': widget.hadith['narrator'] ?? 'Sahih Bukhari',
+        'text': widget.hadith.english,
+        'source': widget.hadith.book,
         'color': const Color(0xFF3B82F6),
       },
       {

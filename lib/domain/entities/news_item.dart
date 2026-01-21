@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class NewsItem {
   final String id;
   final String title;
@@ -20,17 +22,27 @@ class NewsItem {
   });
 
   factory NewsItem.fromMap(Map<String, dynamic> map, String id) {
+    final rawPublishedAt = map['publishedAt'] ?? map['createdAt'];
+    DateTime publishedDate;
+
+    if (rawPublishedAt is Timestamp) {
+      publishedDate = rawPublishedAt.toDate();
+    } else if (rawPublishedAt is String) {
+      publishedDate = DateTime.tryParse(rawPublishedAt) ?? DateTime.now();
+    } else {
+      publishedDate = DateTime.now();
+    }
+
     return NewsItem(
       id: id,
       title: map['title'] ?? '',
-      description: map['description'] ?? '',
+      // Map 'content' from Admin Panel to 'description' in App
+      description: map['description'] ?? map['content'] ?? '',
       url: map['url'] ?? '',
       source: map['source'] ?? 'Unknown',
       imageUrl: map['imageUrl'],
       category: map['category'] ?? 'general',
-      publishedAt: map['publishedAt'] != null
-          ? (map['publishedAt'] as dynamic).toDate()
-          : DateTime.now(),
+      publishedAt: publishedDate,
     );
   }
 

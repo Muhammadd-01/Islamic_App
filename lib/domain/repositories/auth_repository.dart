@@ -1,14 +1,18 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:islamic_app/domain/entities/app_user.dart';
 
 abstract class AuthRepository {
-  Stream<User?> get authStateChanges;
-  Future<User?> signInWithEmailAndPassword(String email, String password);
-  Future<User?> signUpWithEmailAndPassword(
+  Stream<AppUser?> get authStateChanges;
+  Future<AppUser?> signInWithEmailAndPassword(String email, String password);
+  Future<AppUser?> signUpWithEmailAndPassword(
     String email,
     String password, {
     String? fullName,
     String? phone,
   });
   Future<void> signOut();
-  User? get currentUser;
+  AppUser? get currentUser;
+
+  // Future methods for social logins (to be implemented by specific repos)
+  Future<AppUser?> signInWithGoogle();
+  Future<AppUser?> signInWithFacebook();
 }

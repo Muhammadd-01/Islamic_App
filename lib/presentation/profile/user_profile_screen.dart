@@ -3,14 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
+import 'package:islamic_app/core/providers/user_provider.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
-import 'package:islamic_app/data/services/supabase_storage_service.dart';
 import 'package:islamic_app/data/repositories/bookmark_repository.dart';
 
-// Provider for user profile data from Firestore
-final userProfileProvider = StreamProvider<Map<String, dynamic>?>((ref) {
-  return SupabaseStorageService().watchUserProfile();
-});
+// Global userProfileProvider is imported from user_provider.dart
 
 class UserProfileScreen extends ConsumerStatefulWidget {
   const UserProfileScreen({super.key});
@@ -22,16 +19,15 @@ class UserProfileScreen extends ConsumerStatefulWidget {
 class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(firebaseAuthProvider).currentUser;
+    final userAsync = ref.watch(authStateProvider);
+    final user = userAsync.value;
     final profileAsync = ref.watch(userProfileProvider);
     final bookmarksAsync = ref.watch(bookmarksStreamProvider);
 
-    // Get profile image URL and display name from Firestore
-    final profileData = profileAsync.value;
-    final profileImageUrl =
-        profileData?['profileImageUrl'] as String? ?? user?.photoURL;
-    final displayName =
-        profileData?['displayName'] as String? ?? user?.displayName ?? 'User';
+    // Get user data from Firestore profile
+    final profile = profileAsync.value;
+    final profileImageUrl = profile?.imageUrl ?? user?.imageUrl;
+    final displayName = profile?.name ?? user?.name ?? 'User';
 
     // Real bookmark count
     final totalBookmarks = bookmarksAsync.value?.length ?? 0;

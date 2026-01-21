@@ -39,11 +39,13 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen>
 
   List<HistoryTopic> _filterTopics(List<HistoryTopic> topics) {
     final categoryFiltered = topics.where((t) {
+      final topicCategory = t.category.toLowerCase().trim();
       if (_selectedCategory == 'Islamic') {
-        return t.category.toLowerCase() == 'islamic' ||
-            t.category.toLowerCase() == 'muslim';
+        return topicCategory.contains('islamic') ||
+            topicCategory.contains('muslim');
       } else {
-        return t.category.toLowerCase() == 'western';
+        return topicCategory.contains('western') ||
+            topicCategory.contains('world');
       }
     }).toList();
 
@@ -415,14 +417,10 @@ class _TopicCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Show card if videoUrl exists and user selected Videos
-    if (contentType == 'Videos' && topic.videoUrl.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    // Show card if documentUrl exists and user selected Documents
-    if (contentType == 'Documents' && topic.documentUrl.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    // We don't shrink anymore, so people see their items even if URLs are missing
+    final hasUrl = contentType == 'Videos'
+        ? topic.videoUrl.isNotEmpty
+        : topic.documentUrl.isNotEmpty;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -521,42 +519,56 @@ class _TopicCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    if (contentType == 'Videos' && topic.videoUrl.isNotEmpty)
+                    if (contentType == 'Videos')
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () => _openUrl(topic.videoUrl),
+                          onPressed: topic.videoUrl.isNotEmpty
+                              ? () => _openUrl(topic.videoUrl)
+                              : null,
                           icon: const Icon(Icons.play_arrow, size: 18),
-                          label: const Text('Watch'),
+                          label: Text(
+                            topic.videoUrl.isNotEmpty ? 'Watch' : 'No Video',
+                          ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryGold,
+                            backgroundColor: topic.videoUrl.isNotEmpty
+                                ? AppColors.primaryGold
+                                : Colors.grey,
                             foregroundColor: Colors.black,
                           ),
                         ),
                       )
-                    else if (contentType == 'Documents' &&
-                        topic.documentUrl.isNotEmpty)
+                    else
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () => _openUrl(topic.documentUrl),
+                          onPressed: topic.documentUrl.isNotEmpty
+                              ? () => _openUrl(topic.documentUrl)
+                              : null,
                           icon: const Icon(Icons.download, size: 18),
-                          label: const Text('Download'),
+                          label: Text(
+                            topic.documentUrl.isNotEmpty
+                                ? 'Download'
+                                : 'No Document',
+                          ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryGold,
+                            backgroundColor: topic.documentUrl.isNotEmpty
+                                ? AppColors.primaryGold
+                                : Colors.grey,
                             foregroundColor: Colors.black,
                           ),
                         ),
                       ),
                     const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: () => _copyToClipboard(
-                        context,
-                        contentType == 'Videos'
-                            ? topic.videoUrl
-                            : topic.documentUrl,
+                    if (hasUrl)
+                      IconButton(
+                        onPressed: () => _copyToClipboard(
+                          context,
+                          contentType == 'Videos'
+                              ? topic.videoUrl
+                              : topic.documentUrl,
+                        ),
+                        icon: const Icon(Icons.share),
+                        tooltip: 'Share',
                       ),
-                      icon: const Icon(Icons.share),
-                      tooltip: 'Share',
-                    ),
                   ],
                 ),
               ],

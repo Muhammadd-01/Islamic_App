@@ -1,23 +1,32 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:islamic_app/domain/entities/app_user.dart';
 import 'package:islamic_app/domain/repositories/auth_repository.dart';
 import 'package:islamic_app/data/repositories/user_repository.dart';
 
 class FirebaseAuthRepository implements AuthRepository {
-  final FirebaseAuth _firebaseAuth;
+  final firebase.FirebaseAuth _firebaseAuth;
   final UserRepository _userRepository;
 
   FirebaseAuthRepository(this._firebaseAuth, this._userRepository);
 
   @override
-  Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
+  Stream<AppUser?> get authStateChanges =>
+      _firebaseAuth.authStateChanges().map((user) {
+        if (user == null) return null;
+        return _mapFirebaseUserToAppUser(user);
+      });
 
   @override
-  User? get currentUser => _firebaseAuth.currentUser;
+  AppUser? get currentUser {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) return null;
+    return _mapFirebaseUserToAppUser(user);
+  }
 
   @override
-  Future<User?> signInWithEmailAndPassword(
+  Future<AppUser?> signInWithEmailAndPassword(
     String email,
     String password,
   ) async {
@@ -26,20 +35,21 @@ class FirebaseAuthRepository implements AuthRepository {
         email: email,
         password: password,
       );
-      return credential.user;
+      if (credential.user == null) return null;
+      return _mapFirebaseUserToAppUser(credential.user!);
     } catch (e) {
       rethrow;
     }
   }
 
   @override
-  Future<User?> signUpWithEmailAndPassword(
+  Future<AppUser?> signUpWithEmailAndPassword(
     String email,
     String password, {
     String? fullName,
     String? phone,
   }) async {
-    UserCredential? credential;
+    firebase.UserCredential? credential;
     try {
       credential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: email,
@@ -47,12 +57,14 @@ class FirebaseAuthRepository implements AuthRepository {
       );
       if (credential.user != null) {
         await _userRepository.createUserProfile(
-          credential.user!,
-          fullName: fullName,
+          uid: credential.user!.uid,
+          email: email,
+          name: fullName,
           phone: phone,
         );
+        return _mapFirebaseUserToAppUser(credential.user!);
       }
-      return credential.user;
+      return null;
     } catch (e) {
       // Rollback: Delete the user if profile creation failed
       if (credential?.user != null) {
@@ -67,14 +79,15 @@ class FirebaseAuthRepository implements AuthRepository {
     }
   }
 
-  Future<User?> signInWithGoogle() async {
+  @override
+  Future<AppUser?> signInWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
       if (googleUser == null) return null;
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
+      final credential = firebase.GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
@@ -83,30 +96,42 @@ class FirebaseAuthRepository implements AuthRepository {
         credential,
       );
       if (userCredential.user != null) {
-        await _userRepository.createUserProfile(userCredential.user!);
+        await _userRepository.createUserProfile(
+          uid: userCredential.user!.uid,
+          email: userCredential.user!.email ?? '',
+          name: userCredential.user!.displayName,
+          imageUrl: userCredential.user!.photoURL,
+        );
+        return _mapFirebaseUserToAppUser(userCredential.user!);
       }
-      return userCredential.user;
+      return null;
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<User?> signInWithFacebook() async {
+  @override
+  Future<AppUser?> signInWithFacebook() async {
     try {
       final LoginResult result = await FacebookAuth.instance.login();
       if (result.status != LoginStatus.success) return null;
 
-      final OAuthCredential credential = FacebookAuthProvider.credential(
-        result.accessToken!.tokenString,
-      );
+      final firebase.OAuthCredential credential = firebase
+          .FacebookAuthProvider.credential(result.accessToken!.tokenString);
 
       final userCredential = await _firebaseAuth.signInWithCredential(
         credential,
       );
       if (userCredential.user != null) {
-        await _userRepository.createUserProfile(userCredential.user!);
+        await _userRepository.createUserProfile(
+          uid: userCredential.user!.uid,
+          email: userCredential.user!.email ?? '',
+          name: userCredential.user!.displayName,
+          imageUrl: userCredential.user!.photoURL,
+        );
+        return _mapFirebaseUserToAppUser(userCredential.user!);
       }
-      return userCredential.user;
+      return null;
     } catch (e) {
       rethrow;
     }
@@ -126,5 +151,15 @@ class FirebaseAuthRepository implements AuthRepository {
     } catch (e) {
       rethrow;
     }
+  }
+
+  AppUser _mapFirebaseUserToAppUser(firebase.User user) {
+    return AppUser(
+      uid: user.uid,
+      email: user.email ?? '',
+      name: user.displayName,
+      imageUrl: user.photoURL,
+      phone: user.phoneNumber,
+    );
   }
 }

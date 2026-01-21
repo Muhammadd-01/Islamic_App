@@ -1,20 +1,25 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:islamic_app/domain/entities/bookmark.dart';
 
 class BookmarkRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final SupabaseClient _supabase = Supabase.instance.client;
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
+  String? get _userId =>
+      _firebaseAuth.currentUser?.uid ?? _supabase.auth.currentUser?.id;
 
   /// Get bookmarks stream for real-time updates
   Stream<List<Bookmark>> getBookmarksStream() {
-    final user = _auth.currentUser;
-    if (user == null) return const Stream.empty();
+    final uid = _userId;
+    if (uid == null) return const Stream.empty();
 
     return _firestore
         .collection('users')
-        .doc(user.uid)
+        .doc(uid)
         .collection('bookmarks')
         .orderBy('timestamp', descending: true)
         .snapshots()
@@ -27,12 +32,12 @@ class BookmarkRepository {
 
   /// Get bookmarks as future (one-time fetch)
   Future<List<Bookmark>> getBookmarks() async {
-    final user = _auth.currentUser;
+    final user = _supabase.auth.currentUser;
     if (user == null) return [];
 
     final snapshot = await _firestore
         .collection('users')
-        .doc(user.uid)
+        .doc(user.id)
         .collection('bookmarks')
         .orderBy('timestamp', descending: true)
         .get();
@@ -42,7 +47,7 @@ class BookmarkRepository {
 
   /// Add bookmark to Firestore
   Future<void> addBookmark(Bookmark bookmark) async {
-    final user = _auth.currentUser;
+    final user = _supabase.auth.currentUser;
     if (user == null) return;
 
     // Check if already exists
@@ -51,7 +56,7 @@ class BookmarkRepository {
 
     await _firestore
         .collection('users')
-        .doc(user.uid)
+        .doc(user.id)
         .collection('bookmarks')
         .doc('${bookmark.type}_${bookmark.id}')
         .set(bookmark.toJson());
@@ -59,12 +64,12 @@ class BookmarkRepository {
 
   /// Remove bookmark from Firestore
   Future<void> removeBookmark(String id, String type) async {
-    final user = _auth.currentUser;
+    final user = _supabase.auth.currentUser;
     if (user == null) return;
 
     await _firestore
         .collection('users')
-        .doc(user.uid)
+        .doc(user.id)
         .collection('bookmarks')
         .doc('${type}_$id')
         .delete();
@@ -72,12 +77,12 @@ class BookmarkRepository {
 
   /// Check if item is bookmarked
   Future<bool> isBookmarked(String id, String type) async {
-    final user = _auth.currentUser;
-    if (user == null) return false;
+    final uid = _userId;
+    if (uid == null) return false;
 
     final doc = await _firestore
         .collection('users')
-        .doc(user.uid)
+        .doc(uid)
         .collection('bookmarks')
         .doc('${type}_$id')
         .get();

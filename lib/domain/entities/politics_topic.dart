@@ -19,10 +19,11 @@ class PoliticsTopic {
     return PoliticsTopic(
       id: id,
       title: map['title'] ?? '',
-      description: map['description'] ?? '',
+      // Map 'content' from Admin Panel to 'description' in App
+      description: map['description'] ?? map['content'] ?? '',
       videoUrl: map['videoUrl'] ?? '',
       documentUrl: map['documentUrl'] ?? '',
-      category: map['category'] ?? 'islamic',
+      category: map['category'] ?? 'general',
     );
   }
 

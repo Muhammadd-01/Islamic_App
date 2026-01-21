@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
-import 'package:islamic_app/data/repositories/auth_repository_impl.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
 import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 /// DeenSphere Login Screen
 /// Premium dark aesthetic with gold accents
@@ -40,22 +38,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             _passwordController.text,
           );
       if (mounted) context.go('/home');
-    } on FirebaseAuthException catch (e) {
+    } catch (e) {
       if (mounted) {
         String message = 'Login failed';
-        if (e.code == 'user-not-found') {
+        final errorStr = e.toString().toLowerCase();
+
+        if (errorStr.contains('invalid login credentials') ||
+            errorStr.contains('invalid-credential')) {
+          message = 'Invalid email or password';
+        } else if (errorStr.contains('user not found')) {
           message = 'No user found with this email';
-        } else if (e.code == 'wrong-password') {
-          message = 'Incorrect password';
-        } else if (e.code == 'invalid-email') {
+        } else if (errorStr.contains('invalid email')) {
           message = 'Invalid email format';
         }
 
         AppSnackbar.showError(context, message);
-      }
-    } catch (e) {
-      if (mounted) {
-        AppSnackbar.showError(context, 'Login failed: $e');
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -65,9 +62,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _signInWithGoogle() async {
     setState(() => _isLoading = true);
     try {
-      final authRepo =
-          ref.read(authRepositoryProvider) as FirebaseAuthRepository;
-      await authRepo.signInWithGoogle();
+      await ref.read(authRepositoryProvider).signInWithGoogle();
       if (mounted) context.go('/home');
     } catch (e) {
       if (mounted) {
@@ -81,9 +76,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _signInWithFacebook() async {
     setState(() => _isLoading = true);
     try {
-      final authRepo =
-          ref.read(authRepositoryProvider) as FirebaseAuthRepository;
-      await authRepo.signInWithFacebook();
+      await ref.read(authRepositoryProvider).signInWithFacebook();
       if (mounted) context.go('/home');
     } catch (e) {
       if (mounted) {

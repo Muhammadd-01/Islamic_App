@@ -50,11 +50,17 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
     String category,
   ) {
     return topics.where((t) {
+      final topicCategory = t.category.toLowerCase().trim();
       if (category == 'Islamic') {
-        return t.category.toLowerCase() == 'islamic' ||
-            t.category.toLowerCase() == 'muslim';
+        // Broaden category matching to include Admin Panel's 'general', 'analysis' etc
+        return topicCategory.contains('islamic') ||
+            topicCategory.contains('muslim') ||
+            topicCategory == 'general' ||
+            topicCategory == 'analysis';
       } else {
-        return t.category.toLowerCase() == 'western';
+        return topicCategory.contains('western') ||
+            topicCategory == 'opinion' ||
+            topicCategory == 'news';
       }
     }).toList();
   }
@@ -144,11 +150,8 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
   }
 
   Widget _buildContentList(List<PoliticsTopic> topics, bool isDark) {
-    // Filter by content type availability
-    final filteredTopics = topics.where((t) {
-      if (_contentType == 'videos') return t.videoUrl.isNotEmpty;
-      return t.documentUrl.isNotEmpty;
-    }).toList();
+    // Relax filtering: show items even if links are missing
+    final filteredTopics = topics.toList();
 
     if (filteredTopics.isEmpty) {
       return const Center(child: Text("No content available"));
@@ -241,9 +244,21 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
                 ),
                 onTap: () {
                   if (_contentType == 'videos') {
-                    _launchYouTube();
+                    if (topic.videoUrl.isNotEmpty) {
+                      _launchYouTube();
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('No video URL available')),
+                      );
+                    }
                   } else {
-                    _showDocumentOptions(topic);
+                    if (topic.documentUrl.isNotEmpty) {
+                      _showDocumentOptions(topic);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('No document available')),
+                      );
+                    }
                   }
                 },
               ),
@@ -267,7 +282,9 @@ class _PoliticsScreenState extends ConsumerState<PoliticsScreen>
                       const SizedBox(width: 12),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () => _shareDocument(topic),
+                          onPressed: topic.documentUrl.isNotEmpty
+                              ? () => _shareDocument(topic)
+                              : null,
                           icon: const Icon(Icons.share, size: 18),
                           label: const Text('Share'),
                           style: OutlinedButton.styleFrom(

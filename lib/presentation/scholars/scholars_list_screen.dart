@@ -10,7 +10,7 @@ class ScholarsListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final scholarsAsync = ref.watch(scholarsListProvider);
+    final scholarsAsync = ref.watch(scholarsStreamProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(

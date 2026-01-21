@@ -117,6 +117,9 @@ class _NewsCard extends StatelessWidget {
       case 'science':
         return const Color(0xFF8B5CF6);
       case 'islamic':
+      case 'general':
+      case 'analysis':
+      case 'news':
         return AppColors.primaryGold;
       default:
         return Colors.grey;

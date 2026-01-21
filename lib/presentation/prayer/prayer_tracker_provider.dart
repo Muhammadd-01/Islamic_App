@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:islamic_app/data/repositories/prayer_tracker_repository.dart';
 
+import 'package:islamic_app/presentation/auth/auth_provider.dart';
+
 /// Repository provider
 final prayerTrackerRepositoryProvider = Provider<PrayerTrackerRepository>((
   ref,
@@ -9,7 +11,12 @@ final prayerTrackerRepositoryProvider = Provider<PrayerTrackerRepository>((
 });
 
 /// Provider for today's prayer tracking - streams live updates
+/// Watching authStateProvider ensures this reloads when user logs in/out
 final todayPrayerTrackingProvider = StreamProvider<PrayerTrackingData>((ref) {
+  final authState = ref.watch(authStateProvider);
+  if (authState.value == null)
+    return Stream.value(PrayerTrackingData(date: ''));
+
   final repository = ref.watch(prayerTrackerRepositoryProvider);
   return repository.watchTodayTracking();
 });

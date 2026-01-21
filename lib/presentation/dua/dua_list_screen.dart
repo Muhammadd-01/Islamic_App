@@ -16,7 +16,7 @@ class DuaListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final duasAsync = ref.watch(duaListProvider(categoryId));
+    final duasAsync = ref.watch(duaListProvider(categoryName));
 
     return Scaffold(
       appBar: AppBar(title: Text(categoryName), centerTitle: true),

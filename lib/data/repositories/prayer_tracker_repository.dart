@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 /// Model for daily prayer tracking
@@ -78,9 +79,11 @@ class PrayerTrackingData {
 /// Repository for prayer tracking data in Firestore
 class PrayerTrackerRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final SupabaseClient _supabase = Supabase.instance.client;
+  final FirebaseAuth _fbAuth = FirebaseAuth.instance;
 
-  String? get _userId => _auth.currentUser?.uid;
+  String? get _userId =>
+      _fbAuth.currentUser?.uid ?? _supabase.auth.currentUser?.id;
 
   /// Get today's date in YYYY-MM-DD format
   String _getTodayDate() {

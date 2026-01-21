@@ -30,8 +30,8 @@ class HistoryTopic {
       documentUrl: map['documentUrl'] ?? '',
       era: map['era'] ?? '',
       imageUrl: map['imageUrl'] ?? '',
-      category: map['category'] ?? 'islamic',
-      displayMode: map['displayMode'] ?? 'browse',
+      category: (map['category'] ?? 'islamic').toString().toLowerCase(),
+      displayMode: (map['displayMode'] ?? 'browse').toString().toLowerCase(),
     );
   }
 

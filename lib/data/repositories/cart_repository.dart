@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -53,13 +54,15 @@ class CartItem {
 /// Cart Repository for Firestore operations
 class CartRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final SupabaseClient _supabase = Supabase.instance.client;
+  final FirebaseAuth _fbAuth = FirebaseAuth.instance;
 
-  String? get _userId => _auth.currentUser?.uid;
+  String? get _userId =>
+      _fbAuth.currentUser?.uid ?? _supabase.auth.currentUser?.id;
 
   DocumentReference<Map<String, dynamic>>? get _cartDoc {
     if (_userId == null) return null;
-    return _firestore.collection('carts').doc(_userId);
+    return _firestore.collection('carts').doc(_userId!);
   }
 
   /// Get cart items stream

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
-import 'package:islamic_app/data/repositories/auth_repository_impl.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
 import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 
@@ -40,16 +39,16 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
-        final authRepo =
-            ref.read(authRepositoryProvider) as FirebaseAuthRepository;
-        await authRepo.signUpWithEmailAndPassword(
-          _emailController.text.trim(),
-          _passwordController.text,
-          fullName: _nameController.text.trim(),
-          phone: _phoneController.text.trim().isEmpty
-              ? null
-              : _phoneController.text.trim(),
-        );
+        await ref
+            .read(authRepositoryProvider)
+            .signUpWithEmailAndPassword(
+              _emailController.text.trim(),
+              _passwordController.text,
+              fullName: _nameController.text.trim(),
+              phone: _phoneController.text.trim().isEmpty
+                  ? null
+                  : _phoneController.text.trim(),
+            );
 
         if (mounted) {
           // Auto-redirect to login
@@ -69,9 +68,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   Future<void> _signInWithGoogle() async {
     setState(() => _isLoading = true);
     try {
-      final authRepo =
-          ref.read(authRepositoryProvider) as FirebaseAuthRepository;
-      await authRepo.signInWithGoogle();
+      await ref.read(authRepositoryProvider).signInWithGoogle();
       if (mounted) context.go('/home');
     } catch (e) {
       if (mounted) {
@@ -85,9 +82,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   Future<void> _signInWithFacebook() async {
     setState(() => _isLoading = true);
     try {
-      final authRepo =
-          ref.read(authRepositoryProvider) as FirebaseAuthRepository;
-      await authRepo.signInWithFacebook();
+      await ref.read(authRepositoryProvider).signInWithFacebook();
       if (mounted) context.go('/home');
     } catch (e) {
       if (mounted) {

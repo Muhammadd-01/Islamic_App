@@ -47,7 +47,11 @@ router.post('/', upload.single('image'), async (req, res) => {
             content,
             author,
             source,
+            category: req.body.category || 'general',
             imageUrl: finalImageUrl,
+            videoUrl: req.body.videoUrl || '', // Add these
+            documentUrl: req.body.documentUrl || '', // for App compatibility
+            publishedAt: new Date().toISOString(), // Add this for App compatibility
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };

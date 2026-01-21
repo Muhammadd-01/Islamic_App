@@ -21,7 +21,9 @@ export default function Politics() {
         author: '',
         source: '',
         category: 'general',
-        imageUrl: ''
+        imageUrl: '',
+        videoUrl: '',
+        documentUrl: ''
     });
 
     useEffect(() => {
@@ -51,6 +53,8 @@ export default function Politics() {
             data.append('author', formData.author);
             data.append('source', formData.source);
             data.append('category', formData.category);
+            data.append('videoUrl', formData.videoUrl);
+            data.append('documentUrl', formData.documentUrl);
             if (formData.imageUrl) data.append('imageUrl', formData.imageUrl);
 
             if (imageFile) {
@@ -99,7 +103,9 @@ export default function Politics() {
                 author: item.author || '',
                 source: item.source || '',
                 category: item.category || 'general',
-                imageUrl: item.imageUrl || ''
+                imageUrl: item.imageUrl || '',
+                videoUrl: item.videoUrl || '',
+                documentUrl: item.documentUrl || ''
             });
         } else {
             setEditingPolitics(null);
@@ -109,7 +115,9 @@ export default function Politics() {
                 author: '',
                 source: '',
                 category: 'general',
-                imageUrl: ''
+                imageUrl: '',
+                videoUrl: '',
+                documentUrl: ''
             });
         }
         setImageFile(null);
@@ -267,6 +275,26 @@ export default function Politics() {
                                 bucket="politics-images"
                             />
 
+                            <div>
+                                <label className="block text-sm font-medium text-light-muted mb-1">Video URL (Optional)</label>
+                                <input
+                                    type="text"
+                                    value={formData.videoUrl}
+                                    onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
+                                    className="w-full px-4 py-2 bg-dark-main border border-dark-icon text-light-primary rounded-lg focus:ring-2 focus:ring-gold-primary"
+                                    placeholder="YouTube or Video Link"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-light-muted mb-1">Document URL (Optional)</label>
+                                <input
+                                    type="text"
+                                    value={formData.documentUrl}
+                                    onChange={(e) => setFormData({ ...formData, documentUrl: e.target.value })}
+                                    className="w-full px-4 py-2 bg-dark-main border border-dark-icon text-light-primary rounded-lg focus:ring-2 focus:ring-gold-primary"
+                                    placeholder="PDF or Document Link"
+                                />
+                            </div>
                             <div>
                                 <label className="block text-sm font-medium text-light-muted mb-1">Source (Optional)</label>
                                 <input

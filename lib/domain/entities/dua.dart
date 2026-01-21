@@ -1,5 +1,5 @@
 class Dua {
-  final int id;
+  final String id;
   final String arabic;
   final String translation;
   final String reference;
@@ -15,7 +15,7 @@ class Dua {
 
   factory Dua.fromJson(Map<String, dynamic> json) {
     return Dua(
-      id: json['id'],
+      id: json['id'].toString(),
       arabic: json['arabic'],
       translation: json['translation'],
       reference: json['reference'],

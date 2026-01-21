@@ -49,5 +49,16 @@
 	<string>This app needs access to location for prayer times and Qibla direction.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>This app needs access to location for prayer times and Qibla direction.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.islamicapp.islamic-app</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -6,6 +6,8 @@ import 'package:islamic_app/core/theme/theme_provider.dart';
 import 'package:islamic_app/core/providers/language_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:islamic_app/firebase_options.dart';
+import 'package:islamic_app/core/localization/app_localizations.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:islamic_app/data/services/supabase_service.dart';
 
 void main() async {
@@ -34,8 +36,29 @@ class IslamicApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
       locale: locale,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('ar'),
+        Locale('ur'),
+        Locale('tr'),
+        Locale('id'),
+        Locale('fr'),
+        Locale('es'),
+        Locale('bn'),
+        Locale('hi'),
+        Locale('ru'),
+      ],
       routerConfig: goRouter,
       debugShowCheckedModeBanner: false,
+      builder: (context, child) {
+        return Directionality(textDirection: TextDirection.ltr, child: child!);
+      },
     );
   }
 }

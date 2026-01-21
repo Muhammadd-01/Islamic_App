@@ -6,6 +6,7 @@ import 'package:islamic_app/core/theme/theme_provider.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
 import 'package:islamic_app/core/providers/language_provider.dart';
 import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
+import 'package:islamic_app/core/localization/app_localizations.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -22,12 +23,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final themeMode = ref.watch(themeProvider);
     final isDarkMode = themeMode == ThemeMode.dark;
 
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings'), centerTitle: true),
+      appBar: AppBar(
+        title: Text(l10n.translate('settings')),
+        centerTitle: true,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          _buildSectionHeader('Appearance'),
+          _buildSectionHeader(l10n.translate('appearance')),
           Card(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -35,7 +41,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             child: Column(
               children: [
                 SwitchListTile.adaptive(
-                  title: const Text('Dark Mode'),
+                  title: Text(l10n.translate('dark_mode')),
                   secondary: const Icon(
                     Icons.dark_mode,
                     color: AppColors.primary,
@@ -49,35 +55,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
                 const Divider(height: 1),
                 ListTile(
-                  title: const Text('Language'),
+                  title: Text(l10n.translate('language')),
                   leading: const Icon(Icons.language, color: AppColors.primary),
                   trailing: Consumer(
                     builder: (context, ref, child) {
                       final locale = ref.watch(languageProvider);
-                      final String currentLanguage = locale.languageCode == 'ur'
-                          ? 'Urdu'
-                          : locale.languageCode == 'ar'
-                          ? 'Arabic'
-                          : 'English';
+                      final String currentLanguage = _getLanguageName(
+                        locale.languageCode,
+                      );
 
                       return DropdownButton<String>(
                         value: currentLanguage,
                         underline: const SizedBox(),
-                        items: ['English', 'Urdu', 'Arabic'].map((
-                          String value,
-                        ) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
+                        items:
+                            [
+                              'English',
+                              'العربية',
+                              'اردو',
+                              'Türkçe',
+                              'Bahasa Indonesia',
+                              'Français',
+                              'Español',
+                              'বাংলা',
+                              'हिन्दी',
+                              'Русский',
+                            ].map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
                         onChanged: (newValue) {
                           if (newValue != null) {
-                            final code = newValue == 'Urdu'
-                                ? 'ur'
-                                : newValue == 'Arabic'
-                                ? 'ar'
-                                : 'en';
+                            final code = _getLanguageCode(newValue);
                             ref
                                 .read(languageProvider.notifier)
                                 .setLanguage(code);
@@ -104,13 +114,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader('Notifications'),
+          _buildSectionHeader(l10n.translate('notifications')),
           Card(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
             child: ListTile(
-              title: const Text('Notification Settings'),
+              title: Text(l10n.translate('notifications')),
               leading: const Icon(
                 Icons.notifications,
                 color: AppColors.primary,
@@ -120,7 +130,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader('Support'),
+          _buildSectionHeader(l10n.translate('support')),
           Card(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -204,7 +214,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: ListTile(
-              title: const Text('Share App'),
+              title: Text(l10n.translate('share_app')),
               leading: const Icon(Icons.share, color: AppColors.primary),
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
@@ -238,12 +248,62 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         strokeWidth: 2,
                       ),
                     )
-                  : const Text('Logout'),
+                  : Text(l10n.translate('logout')),
             ),
           ),
         ],
       ),
     );
+  }
+
+  String _getLanguageName(String code) {
+    switch (code) {
+      case 'ar':
+        return 'العربية';
+      case 'ur':
+        return 'اردو';
+      case 'tr':
+        return 'Türkçe';
+      case 'id':
+        return 'Bahasa Indonesia';
+      case 'fr':
+        return 'Français';
+      case 'es':
+        return 'Español';
+      case 'bn':
+        return 'বাংলা';
+      case 'hi':
+        return 'हिन्दी';
+      case 'ru':
+        return 'Русский';
+      default:
+        return 'English';
+    }
+  }
+
+  String _getLanguageCode(String name) {
+    switch (name) {
+      case 'العربية':
+        return 'ar';
+      case 'اردو':
+        return 'ur';
+      case 'Türkçe':
+        return 'tr';
+      case 'Bahasa Indonesia':
+        return 'id';
+      case 'Français':
+        return 'fr';
+      case 'Español':
+        return 'es';
+      case 'বাংলা':
+        return 'bn';
+      case 'हिन्दी':
+        return 'hi';
+      case 'Русский':
+        return 'ru';
+      default:
+        return 'en';
+    }
   }
 
   Widget _buildSectionHeader(String title) {

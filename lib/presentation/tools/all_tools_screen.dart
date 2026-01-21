@@ -59,7 +59,7 @@ class AllToolsScreen extends StatelessWidget {
         'Religions',
         Icons.balance,
         const Color(0xFF6366F1),
-        '/study-religions',
+        '/religions',
       ),
       _ToolItem(
         'Debate',

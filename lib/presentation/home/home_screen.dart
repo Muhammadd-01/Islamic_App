@@ -12,6 +12,7 @@ import 'package:islamic_app/presentation/hadith/hadith_provider.dart';
 import 'package:islamic_app/data/repositories/questions_repository.dart';
 import 'package:islamic_app/data/repositories/cart_repository.dart';
 import 'package:islamic_app/domain/entities/hadith.dart';
+import 'package:islamic_app/core/localization/app_localizations.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -21,6 +22,7 @@ class HomeScreen extends ConsumerWidget {
     final nextPrayerAsync = ref.watch(nextPrayerProvider);
     final dailyHadithAsync = ref.watch(dailyHadithProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -79,7 +81,7 @@ class HomeScreen extends ConsumerWidget {
 
                       // Featured Tools Section
                       _SectionHeader(
-                        title: 'Featured Tools',
+                        title: l10n.translate('featured_tools'),
                         onSeeAll: () => context.push('/all-tools'),
                       ).animate().fade(delay: 400.ms),
                       const SizedBox(height: 16),
@@ -92,7 +94,7 @@ class HomeScreen extends ConsumerWidget {
 
                       // Quick Actions Grid
                       _SectionHeader(
-                        title: 'Explore',
+                        title: l10n.translate('explore'),
                       ).animate().fade(delay: 500.ms),
                       const SizedBox(height: 16),
                       _QuickActionsGrid().animate().fade(delay: 550.ms),
@@ -101,7 +103,7 @@ class HomeScreen extends ConsumerWidget {
 
                       // News Section
                       _SectionHeader(
-                        title: 'Global News',
+                        title: l10n.translate('global_news'),
                         onSeeAll: () => context.push('/news'),
                       ).animate().fade(delay: 600.ms),
                       const SizedBox(height: 16),
@@ -473,11 +475,12 @@ class _GreetingSection extends StatelessWidget {
 
   const _GreetingSection({required this.ref});
 
-  String _getGreeting() {
+  String _getGreeting(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
+    if (hour < 12) return l10n.translate('good_morning');
+    if (hour < 17) return l10n.translate('good_afternoon');
+    return l10n.translate('good_evening');
   }
 
   String _getIslamicGreeting() {
@@ -509,7 +512,7 @@ class _GreetingSection extends StatelessWidget {
                 Text('•', style: TextStyle(color: Colors.grey[400])),
                 const SizedBox(width: 8),
                 Text(
-                  _getGreeting(),
+                  _getGreeting(context),
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
@@ -549,15 +552,15 @@ class _GreetingSection extends StatelessWidget {
             Text('•', style: TextStyle(color: Colors.grey[400])),
             const SizedBox(width: 8),
             Text(
-              _getGreeting(),
+              _getGreeting(context),
               style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
           ],
         ),
         const SizedBox(height: 8),
-        const Text(
-          'Welcome',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context).translate('welcome'),
+          style: const TextStyle(
             fontSize: 32,
             fontWeight: FontWeight.bold,
             letterSpacing: -0.5,
@@ -573,29 +576,6 @@ class _EnhancedPrayerCard extends ConsumerWidget {
   final AsyncValue<String> nextPrayerAsync;
 
   const _EnhancedPrayerCard({required this.nextPrayerAsync});
-
-  // Get current prayer name based on time of day
-  String _getCurrentPrayerName() {
-    final hour = DateTime.now().hour;
-    if (hour >= 4 && hour < 6) return 'Fajr';
-    if (hour >= 6 && hour < 12) return 'Dhuhr';
-    if (hour >= 12 && hour < 15) return 'Dhuhr';
-    if (hour >= 15 && hour < 17) return 'Asr';
-    if (hour >= 17 && hour < 19) return 'Maghrib';
-    return 'Isha';
-  }
-
-  // Get next prayer name
-  String _getNextPrayerName() {
-    final hour = DateTime.now().hour;
-    if (hour >= 4 && hour < 6) return 'Fajr';
-    if (hour >= 6 && hour < 12) return 'Dhuhr';
-    if (hour >= 12 && hour < 15) return 'Asr';
-    if (hour >= 15 && hour < 17) return 'Asr';
-    if (hour >= 17 && hour < 19) return 'Maghrib';
-    if (hour >= 19 && hour < 21) return 'Isha';
-    return 'Fajr'; // After Isha
-  }
 
   // Get gradient colors based on prayer time
   List<Color> _getPrayerGradient(WidgetRef ref) {
@@ -716,9 +696,11 @@ class _EnhancedPrayerCard extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Text(
-                              'Next Prayer',
-                              style: TextStyle(
+                            Text(
+                              AppLocalizations.of(
+                                context,
+                              ).translate('next_prayer'),
+                              style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
@@ -1374,7 +1356,7 @@ class _QuickActionsGrid extends StatelessWidget {
         'Religions',
         Icons.balance,
         const Color(0xFF6366F1),
-        '/study-religions',
+        '/religions',
       ),
       _ActionData(
         'Debate',

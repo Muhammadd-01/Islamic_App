@@ -90,12 +90,15 @@ class OrdersRepository {
 
     return _ordersCollection
         .where('userId', isEqualTo: _userId)
-        .orderBy('createdAt', descending: true)
         .snapshots()
-        .map(
-          (snapshot) =>
-              snapshot.docs.map((doc) => Order.fromMap(doc.data())).toList(),
-        );
+        .map((snapshot) {
+          final orders = snapshot.docs
+              .map((doc) => Order.fromMap(doc.data()))
+              .toList();
+          // Sort in-memory to bypass index requirements
+          orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return orders;
+        });
   }
 
   /// Get user's orders (one-time fetch)
@@ -104,10 +107,14 @@ class OrdersRepository {
 
     final snapshot = await _ordersCollection
         .where('userId', isEqualTo: _userId)
-        .orderBy('createdAt', descending: true)
         .get();
 
-    return snapshot.docs.map((doc) => Order.fromMap(doc.data())).toList();
+    final orders = snapshot.docs
+        .map((doc) => Order.fromMap(doc.data()))
+        .toList();
+    // Sort in-memory to bypass index requirements
+    orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return orders;
   }
 
   /// Get order by ID

@@ -266,12 +266,9 @@ Shared from DeenSphere App
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _launchYouTube,
-        backgroundColor: AppColors.primaryGold,
-        icon: const Icon(Icons.play_arrow, color: Colors.black),
-        label: const Text(
-          'Watch Videos',
-          style: TextStyle(color: Colors.black),
-        ),
+        backgroundColor: Colors.red,
+        icon: const Icon(Icons.play_arrow, color: Colors.white),
+        label: const Text('YouTube', style: TextStyle(color: Colors.white)),
       ),
     );
   }

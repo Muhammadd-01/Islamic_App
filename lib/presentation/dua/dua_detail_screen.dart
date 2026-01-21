@@ -18,52 +18,6 @@ class DuaDetailScreen extends ConsumerStatefulWidget {
 
 class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
   bool _isPlaying = false;
-  bool _isBookmarked = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkBookmarkStatus();
-  }
-
-  Future<void> _checkBookmarkStatus() async {
-    final repo = ref.read(bookmarkRepositoryProvider);
-    final isBookmarked = await repo.isBookmarked(
-      'dua',
-      widget.dua.id.toString(),
-    );
-    if (mounted) {
-      setState(() => _isBookmarked = isBookmarked);
-    }
-  }
-
-  Future<void> _toggleBookmark() async {
-    final repo = ref.read(bookmarkRepositoryProvider);
-    if (_isBookmarked) {
-      await repo.removeBookmark(widget.dua.id.toString(), 'dua');
-      if (mounted) {
-        AppSnackbar.showInfo(context, 'Bookmark removed');
-        setState(() => _isBookmarked = false);
-      }
-    } else {
-      final bookmark = Bookmark(
-        id: widget.dua.id.toString(),
-        type: 'dua',
-        title: widget.dua.arabic.length > 50
-            ? '${widget.dua.arabic.substring(0, 50)}...'
-            : widget.dua.arabic,
-        subtitle: widget.dua.reference,
-        content: widget.dua.translation,
-        route: '/dua-detail',
-        timestamp: DateTime.now(),
-      );
-      await repo.addBookmark(bookmark);
-      if (mounted) {
-        AppSnackbar.showSuccess(context, 'Bookmarked!');
-        setState(() => _isBookmarked = true);
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,10 +27,48 @@ class _DuaDetailScreenState extends ConsumerState<DuaDetailScreen> {
       appBar: AppBar(
         title: const Text('Dua Details'),
         actions: [
-          IconButton(
-            icon: Icon(_isBookmarked ? Icons.bookmark : Icons.bookmark_border),
-            color: _isBookmarked ? AppColors.primaryGold : null,
-            onPressed: _toggleBookmark,
+          Consumer(
+            builder: (context, ref, child) {
+              final bookmarksAsync = ref.watch(bookmarksStreamProvider);
+              final isBookmarked = bookmarksAsync.maybeWhen(
+                data: (bookmarks) => bookmarks.any(
+                  (b) => b.id == widget.dua.id.toString() && b.type == 'dua',
+                ),
+                orElse: () => false,
+              );
+
+              return IconButton(
+                icon: Icon(
+                  isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                ),
+                color: isBookmarked ? AppColors.primaryGold : null,
+                onPressed: () async {
+                  final repo = ref.read(bookmarkRepositoryProvider);
+                  if (isBookmarked) {
+                    await repo.removeBookmark(widget.dua.id.toString(), 'dua');
+                    if (context.mounted) {
+                      AppSnackbar.showInfo(context, 'Bookmark removed');
+                    }
+                  } else {
+                    final bookmark = Bookmark(
+                      id: widget.dua.id.toString(),
+                      type: 'dua',
+                      title: widget.dua.arabic.length > 50
+                          ? '${widget.dua.arabic.substring(0, 50)}...'
+                          : widget.dua.arabic,
+                      subtitle: widget.dua.reference,
+                      content: widget.dua.translation,
+                      route: '/dua-detail', // Note: Check routing if this works
+                      timestamp: DateTime.now(),
+                    );
+                    await repo.addBookmark(bookmark);
+                    if (context.mounted) {
+                      AppSnackbar.showSuccess(context, 'Bookmarked!');
+                    }
+                  }
+                },
+              );
+            },
           ),
         ],
       ),

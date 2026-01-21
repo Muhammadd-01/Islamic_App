@@ -6,6 +6,7 @@ import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/core/providers/user_provider.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
 import 'package:islamic_app/data/repositories/bookmark_repository.dart';
+import 'package:islamic_app/core/localization/app_localizations.dart';
 
 // Global userProfileProvider is imported from user_provider.dart
 
@@ -36,9 +37,11 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     const lastReadSurah = 'Al-Kahf';
     const lastReadAyah = 10;
 
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: Text(l10n.translate('profile')),
         centerTitle: true,
         actions: [
           IconButton(
@@ -139,7 +142,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                   [
                         _buildMenuButton(
                           icon: Icons.notifications,
-                          title: 'Notifications',
+                          title: l10n.translate('notifications'),
                           onTap: () => context.push('/notifications'),
                         ),
                         _buildMenuButton(
@@ -149,17 +152,17 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
                         ),
                         _buildMenuButton(
                           icon: Icons.bookmark,
-                          title: 'Bookmarks',
+                          title: l10n.translate('bookmarks'),
                           onTap: () => context.push('/bookmarks'),
                         ),
                         _buildMenuButton(
                           icon: Icons.shopping_bag,
-                          title: 'My Orders',
+                          title: l10n.translate('my_orders'),
                           onTap: () => context.push('/my-orders'),
                         ),
                         _buildMenuButton(
                           icon: Icons.logout,
-                          title: 'Logout',
+                          title: l10n.translate('logout'),
                           isDestructive: true,
                           onTap: () async {
                             // Show loading indicator for immediate feedback

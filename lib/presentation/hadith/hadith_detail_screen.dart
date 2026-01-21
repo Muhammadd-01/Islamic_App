@@ -21,7 +21,6 @@ class HadithDetailScreen extends ConsumerStatefulWidget {
 class _HadithDetailScreenState extends ConsumerState<HadithDetailScreen> {
   final FlutterTts _tts = FlutterTts();
   bool _isSpeaking = false;
-  bool _isBookmarked = false;
   String _selectedLanguage = 'en-US';
   bool _isArabic = false;
 
@@ -38,7 +37,6 @@ class _HadithDetailScreenState extends ConsumerState<HadithDetailScreen> {
   void initState() {
     super.initState();
     _initTts();
-    _checkBookmark();
   }
 
   Future<void> _initTts() async {
@@ -50,44 +48,6 @@ class _HadithDetailScreenState extends ConsumerState<HadithDetailScreen> {
     _tts.setCompletionHandler(() {
       if (mounted) setState(() => _isSpeaking = false);
     });
-  }
-
-  Future<void> _checkBookmark() async {
-    final repo = ref.read(bookmarkRepositoryProvider);
-    final isBookmarked = await repo.isBookmarked(
-      widget.hadith.id.toString(),
-      'hadith',
-    );
-    if (mounted) setState(() => _isBookmarked = isBookmarked);
-  }
-
-  Future<void> _toggleBookmark() async {
-    final repo = ref.read(bookmarkRepositoryProvider);
-
-    if (_isBookmarked) {
-      await repo.removeBookmark(widget.hadith.id.toString(), 'hadith');
-      if (mounted) {
-        setState(() => _isBookmarked = false);
-        AppSnackbar.showInfo(context, 'Removed from bookmarks');
-      }
-    } else {
-      final bookmark = Bookmark(
-        id: widget.hadith.id.toString(),
-        type: 'hadith',
-        title: '${widget.hadith.book} - Hadith ${widget.hadith.id}',
-        subtitle: widget.hadith.chapter ?? '',
-        content: widget.hadith.english.length > 150
-            ? '${widget.hadith.english.substring(0, 150)}...'
-            : widget.hadith.english,
-        route: '/hadith/${widget.hadith.book}/${widget.hadith.id}',
-        timestamp: DateTime.now(),
-      );
-      await repo.addBookmark(bookmark);
-      if (mounted) {
-        setState(() => _isBookmarked = true);
-        AppSnackbar.showSuccess(context, 'Added to bookmarks ✨');
-      }
-    }
   }
 
   Future<void> _speak() async {
@@ -209,13 +169,55 @@ ${widget.hadith.english}
             tooltip: 'Change language',
           ),
           // Bookmark button
-          IconButton(
-            icon: Icon(
-              _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-              color: _isBookmarked ? AppColors.primaryGold : null,
-            ),
-            onPressed: _toggleBookmark,
-            tooltip: _isBookmarked ? 'Remove bookmark' : 'Add bookmark',
+          Consumer(
+            builder: (context, ref, child) {
+              final bookmarksAsync = ref.watch(bookmarksStreamProvider);
+              final isBookmarked = bookmarksAsync.maybeWhen(
+                data: (bookmarks) => bookmarks.any(
+                  (b) =>
+                      b.id == widget.hadith.id.toString() && b.type == 'hadith',
+                ),
+                orElse: () => false,
+              );
+
+              return IconButton(
+                icon: Icon(
+                  isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                  color: isBookmarked ? AppColors.primaryGold : null,
+                ),
+                onPressed: () async {
+                  final repo = ref.read(bookmarkRepositoryProvider);
+                  if (isBookmarked) {
+                    await repo.removeBookmark(
+                      widget.hadith.id.toString(),
+                      'hadith',
+                    );
+                    if (context.mounted) {
+                      AppSnackbar.showInfo(context, 'Removed from bookmarks');
+                    }
+                  } else {
+                    final bookmark = Bookmark(
+                      id: widget.hadith.id.toString(),
+                      type: 'hadith',
+                      title:
+                          '${widget.hadith.book} - Hadith ${widget.hadith.id}',
+                      subtitle: widget.hadith.chapter ?? '',
+                      content: widget.hadith.english.length > 150
+                          ? '${widget.hadith.english.substring(0, 150)}...'
+                          : widget.hadith.english,
+                      route:
+                          '/hadith/${widget.hadith.book}/${widget.hadith.id}',
+                      timestamp: DateTime.now(),
+                    );
+                    await repo.addBookmark(bookmark);
+                    if (context.mounted) {
+                      AppSnackbar.showSuccess(context, 'Added to bookmarks ✨');
+                    }
+                  }
+                },
+                tooltip: isBookmarked ? 'Remove bookmark' : 'Add bookmark',
+              );
+            },
           ),
           // Share button
           IconButton(

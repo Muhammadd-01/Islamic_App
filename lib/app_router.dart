@@ -224,10 +224,6 @@ final goRouter = GoRouter(
           path: '/religions',
           builder: (context, state) => const StudyReligionsScreen(),
         ),
-        GoRoute(
-          path: '/notification-settings',
-          builder: (context, state) => const NotificationSettingsScreen(),
-        ),
       ],
     ),
     GoRoute(path: '/', redirect: (_, __) => '/home'),
@@ -304,8 +300,8 @@ final goRouter = GoRouter(
       },
     ),
     GoRoute(
-      path: '/study-religions',
-      builder: (context, state) => const StudyReligionsScreen(),
+      path: '/notification-settings',
+      builder: (context, state) => const NotificationSettingsScreen(),
     ),
     GoRoute(
       path: '/debate-panel',

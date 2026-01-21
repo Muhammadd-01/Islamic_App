@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:islamic_app/presentation/quran_audio/mini_player.dart';
+import 'package:islamic_app/core/localization/app_localizations.dart';
 
 class ScaffoldWithNavBar extends StatelessWidget {
   final Widget child;
@@ -18,26 +19,26 @@ class ScaffoldWithNavBar extends StatelessWidget {
           NavigationBar(
             selectedIndex: _calculateSelectedIndex(context),
             onDestinationSelected: (int index) => _onItemTapped(index, context),
-            destinations: const [
+            destinations: [
               NavigationDestination(
-                icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(Icons.home),
-                label: 'Home',
+                icon: const Icon(Icons.home_outlined),
+                selectedIcon: const Icon(Icons.home),
+                label: AppLocalizations.of(context).translate('home'),
               ),
               NavigationDestination(
-                icon: Icon(Icons.chat_bubble_outline),
-                selectedIcon: Icon(Icons.chat_bubble),
-                label: 'Q&A',
+                icon: const Icon(Icons.chat_bubble_outline),
+                selectedIcon: const Icon(Icons.chat_bubble),
+                label: AppLocalizations.of(context).translate('qa'),
               ),
               NavigationDestination(
-                icon: Icon(Icons.book_outlined),
-                selectedIcon: Icon(Icons.book),
-                label: 'Quran',
+                icon: const Icon(Icons.book_outlined),
+                selectedIcon: const Icon(Icons.book),
+                label: AppLocalizations.of(context).translate('quran'),
               ),
               NavigationDestination(
-                icon: Icon(Icons.access_time_outlined),
-                selectedIcon: Icon(Icons.access_time_filled),
-                label: 'Prayer',
+                icon: const Icon(Icons.access_time_outlined),
+                selectedIcon: const Icon(Icons.access_time_filled),
+                label: AppLocalizations.of(context).translate('prayer'),
               ),
             ],
           ),

@@ -71,12 +71,17 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         color: AppColors.primaryGold,
         child: notificationsAsync.when(
           data: (notifications) {
+            // Filter out 'inspiration' type notifications
+            final filteredNotifications = notifications
+                .where((n) => n.type != 'inspiration')
+                .toList();
+
             // Cache the data to prevent blinking
-            _cachedNotifications = notifications;
-            if (notifications.isEmpty) {
+            _cachedNotifications = filteredNotifications;
+            if (filteredNotifications.isEmpty) {
               return _buildEmptyState();
             }
-            return _buildNotificationsList(notifications);
+            return _buildNotificationsList(filteredNotifications);
           },
           loading: () {
             // Show cached data while loading to prevent blinking

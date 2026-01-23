@@ -75,7 +75,7 @@ class OrdersRepository {
       userId: _userId!,
       items: items,
       total: total,
-      status: 'completed',
+      status: 'pending',
       createdAt: DateTime.now(),
       paymentMethod: paymentMethod,
     );

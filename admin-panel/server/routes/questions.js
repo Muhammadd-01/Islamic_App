@@ -1,5 +1,6 @@
 import express from 'express';
 import { db } from '../config/firebase.js';
+import { sendPushNotification } from '../utils/onesignal.js';
 
 const router = express.Router();
 
@@ -88,14 +89,29 @@ router.post('/:id/answer', async (req, res) => {
 
         // Create notification for the user who asked
         if (questionData.userId) {
+            const notificationTitle = 'Your Question Was Answered!';
+            const notificationMessage = `Your question "${questionData.question.substring(0, 50)}..." has been answered.`;
+
+            // Firestore notification (for in-app history)
             await db.collection('notifications').add({
                 userId: questionData.userId,
                 type: 'question_answered',
-                title: 'Your Question Was Answered!',
-                message: `Your question "${questionData.question.substring(0, 50)}..." has been answered.`,
+                title: notificationTitle,
+                message: notificationMessage,
                 questionId: req.params.id,
                 read: false,
                 createdAt: new Date(),
+            });
+
+            // OneSignal push notification
+            sendPushNotification({
+                title: notificationTitle,
+                message: notificationMessage,
+                userIds: [questionData.userId],
+                data: {
+                    type: 'question_answered',
+                    questionId: req.params.id
+                }
             });
         }
 

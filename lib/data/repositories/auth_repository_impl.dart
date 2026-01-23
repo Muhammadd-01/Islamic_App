@@ -4,6 +4,7 @@ import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:islamic_app/domain/entities/app_user.dart';
 import 'package:islamic_app/domain/repositories/auth_repository.dart';
 import 'package:islamic_app/data/repositories/user_repository.dart';
+import 'package:islamic_app/data/services/notification_service.dart';
 
 class FirebaseAuthRepository implements AuthRepository {
   final firebase.FirebaseAuth _firebaseAuth;
@@ -36,7 +37,9 @@ class FirebaseAuthRepository implements AuthRepository {
         password: password,
       );
       if (credential.user == null) return null;
-      return _mapFirebaseUserToAppUser(credential.user!);
+      final user = _mapFirebaseUserToAppUser(credential.user!);
+      await NotificationService.setExternalUserId(user.uid);
+      return user;
     } catch (e) {
       rethrow;
     }
@@ -62,7 +65,9 @@ class FirebaseAuthRepository implements AuthRepository {
           name: fullName,
           phone: phone,
         );
-        return _mapFirebaseUserToAppUser(credential.user!);
+        final user = _mapFirebaseUserToAppUser(credential.user!);
+        await NotificationService.setExternalUserId(user.uid);
+        return user;
       }
       return null;
     } catch (e) {
@@ -102,7 +107,9 @@ class FirebaseAuthRepository implements AuthRepository {
           name: userCredential.user!.displayName,
           imageUrl: userCredential.user!.photoURL,
         );
-        return _mapFirebaseUserToAppUser(userCredential.user!);
+        final appUser = _mapFirebaseUserToAppUser(userCredential.user!);
+        await NotificationService.setExternalUserId(appUser.uid);
+        return appUser;
       }
       return null;
     } catch (e) {
@@ -129,7 +136,9 @@ class FirebaseAuthRepository implements AuthRepository {
           name: userCredential.user!.displayName,
           imageUrl: userCredential.user!.photoURL,
         );
-        return _mapFirebaseUserToAppUser(userCredential.user!);
+        final appUser = _mapFirebaseUserToAppUser(userCredential.user!);
+        await NotificationService.setExternalUserId(appUser.uid);
+        return appUser;
       }
       return null;
     } catch (e) {
@@ -139,6 +148,7 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() async {
+    await NotificationService.removeExternalUserId();
     await _firebaseAuth.signOut();
     await GoogleSignIn().signOut();
     await FacebookAuth.instance.logOut();

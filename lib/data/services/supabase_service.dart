@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 
 class SupabaseService {
@@ -22,20 +22,24 @@ class SupabaseService {
     return _client!;
   }
 
-  /// Upload profile image to Supabase Storage
+  /// Upload profile image bytes to Supabase Storage
   /// Returns the public URL of the uploaded image
-  Future<String> uploadProfileImage(String userId, File imageFile) async {
+  Future<String> uploadProfileImage(
+    String userId,
+    Uint8List imageBytes,
+    String fileName,
+  ) async {
     try {
-      final extension = path.extension(imageFile.path);
-      final fileName = 'profile_$userId$extension';
-      final filePath = 'profiles/$fileName';
+      final extension = path.extension(fileName);
+      final finalFileName = 'profile_$userId$extension';
+      final filePath = 'profiles/$finalFileName';
 
       // Upload file to Supabase Storage
       await client.storage
           .from('profile-images')
           .upload(
             filePath,
-            imageFile,
+            imageBytes as dynamic,
             fileOptions: const FileOptions(
               cacheControl: '3600',
               upsert: true, // Replace if exists
@@ -77,7 +81,8 @@ class SupabaseService {
   /// Update profile image (delete old, upload new)
   Future<String> updateProfileImage(
     String userId,
-    File newImageFile,
+    Uint8List newImageBytes,
+    String fileName,
     String? oldImageUrl,
   ) async {
     // Delete old image if exists
@@ -86,6 +91,6 @@ class SupabaseService {
     }
 
     // Upload new image
-    return await uploadProfileImage(userId, newImageFile);
+    return await uploadProfileImage(userId, newImageBytes, fileName);
   }
 }

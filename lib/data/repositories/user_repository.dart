@@ -17,6 +17,7 @@ class UserRepository {
     String? name,
     String? phone,
     String? imageUrl,
+    String? region,
     String role = 'user',
   }) async {
     try {
@@ -33,7 +34,9 @@ class UserRepository {
           'bio': '',
           'location': '',
           'imageUrl': imageUrl ?? '',
+          'region': region ?? 'Global',
           'role': role,
+          'total_tasbeeh_count': 0,
           'createdAt': FieldValue.serverTimestamp(),
           'updatedAt': FieldValue.serverTimestamp(),
           'bookmarks': [],

@@ -9,6 +9,7 @@ import 'package:islamic_app/firebase_options.dart';
 import 'package:islamic_app/core/localization/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:islamic_app/data/services/supabase_service.dart';
+import 'package:islamic_app/data/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +20,10 @@ void main() async {
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwaGZybnB2Z3VkcmN4Ym13bG9xIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg2MzI0NTYsImV4cCI6MjA4NDIwODQ1Nn0.BFX2XO0zAjz4wMuFHlSxT1Tim9LUEhu1K_mkLcce46g',
   );
+
+  // Initialize OneSignal
+  await NotificationService.initialize();
+
   runApp(const ProviderScope(child: IslamicApp()));
 }
 

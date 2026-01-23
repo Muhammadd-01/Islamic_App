@@ -8,7 +8,7 @@ import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/core/providers/user_provider.dart';
 import 'package:islamic_app/presentation/prayer/prayer_provider.dart';
 import 'package:islamic_app/presentation/prayer/prayer_tracker_provider.dart';
-import 'package:islamic_app/presentation/hadith/hadith_provider.dart';
+import 'package:islamic_app/presentation/home/daily_inspiration_provider.dart';
 import 'package:islamic_app/data/repositories/questions_repository.dart';
 import 'package:islamic_app/data/repositories/cart_repository.dart';
 import 'package:islamic_app/domain/entities/hadith.dart';
@@ -20,7 +20,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nextPrayerAsync = ref.watch(nextPrayerProvider);
-    final dailyHadithAsync = ref.watch(dailyHadithProvider);
+    final dailyInspirationAsync = ref.watch(dailyInspirationProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final l10n = AppLocalizations.of(context);
 
@@ -65,15 +65,17 @@ class HomeScreen extends ConsumerWidget {
 
                       const SizedBox(height: 28),
 
-                      // Daily Inspiration (Hadith)
-                      dailyHadithAsync.when(
-                        data: (hadith) => hadith != null
-                            ? _DailyInspirationCard(hadith: hadith)
+                      // Daily Inspiration (Unified)
+                      dailyInspirationAsync.when(
+                        data: (inspiration) => inspiration != null
+                            ? _UnifiedInspirationSection(
+                                    inspiration: inspiration,
+                                  )
                                   .animate()
                                   .fade(duration: 500.ms, delay: 300.ms)
                                   .slideY(begin: 0.1, end: 0)
                             : const SizedBox.shrink(),
-                        loading: () => const _ShimmerCard(height: 140),
+                        loading: () => const _ShimmerCard(height: 180),
                         error: (_, __) => const SizedBox.shrink(),
                       ),
 
@@ -818,6 +820,166 @@ class _EnhancedPrayerCard extends ConsumerWidget {
     if (hour >= 17 && hour < 19) return '6:15 PM';
     if (hour >= 19 && hour < 21) return '7:45 PM';
     return '5:15 AM';
+  }
+}
+
+class _UnifiedInspirationSection extends StatefulWidget {
+  final DailyInspiration inspiration;
+
+  const _UnifiedInspirationSection({required this.inspiration});
+
+  @override
+  State<_UnifiedInspirationSection> createState() =>
+      _UnifiedInspirationSectionState();
+}
+
+class _UnifiedInspirationSectionState
+    extends State<_UnifiedInspirationSection> {
+  int _currentIndex = 0;
+  final PageController _pageController = PageController();
+
+  List<Map<String, dynamic>> _getSlides() {
+    final slides = <Map<String, dynamic>>[];
+    if (widget.inspiration.quote != null) {
+      slides.add({
+        'type': 'quote',
+        'title': 'Quote of the Day',
+        'icon': Icons.format_quote,
+        'item': widget.inspiration.quote!,
+        'color': const Color(0xFF8B5CF6),
+      });
+    }
+    if (widget.inspiration.hadith != null) {
+      slides.add({
+        'type': 'hadith',
+        'title': 'Hadith of the Day',
+        'icon': Icons.auto_stories,
+        'item': widget.inspiration.hadith!,
+        'color': const Color(0xFF3B82F6),
+      });
+    }
+    if (widget.inspiration.ayah != null) {
+      slides.add({
+        'type': 'ayah',
+        'title': 'Ayah of the Day',
+        'icon': Icons.menu_book,
+        'item': widget.inspiration.ayah!,
+        'color': const Color(0xFF10B981),
+      });
+    }
+    return slides;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final slides = _getSlides();
+    if (slides.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      height: 200,
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Expanded(
+            child: PageView.builder(
+              controller: _pageController,
+              onPageChanged: (index) => setState(() => _currentIndex = index),
+              itemCount: slides.length,
+              itemBuilder: (context, index) {
+                final slide = slides[index];
+                final item = slide['item'] as InspirationItem;
+                return Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: slide['color'].withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              slide['icon'],
+                              color: slide['color'],
+                              size: 18,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            slide['title'],
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Expanded(
+                        child: Text(
+                          '"${item.text}"',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontStyle: FontStyle.italic,
+                            height: 1.5,
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "— ${item.author ?? item.source ?? 'Source'}",
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                slides.length,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  width: _currentIndex == index ? 20 : 6,
+                  height: 6,
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  decoration: BoxDecoration(
+                    color: _currentIndex == index
+                        ? AppColors.primaryGold
+                        : Colors.grey.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

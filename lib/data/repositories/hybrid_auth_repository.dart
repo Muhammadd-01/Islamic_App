@@ -75,14 +75,14 @@ class HybridAuthRepository implements AuthRepository {
 
   @override
   Future<AppUser?> signInWithGoogle() {
-    // Social login -> Supabase
-    return _supabaseAuth.signInWithGoogle();
+    // Social login -> Firebase
+    return _firebaseAuth.signInWithGoogle();
   }
 
   @override
   Future<AppUser?> signInWithFacebook() {
-    // Social login -> Supabase
-    return _supabaseAuth.signInWithFacebook();
+    // Social login -> Firebase
+    return _firebaseAuth.signInWithFacebook();
   }
 
   @override

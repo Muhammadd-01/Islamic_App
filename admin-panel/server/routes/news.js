@@ -2,6 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import { db } from '../config/firebase.js';
 import { uploadToSupabase } from '../config/supabase.js';
+import { sendPushNotification } from '../utils/onesignal.js';
 
 const router = express.Router();
 const collection = 'news';
@@ -56,6 +57,17 @@ router.post('/', upload.single('image'), async (req, res) => {
             updatedAt: new Date().toISOString()
         };
         const docRef = await db.collection(collection).add(data);
+
+        // Send push notification to all users
+        sendPushNotification({
+            title: 'New Article Published!',
+            message: title,
+            data: {
+                type: 'news',
+                id: docRef.id
+            }
+        });
+
         res.status(201).json({ id: docRef.id, ...data });
     } catch (error) {
         res.status(500).json({ error: error.message });

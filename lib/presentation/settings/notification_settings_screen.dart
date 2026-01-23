@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:islamic_app/data/services/notification_service.dart';
 
 // Provider for notification settings
 final notificationSettingsProvider =
@@ -64,30 +65,45 @@ class NotificationSettingsNotifier extends Notifier<NotificationSettings> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('push_notifications', value);
     state = state.copyWith(pushNotificationsEnabled: value);
+
+    if (value) {
+      await NotificationService.initialize();
+    } else {
+      // OneSignal doesn't have a direct "disable" besides logging out or removing tags,
+      // but we can request permission or logout for total disable.
+      // Usually, we just don't send if the user disabled it in our DB,
+      // but locally we can stop OneSignal initialization if we wanted.
+      // For now, we'll use tags to filter.
+      await NotificationService.setTag("push_enabled", "false");
+    }
   }
 
   Future<void> setPrayerReminders(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('prayer_reminders', value);
     state = state.copyWith(prayerReminders: value);
+    await NotificationService.setTag("prayer_reminders", value);
   }
 
   Future<void> setDailyInspiration(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('daily_inspiration', value);
     state = state.copyWith(dailyInspiration: value);
+    await NotificationService.setTag("daily_inspiration", value);
   }
 
   Future<void> setNewContent(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('new_content', value);
     state = state.copyWith(newContent: value);
+    await NotificationService.setTag("new_content", value);
   }
 
   Future<void> setPromotions(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('promotions', value);
     state = state.copyWith(promotions: value);
+    await NotificationService.setTag("promotions", value);
   }
 }
 

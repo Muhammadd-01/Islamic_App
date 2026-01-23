@@ -1,8 +1,8 @@
-import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path/path.dart' as path;
+import 'package:flutter/foundation.dart';
 
 /// Service for uploading images to Supabase Storage and saving URLs to Firestore
 class SupabaseStorageService {
@@ -32,29 +32,35 @@ class SupabaseStorageService {
 
     if (pickedFile == null) return null;
 
-    return await uploadImageFile(File(pickedFile.path), 'profile');
+    final bytes = await pickedFile.readAsBytes();
+    return await uploadImageData(bytes, pickedFile.name, 'profile');
   }
 
-  /// Upload an image file to Supabase Storage
-  /// [file] - The image file to upload
+  /// Upload an image data to Supabase Storage
+  /// [bytes] - The image data to upload
+  /// [fileName] - The original file name
   /// [folder] - The folder in the bucket (e.g., 'profile', 'posts')
-  Future<String?> uploadImageFile(File file, String folder) async {
+  Future<String?> uploadImageData(
+    Uint8List bytes,
+    String fileName,
+    String folder,
+  ) async {
     if (_userId == null) {
       throw Exception('User not authenticated');
     }
 
     try {
-      final ext = path.extension(file.path);
-      final fileName =
+      final ext = path.extension(fileName);
+      final finalFileName =
           '${_userId}_${DateTime.now().millisecondsSinceEpoch}$ext';
-      final filePath = '$folder/$fileName';
+      final filePath = '$folder/$finalFileName';
 
       // Upload to Supabase Storage
       await _supabase.storage
           .from(_profileBucket)
           .upload(
             filePath,
-            file,
+            bytes as dynamic,
             fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
           );
 

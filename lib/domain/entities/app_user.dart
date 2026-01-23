@@ -4,6 +4,7 @@ class AppUser {
   final String? name;
   final String? phone;
   final String? imageUrl;
+  final String? region;
   final String role;
 
   AppUser({
@@ -12,6 +13,7 @@ class AppUser {
     this.name,
     this.phone,
     this.imageUrl,
+    this.region,
     this.role = 'user',
   });
 
@@ -22,6 +24,7 @@ class AppUser {
       'name': name,
       'phone': phone,
       'imageUrl': imageUrl,
+      'region': region,
       'role': role,
     };
   }
@@ -33,6 +36,7 @@ class AppUser {
       name: map['name'],
       phone: map['phone'],
       imageUrl: map['imageUrl'],
+      region: map['region'],
       role: map['role'] ?? 'user',
     );
   }

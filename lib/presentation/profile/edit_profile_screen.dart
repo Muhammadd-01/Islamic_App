@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
@@ -20,7 +20,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _nameController = TextEditingController();
   final _bioController = TextEditingController();
   final _locationController = TextEditingController();
-  File? _selectedImage;
+  XFile? _selectedImage;
+  Uint8List? _selectedImageBytes;
   String? _currentImageUrl;
   bool _isLoading = false;
   bool _isLoadingLocation = false;
@@ -84,6 +85,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 Navigator.pop(context);
                 setState(() {
                   _selectedImage = null;
+                  _selectedImageBytes = null;
                   _currentImageUrl = null;
                 });
               },
@@ -98,8 +100,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
       setState(() {
-        _selectedImage = File(pickedFile.path);
+        _selectedImage = pickedFile;
+        _selectedImageBytes = bytes;
       });
     }
   }
@@ -131,11 +135,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       String? imageUrl = _currentImageUrl;
 
       // Upload image to Supabase if new image selected
-      if (_selectedImage != null && user != null) {
+      if (_selectedImageBytes != null &&
+          _selectedImage != null &&
+          user != null) {
         final supabaseService = SupabaseService();
         imageUrl = await supabaseService.updateProfileImage(
           user.uid,
-          _selectedImage!,
+          _selectedImageBytes!,
+          _selectedImage!.name,
           _currentImageUrl,
         );
       }
@@ -190,15 +197,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 CircleAvatar(
                   radius: 60,
                   backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                  backgroundImage: _selectedImage != null
-                      ? FileImage(_selectedImage!)
+                  backgroundImage: _selectedImageBytes != null
+                      ? MemoryImage(_selectedImageBytes!)
                       : (_currentImageUrl != null &&
                                     _currentImageUrl!.isNotEmpty
                                 ? NetworkImage(_currentImageUrl!)
                                 : null)
                             as ImageProvider?,
                   child:
-                      _selectedImage == null &&
+                      _selectedImageBytes == null &&
                           (_currentImageUrl == null ||
                               _currentImageUrl!.isEmpty)
                       ? const Icon(

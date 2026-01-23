@@ -1,5 +1,7 @@
 import express from 'express';
 import { db } from '../config/firebase.js';
+import { sendPushNotification } from '../utils/onesignal.js';
+import { sendOrderEmail } from '../utils/email.js';
 
 const router = express.Router();
 
@@ -90,7 +92,7 @@ router.patch('/:id/status', async (req, res) => {
     try {
         const { status } = req.body;
 
-        if (!['pending', 'completed', 'cancelled'].includes(status)) {
+        if (!['pending', 'proceed', 'completed', 'cancelled'].includes(status)) {
             return res.status(400).json({ error: 'Invalid status' });
         }
 
@@ -98,6 +100,42 @@ router.patch('/:id/status', async (req, res) => {
             status,
             updatedAt: new Date(),
         });
+
+        // Get updated order data to notify user
+        const orderDoc = await db.collection('orders').doc(req.params.id).get();
+        const orderData = orderDoc.data();
+
+        if (orderData && orderData.userId) {
+            // Send Push Notification
+            sendPushNotification({
+                title: 'Order Status Updated',
+                message: `Your order #${req.params.id.substring(0, 8)} is now ${status}.`,
+                userIds: [orderData.userId],
+                data: {
+                    type: 'order_update',
+                    orderId: req.params.id,
+                    status: status
+                }
+            });
+
+            // Send Email Notification
+            try {
+                const userDoc = await db.collection('users').doc(orderData.userId).get();
+                if (userDoc.exists) {
+                    const userData = userDoc.data();
+                    if (userData.email) {
+                        await sendOrderEmail({
+                            to: userData.email,
+                            orderId: req.params.id,
+                            status: status,
+                            orderData: orderData
+                        });
+                    }
+                }
+            } catch (emailError) {
+                console.error('Failed to send order update email:', emailError);
+            }
+        }
 
         res.json({ message: 'Order status updated successfully', status });
     } catch (error) {

@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -43,7 +43,7 @@ class _QiblaScreenState extends ConsumerState<QiblaScreen>
     setState(() => _isLoading = true);
 
     // Check for sensor permission on Android
-    if (Platform.isAndroid) {
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       final status = await Permission.sensors.request();
       if (status.isDenied || status.isPermanentlyDenied) {
         // Try location permission as fallback for compass

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:islamic_app/domain/entities/app_user.dart';
 import 'package:islamic_app/domain/repositories/auth_repository.dart';
+import 'package:islamic_app/data/services/notification_service.dart';
 
 class HybridAuthRepository implements AuthRepository {
   final AuthRepository _firebaseAuth;
@@ -22,6 +23,7 @@ class HybridAuthRepository implements AuthRepository {
     // Listen to Firebase auth changes
     _fbSub = _firebaseAuth.authStateChanges.listen((user) {
       if (user != null) {
+        NotificationService.setExternalUserId(user.uid);
         _authStateController.add(user);
       } else {
         // Only add null if BOTH are null
@@ -34,6 +36,7 @@ class HybridAuthRepository implements AuthRepository {
     // Listen to Supabase auth changes
     _sbSub = _supabaseAuth.authStateChanges.listen((user) {
       if (user != null) {
+        NotificationService.setExternalUserId(user.uid);
         _authStateController.add(user);
       } else {
         // Only add null if BOTH are null
@@ -87,6 +90,7 @@ class HybridAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() async {
+    await NotificationService.removeExternalUserId();
     await Future.wait([_firebaseAuth.signOut(), _supabaseAuth.signOut()]);
     _authStateController.add(null);
   }

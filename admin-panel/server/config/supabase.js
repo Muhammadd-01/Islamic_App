@@ -74,7 +74,9 @@ function getContentType(ext) {
         'png': 'image/png',
         'gif': 'image/gif',
         'webp': 'image/webp',
-        'pdf': 'application/pdf'
+        'pdf': 'application/pdf',
+        'mp3': 'audio/mpeg',
+        'wav': 'audio/wav'
     };
     return types[ext?.toLowerCase()] || 'application/octet-stream';
 }

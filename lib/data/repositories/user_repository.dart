@@ -35,6 +35,7 @@ class UserRepository {
           'location': '',
           'imageUrl': imageUrl ?? '',
           'region': region ?? 'Global',
+          'lastRegionUpdate': FieldValue.serverTimestamp(),
           'role': role,
           'total_tasbeeh_count': 0,
           'createdAt': FieldValue.serverTimestamp(),
@@ -55,6 +56,7 @@ class UserRepository {
     String? bio,
     String? location,
     String? imageUrl,
+    String? region,
   }) async {
     final uid = _userId;
     if (uid == null) return;
@@ -82,6 +84,10 @@ class UserRepository {
     if (location != null) updates['location'] = location;
     if (imageUrl != null) {
       updates['imageUrl'] = imageUrl;
+    }
+    if (region != null) {
+      updates['region'] = region;
+      updates['lastRegionUpdate'] = FieldValue.serverTimestamp();
     }
 
     await _firestore.collection('users').doc(uid).update(updates);

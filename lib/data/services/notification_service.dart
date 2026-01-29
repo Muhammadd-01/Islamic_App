@@ -5,15 +5,15 @@ class NotificationService {
   static const String _appId = "9ebf990f-9e79-4915-823b-2f8346d221b2";
 
   static Future<void> initialize() async {
-    // Remove this log level for production
-    if (kDebugMode) {
-      OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-    }
-
     // OneSignal does not support Web. Skip initialization on Web.
     if (kIsWeb) {
       debugPrint("OneSignal: Skipping initialization on Web platform.");
       return;
+    }
+
+    // Remove this log level for production
+    if (kDebugMode) {
+      OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
     }
 
     OneSignal.initialize(_appId);
@@ -23,6 +23,7 @@ class NotificationService {
   }
 
   static Future<void> setExternalUserId(String userId) async {
+    if (kIsWeb) return;
     try {
       await OneSignal.login(userId);
     } catch (e) {
@@ -31,6 +32,7 @@ class NotificationService {
   }
 
   static Future<void> removeExternalUserId() async {
+    if (kIsWeb) return;
     try {
       await OneSignal.logout();
     } catch (e) {

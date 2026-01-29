@@ -3,7 +3,7 @@ import {
     LayoutDashboard, Users, ShoppingCart, BookOpen, MessageCircle,
     Menu, X, LogOut, Lightbulb, Newspaper, Landmark, GraduationCap,
     History, FlaskConical, Star, Heart, ChevronLeft, ChevronRight, User, Settings,
-    Scroll, BookOpenText, Globe
+    Scroll, BookOpenText, Globe, Activity
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -27,6 +27,9 @@ import AdminProfilePage from './pages/AdminProfile';
 import HadithPage from './pages/Hadith';
 import QuranPage from './pages/Quran';
 import ReligionsPage from './pages/Religions';
+import TasbeehPage from './pages/Tasbeeh';
+import AzkarPage from './pages/Azkar';
+import RegionsPage from './pages/Regions';
 import Login from './pages/Login';
 import { NotificationProvider } from './components/NotificationSystem';
 
@@ -84,6 +87,9 @@ function App() {
         { to: '/courses', icon: GraduationCap, label: 'Courses' },
         { to: '/history', icon: History, label: 'History' },
         { to: '/religions', icon: Globe, label: 'Religions & Beliefs' },
+        { to: '/regions', icon: Globe, label: 'Regions Management' },
+        { to: '/tasbeeh', icon: Activity, label: 'Tasbeeh Analytics' },
+        { to: '/azkar', icon: Heart, label: 'Azkar Management' },
         { to: '/profile', icon: Settings, label: 'Admin Profile' },
     ];
 
@@ -206,6 +212,9 @@ function App() {
                                     <Route path="/courses" element={<CoursesPage />} />
                                     <Route path="/history" element={<HistoryPage />} />
                                     <Route path="/religions" element={<ReligionsPage />} />
+                                    <Route path="/regions" element={<RegionsPage />} />
+                                    <Route path="/tasbeeh" element={<TasbeehPage />} />
+                                    <Route path="/azkar" element={<AzkarPage />} />
                                     <Route path="/profile" element={<AdminProfilePage />} />
                                 </Routes>
                             </div>

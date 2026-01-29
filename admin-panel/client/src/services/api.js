@@ -144,4 +144,24 @@ export const inspirationApi = {
     delete: (id) => api.delete(`/inspiration/${id}`),
 };
 
+// Tasbeeh API
+export const tasbeehApi = {
+    getAll: (params = {}) => api.get('/tasbeeh', { params }),
+};
+
+// Azkar API
+export const azkarApi = {
+    getAll: () => api.get('/azkar'),
+    create: (data) => api.post('/azkar', data),
+    update: (id, data) => api.put(`/azkar/${id}`, data),
+    delete: (id) => api.delete(`/azkar/${id}`),
+};
+
+// Regions API
+export const regionsApi = {
+    getAll: () => api.get('/regions'),
+    create: (data) => api.post('/regions', data),
+    delete: (id) => api.delete(`/regions/${id}`),
+};
+
 export default api;

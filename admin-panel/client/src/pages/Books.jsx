@@ -114,8 +114,8 @@ function BooksPage() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Books</h1>
-                    <p className="text-gray-500">Manage library books (shown in app)</p>
+                    <h1 className="text-2xl font-bold text-light-primary">Books</h1>
+                    <p className="text-light-muted">Manage library books (shown in app)</p>
                 </div>
                 <div className="flex gap-3">
                     <button
@@ -133,14 +133,14 @@ function BooksPage() {
                             setImageFile(null);
                             setShowForm(true);
                         }}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-gold-primary text-dark-main font-medium rounded-lg hover:bg-gold-dark transition-all shadow-[0_0_15px_rgba(251,191,36,0.2)]"
                     >
                         <Plus size={18} />
                         Add Book
                     </button>
                     <button
                         onClick={fetchBooks}
-                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-dark-card border border-dark-icon text-light-primary rounded-lg hover:bg-dark-icon transition-all shadow-sm"
                     >
                         <RefreshCw size={18} />
                     </button>
@@ -148,39 +148,39 @@ function BooksPage() {
             </div>
 
             {error && (
-                <div className="bg-red-50 text-red-600 p-4 rounded-lg">{error}</div>
+                <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-lg">{error}</div>
             )}
 
             {loading ? (
                 <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+                    <Loader2 className="w-8 h-8 animate-spin text-gold-primary" />
                 </div>
             ) : (
-                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div className="bg-dark-card border border-dark-icon rounded-xl shadow-lg overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50 border-b">
+                            <thead className="bg-dark-main border-b border-dark-icon">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Book</th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Author</th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Price</th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Rating</th>
-                                    <th className="px-6 py-4 text-right text-sm font-medium text-gray-500">Actions</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-light-muted uppercase tracking-wider">Book</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-light-muted uppercase tracking-wider">Author</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-light-muted uppercase tracking-wider">Price</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-light-muted uppercase tracking-wider">Rating</th>
+                                    <th className="px-6 py-4 text-right text-sm font-semibold text-light-muted uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y">
+                            <tbody className="divide-y divide-dark-icon">
                                 {books.length === 0 ? (
                                     <tr>
-                                        <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                                        <td colSpan="5" className="px-6 py-8 text-center text-light-muted">
                                             No books found. Add your first book!
                                         </td>
                                     </tr>
                                 ) : (
                                     books.map((book) => (
-                                        <tr key={book.id} className="hover:bg-gray-50">
+                                        <tr key={book.id} className="hover:bg-gold-primary/[0.02] transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-12 h-16 bg-gray-100 rounded overflow-hidden">
+                                                    <div className="w-12 h-16 bg-dark-main border border-dark-icon rounded overflow-hidden">
                                                         {book.coverUrl ? (
                                                             <img
                                                                 src={book.coverUrl}
@@ -189,27 +189,27 @@ function BooksPage() {
                                                             />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center">
-                                                                <BookOpen className="w-6 h-6 text-gray-400" />
+                                                                <BookOpen className="w-6 h-6 text-dark-icon" />
                                                             </div>
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <p className="font-medium text-gray-800">{book.title}</p>
-                                                        <p className="text-xs text-gray-400">{book.id.slice(0, 8)}...</p>
+                                                        <p className="font-medium text-light-primary">{book.title}</p>
+                                                        <p className="text-xs text-light-muted">{book.id.slice(0, 8)}...</p>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-gray-600">{book.author}</td>
+                                            <td className="px-6 py-4 text-light-primary">{book.author}</td>
                                             <td className="px-6 py-4">
                                                 {book.isFree ? (
-                                                    <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-sm">Free</span>
+                                                    <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-medium">Free</span>
                                                 ) : (
-                                                    <span className="font-medium">${book.price?.toFixed(2) || '0.00'}</span>
+                                                    <span className="font-medium text-light-primary">${book.price?.toFixed(2) || '0.00'}</span>
                                                 )}
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="flex items-center gap-1">
-                                                    <span className="text-yellow-500">★</span>
+                                                <div className="flex items-center gap-1.5 text-light-primary font-medium">
+                                                    <span className="text-gold-primary">★</span>
                                                     <span>{book.rating?.toFixed(1) || '0.0'}</span>
                                                 </div>
                                             </td>
@@ -217,14 +217,14 @@ function BooksPage() {
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => handleEdit(book)}
-                                                        className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                                        className="p-2 text-gold-primary hover:bg-gold-primary/10 rounded-lg transition-all"
                                                         disabled={deletingId === book.id}
                                                     >
                                                         <Edit className="w-5 h-5" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(book.id, book.title)}
-                                                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                        className="p-2 text-light-muted hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                                                         disabled={deletingId === book.id}
                                                     >
                                                         {deletingId === book.id ? (

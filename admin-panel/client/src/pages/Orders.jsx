@@ -49,11 +49,11 @@ function OrdersPage() {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'completed': return 'bg-green-100 text-green-700';
-            case 'proceed': return 'bg-blue-100 text-blue-700';
-            case 'pending': return 'bg-yellow-100 text-yellow-700';
-            case 'cancelled': return 'bg-red-100 text-red-700';
-            default: return 'bg-gray-100 text-gray-700';
+            case 'completed': return 'bg-green-500/20 text-green-400';
+            case 'proceed': return 'bg-blue-500/20 text-blue-400';
+            case 'pending': return 'bg-gold-primary/20 text-gold-primary';
+            case 'cancelled': return 'bg-red-500/20 text-red-400';
+            default: return 'bg-dark-icon text-light-muted';
         }
     };
 
@@ -61,24 +61,24 @@ function OrdersPage() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Orders</h1>
-                    <p className="text-gray-500">Manage customer orders</p>
+                    <h1 className="text-2xl font-bold text-light-primary">Orders</h1>
+                    <p className="text-light-muted">Manage customer orders</p>
                 </div>
                 <div className="flex gap-3">
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-4 py-2 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
+                        className="px-4 py-2 bg-dark-card border border-dark-icon text-light-primary rounded-lg focus:ring-2 focus:ring-gold-primary outline-none transition-all hover:border-gold-primary/30"
                     >
-                        <option value="">All Orders</option>
-                        <option value="pending">Pending</option>
-                        <option value="proceed">Proceed</option>
-                        <option value="completed">Completed</option>
-                        <option value="cancelled">Cancelled</option>
+                        <option value="" className="bg-dark-card">All Orders</option>
+                        <option value="pending" className="bg-dark-card">Pending</option>
+                        <option value="proceed" className="bg-dark-card">Proceed</option>
+                        <option value="completed" className="bg-dark-card">Completed</option>
+                        <option value="cancelled" className="bg-dark-card">Cancelled</option>
                     </select>
                     <button
                         onClick={fetchOrders}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-gold-primary text-dark-main font-medium rounded-lg hover:bg-gold-dark transition-all shadow-[0_0_15px_rgba(251,191,36,0.2)]"
                     >
                         <RefreshCw size={18} />
                         Refresh
@@ -88,7 +88,7 @@ function OrdersPage() {
 
             {/* Error */}
             {error && (
-                <div className="bg-red-50 text-red-600 p-4 rounded-lg">
+                <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-lg">
                     {error}
                 </div>
             )}
@@ -96,60 +96,60 @@ function OrdersPage() {
             {/* Loading */}
             {loading ? (
                 <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+                    <Loader2 className="w-8 h-8 animate-spin text-gold-primary" />
                 </div>
             ) : (
                 /* Orders Table */
-                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div className="bg-dark-card border border-dark-icon rounded-xl shadow-lg overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50 border-b">
+                            <thead className="bg-dark-main border-b border-dark-icon">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Order ID</th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Customer</th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Items</th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Total</th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Status</th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Date</th>
-                                    <th className="px-6 py-4 text-right text-sm font-medium text-gray-500">Actions</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-light-muted uppercase tracking-wider">Order ID</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-light-muted uppercase tracking-wider">Customer</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-light-muted uppercase tracking-wider">Items</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-light-muted uppercase tracking-wider">Total</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-light-muted uppercase tracking-wider">Status</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-light-muted uppercase tracking-wider">Date</th>
+                                    <th className="px-6 py-4 text-right text-sm font-semibold text-light-muted uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y">
+                            <tbody className="divide-y divide-dark-icon">
                                 {orders.length === 0 ? (
                                     <tr>
-                                        <td colSpan="7" className="px-6 py-8 text-center text-gray-500">
+                                        <td colSpan="7" className="px-6 py-8 text-center text-light-muted">
                                             No orders found
                                         </td>
                                     </tr>
                                 ) : (
                                     orders.map((order) => (
-                                        <tr key={order.id} className="hover:bg-gray-50">
+                                        <tr key={order.id} className="hover:bg-gold-primary/[0.02] transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                                                        <Package className="w-5 h-5 text-primary-600" />
+                                                    <div className="w-10 h-10 bg-gold-primary/10 border border-gold-primary/20 rounded-lg flex items-center justify-center">
+                                                        <Package className="w-5 h-5 text-gold-primary" />
                                                     </div>
-                                                    <span className="font-mono text-sm">{order.id.slice(0, 8).toUpperCase()}</span>
+                                                    <span className="font-mono text-sm text-light-primary">{order.id.slice(0, 8).toUpperCase()}</span>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-gray-600">{order.userName || 'Unknown'}</td>
-                                            <td className="px-6 py-4 text-gray-600">{order.items?.length || 0} items</td>
-                                            <td className="px-6 py-4 font-medium text-gray-800">
+                                            <td className="px-6 py-4 text-light-primary/80">{order.userName || 'Unknown'}</td>
+                                            <td className="px-6 py-4 text-light-muted">{order.items?.length || 0} items</td>
+                                            <td className="px-6 py-4 font-medium text-light-primary">
                                                 ${(order.total || 0).toFixed(2)}
                                             </td>
                                             <td className="px-6 py-4">
                                                 <select
                                                     value={order.status}
                                                     onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                                                    className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(order.status)}`}
+                                                    className={`px-3 py-1 rounded-full text-xs font-semibold border-none cursor-pointer outline-none transition-all ${getStatusColor(order.status)}`}
                                                 >
-                                                    <option value="pending">Pending</option>
-                                                    <option value="proceed">Proceed</option>
-                                                    <option value="completed">Completed</option>
-                                                    <option value="cancelled">Cancelled</option>
+                                                    <option value="pending" className="bg-dark-card">Pending</option>
+                                                    <option value="proceed" className="bg-dark-card">Proceed</option>
+                                                    <option value="completed" className="bg-dark-card">Completed</option>
+                                                    <option value="cancelled" className="bg-dark-card">Cancelled</option>
                                                 </select>
                                             </td>
-                                            <td className="px-6 py-4 text-gray-500 text-sm">
+                                            <td className="px-6 py-4 text-light-muted text-sm">
                                                 {order.createdAt
                                                     ? new Date(order.createdAt).toLocaleDateString()
                                                     : 'N/A'}
@@ -158,14 +158,14 @@ function OrdersPage() {
                                                 <div className="flex items-center justify-end gap-2">
                                                     <button
                                                         onClick={() => setSelectedOrder(order)}
-                                                        className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg transition-colors"
+                                                        className="p-2 text-gold-primary hover:bg-gold-primary/10 rounded-lg transition-all"
                                                         title="View Details"
                                                     >
                                                         <Eye className="w-5 h-5" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(order.id)}
-                                                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                        className="p-2 text-light-muted hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                                                         title="Delete Order"
                                                     >
                                                         <Trash2 className="w-5 h-5" />
@@ -183,14 +183,14 @@ function OrdersPage() {
 
             {/* Order Details Modal */}
             {selectedOrder && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl max-w-lg w-full max-h-[80vh] overflow-y-auto">
-                        <div className="p-6 border-b">
+                <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                    <div className="bg-dark-card border border-dark-icon rounded-xl max-w-lg w-full max-h-[80vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in duration-200">
+                        <div className="p-6 border-b border-dark-icon">
                             <div className="flex items-center justify-between">
-                                <h2 className="text-xl font-bold">Order Details</h2>
+                                <h2 className="text-xl font-bold text-light-primary">Order Details</h2>
                                 <button
                                     onClick={() => setSelectedOrder(null)}
-                                    className="p-2 hover:bg-gray-100 rounded-lg"
+                                    className="p-2 hover:bg-dark-icon rounded-lg text-light-muted transition-colors"
                                 >
                                     ✕
                                 </button>
@@ -198,30 +198,30 @@ function OrdersPage() {
                         </div>
                         <div className="p-6 space-y-4">
                             <div>
-                                <p className="text-sm text-gray-500">Order ID</p>
-                                <p className="font-mono">{selectedOrder.id}</p>
+                                <p className="text-sm font-medium text-light-muted uppercase tracking-wider mb-1">Order ID</p>
+                                <p className="font-mono text-gold-primary">{selectedOrder.id}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">Customer</p>
-                                <p>{selectedOrder.userName || 'Unknown'}</p>
+                                <p className="text-sm font-medium text-light-muted uppercase tracking-wider mb-1">Customer</p>
+                                <p className="text-light-primary text-lg">{selectedOrder.userName || 'Unknown'}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500 mb-2">Items</p>
+                                <p className="text-sm font-medium text-light-muted uppercase tracking-wider mb-2">Items</p>
                                 <div className="space-y-2">
                                     {selectedOrder.items?.map((item, idx) => (
-                                        <div key={idx} className="flex justify-between bg-gray-50 p-3 rounded-lg">
+                                        <div key={idx} className="flex justify-between bg-dark-main border border-dark-icon p-4 rounded-xl transition-all hover:border-gold-primary/30">
                                             <div>
-                                                <p className="font-medium">{item.title}</p>
-                                                <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                                                <p className="font-semibold text-light-primary">{item.title}</p>
+                                                <p className="text-sm text-light-muted">Quantity: {item.quantity}</p>
                                             </div>
-                                            <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                                            <p className="font-bold text-light-primary">${(item.price * item.quantity).toFixed(2)}</p>
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                            <div className="flex justify-between pt-4 border-t">
-                                <p className="font-bold">Total</p>
-                                <p className="font-bold text-primary-600">${(selectedOrder.total || 0).toFixed(2)}</p>
+                            <div className="flex justify-between items-center pt-6 border-t border-dark-icon">
+                                <p className="text-lg font-semibold text-light-primary">Grand Total</p>
+                                <p className="text-2xl font-bold text-gold-primary">${(selectedOrder.total || 0).toFixed(2)}</p>
                             </div>
                         </div>
                     </div>
@@ -229,7 +229,7 @@ function OrdersPage() {
             )}
 
             {/* Stats */}
-            <div className="flex items-center justify-between text-sm text-gray-500">
+            <div className="flex items-center justify-between text-sm text-light-muted">
                 <span>Showing {orders.length} orders</span>
             </div>
         </div>

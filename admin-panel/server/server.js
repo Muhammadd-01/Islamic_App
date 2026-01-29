@@ -26,6 +26,9 @@ import religionsRoutes from './routes/religions.js';
 import hadithsRoutes from './routes/hadiths.js';
 import quranRoutes from './routes/quran.js';
 import dailyInspirationsRoutes from './routes/daily_inspirations.js';
+import tasbeehRoutes from './routes/tasbeeh.js';
+import azkarRoutes from './routes/azkar.js';
+import regionsRoutes from './routes/regions.js';
 import { seedSuperAdmin } from './utils/seed_admin.js';
 
 seedSuperAdmin();
@@ -69,6 +72,9 @@ app.use('/api/religions', religionsRoutes);
 app.use('/api/hadiths', hadithsRoutes);
 app.use('/api/quran', quranRoutes);
 app.use('/api/daily-inspirations', dailyInspirationsRoutes);
+app.use('/api/tasbeeh', tasbeehRoutes);
+app.use('/api/azkar', azkarRoutes);
+app.use('/api/regions', regionsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

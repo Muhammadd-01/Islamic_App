@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, Loader2, Image as ImageIcon, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Loader2, Image as ImageIcon, X, FileText, Music } from 'lucide-react';
 import { quranApi } from '../services/api';
 import ImageUpload from '../components/ImageUpload';
+import FileUpload from '../components/FileUpload';
 import { useNotification } from '../components/NotificationSystem';
 
 export default function Quran() {
@@ -14,6 +15,8 @@ export default function Quran() {
     const [submitting, setSubmitting] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
     const [imageFile, setImageFile] = useState(null);
+    const [pdfFile, setPdfFile] = useState(null);
+    const [audioFile, setAudioFile] = useState(null);
 
     const [formData, setFormData] = useState({
         surahName: '',
@@ -22,7 +25,9 @@ export default function Quran() {
         revelationType: 'Meccan',
         description: '',
         imageUrl: '',
-        audioUrl: ''
+        audioUrl: '',
+        pdfUrl: '',
+        translation: ''
     });
 
     useEffect(() => {
@@ -53,11 +58,13 @@ export default function Quran() {
             data.append('revelationType', formData.revelationType);
             data.append('description', formData.description);
             data.append('audioUrl', formData.audioUrl);
+            data.append('pdfUrl', formData.pdfUrl);
+            data.append('translation', formData.translation);
             if (formData.imageUrl) data.append('imageUrl', formData.imageUrl);
 
-            if (imageFile) {
-                data.append('image', imageFile);
-            }
+            if (imageFile) data.append('image', imageFile);
+            if (pdfFile) data.append('pdf', pdfFile);
+            if (audioFile) data.append('audio', audioFile);
 
             if (editingQuran) {
                 await quranApi.update(editingQuran.id, data);
@@ -102,7 +109,9 @@ export default function Quran() {
                 revelationType: item.revelationType || 'Meccan',
                 description: item.description || '',
                 imageUrl: item.imageUrl || '',
-                audioUrl: item.audioUrl || ''
+                audioUrl: item.audioUrl || '',
+                pdfUrl: item.pdfUrl || '',
+                translation: item.translation || ''
             });
         } else {
             setEditingQuran(null);
@@ -113,10 +122,14 @@ export default function Quran() {
                 revelationType: 'Meccan',
                 description: '',
                 imageUrl: '',
-                audioUrl: ''
+                audioUrl: '',
+                pdfUrl: '',
+                translation: ''
             });
         }
         setImageFile(null);
+        setPdfFile(null);
+        setAudioFile(null);
         setShowModal(true);
     };
 
@@ -280,13 +293,30 @@ export default function Quran() {
                             />
 
                             <div>
-                                <label className="block text-sm font-medium text-light-muted mb-1">Audio URL (Recitation)</label>
-                                <input
-                                    type="text"
+                                <label className="block text-sm font-medium text-light-muted mb-1">Translation (Text)</label>
+                                <textarea
+                                    value={formData.translation}
+                                    onChange={(e) => setFormData({ ...formData, translation: e.target.value })}
+                                    className="w-full px-4 py-2 bg-dark-main border border-dark-icon text-light-primary rounded-lg focus:ring-2 focus:ring-gold-primary h-24 resize-none"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <FileUpload
+                                    label="PDF Book"
+                                    value={formData.pdfUrl}
+                                    onChange={(val) => setFormData({ ...formData, pdfUrl: val })}
+                                    onFileSelect={setPdfFile}
+                                    accept=".pdf"
+                                    icon={FileText}
+                                />
+                                <FileUpload
+                                    label="Recitation (Audio)"
                                     value={formData.audioUrl}
-                                    onChange={(e) => setFormData({ ...formData, audioUrl: e.target.value })}
-                                    className="w-full px-4 py-2 bg-dark-main border border-dark-icon text-light-primary rounded-lg focus:ring-2 focus:ring-gold-primary"
-                                    placeholder="https://..."
+                                    onChange={(val) => setFormData({ ...formData, audioUrl: val })}
+                                    onFileSelect={setAudioFile}
+                                    accept="audio/*"
+                                    icon={Music}
                                 />
                             </div>
 

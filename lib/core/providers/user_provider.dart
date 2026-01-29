@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:islamic_app/data/repositories/user_repository.dart';
 import 'package:islamic_app/data/services/storage_service.dart';
@@ -33,6 +34,10 @@ final userProfileProvider = StreamProvider<AppUser?>((ref) {
       name: data['name'] ?? authUser.name,
       imageUrl: data['imageUrl'] ?? authUser.imageUrl,
       phone: data['phone'] ?? authUser.phone,
+      region: data['region'],
+      lastRegionUpdate: data['lastRegionUpdate'] != null
+          ? (data['lastRegionUpdate'] as Timestamp).toDate()
+          : null,
     );
   });
 });

@@ -5,6 +5,8 @@ import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/core/theme/theme_provider.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
 import 'package:islamic_app/core/providers/language_provider.dart';
+import 'package:islamic_app/core/providers/region_provider.dart';
+import 'package:islamic_app/core/providers/user_provider.dart';
 import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 import 'package:islamic_app/core/localization/app_localizations.dart';
 
@@ -93,6 +95,55 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 .setLanguage(code);
                           }
                         },
+                      );
+                    },
+                  ),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: const Text('Region'),
+                  leading: const Icon(Icons.public, color: AppColors.primary),
+                  trailing: Consumer(
+                    builder: (context, ref, child) {
+                      final regionsAsync = ref.watch(regionsStreamProvider);
+                      final selectedRegion = ref.watch(selectedRegionProvider);
+
+                      return regionsAsync.when(
+                        data: (regions) {
+                          final items = ['Global', ...regions];
+                          final currentValue = items.contains(selectedRegion)
+                              ? selectedRegion
+                              : 'Global';
+
+                          return DropdownButton<String>(
+                            value: currentValue,
+                            underline: const SizedBox(),
+                            items: items.map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
+                            }).toList(),
+                            onChanged: (newValue) async {
+                              if (newValue != null) {
+                                ref
+                                    .read(selectedRegionProvider.notifier)
+                                    .setRegion(newValue);
+
+                                // Update Firestore profile
+                                await ref
+                                    .read(userRepositoryProvider)
+                                    .updateUserProfile(region: newValue);
+                              }
+                            },
+                          );
+                        },
+                        loading: () => const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        error: (_, __) => const Icon(Icons.error_outline),
                       );
                     },
                   ),

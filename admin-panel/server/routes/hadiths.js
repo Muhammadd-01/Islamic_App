@@ -9,12 +9,12 @@ const collection = 'hadiths';
 // Multer config
 const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 5 * 1024 * 1024 } // 5MB
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB
 });
 
 // Upload helper
-const uploadImage = async (file) => {
-    const result = await uploadToSupabase(file.buffer, file.originalname, 'hadith-images');
+const uploadFile = async (file, bucket) => {
+    const result = await uploadToSupabase(file.buffer, file.originalname, bucket);
     if (result.error) {
         throw new Error(result.error);
     }
@@ -33,13 +33,28 @@ router.get('/', async (req, res) => {
 });
 
 // Create hadith
-router.post('/', upload.single('image'), async (req, res) => {
+router.post('/', upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'pdf', maxCount: 1 },
+    { name: 'audio', maxCount: 1 }
+]), async (req, res) => {
     try {
-        const { title, content, narrator, book, chapter, grade, imageUrl } = req.body;
+        const { title, content, narrator, book, chapter, grade, imageUrl, pdfUrl, audioUrl, translation } = req.body;
 
         let finalImageUrl = imageUrl || '';
-        if (req.file) {
-            finalImageUrl = await uploadImage(req.file);
+        let finalPdfUrl = pdfUrl || '';
+        let finalAudioUrl = audioUrl || '';
+
+        if (req.files) {
+            if (req.files['image']) {
+                finalImageUrl = await uploadFile(req.files['image'][0], 'hadith-images');
+            }
+            if (req.files['pdf']) {
+                finalPdfUrl = await uploadFile(req.files['pdf'][0], 'hadith-pdfs');
+            }
+            if (req.files['audio']) {
+                finalAudioUrl = await uploadFile(req.files['audio'][0], 'hadith-recitations');
+            }
         }
 
         const data = {
@@ -50,6 +65,9 @@ router.post('/', upload.single('image'), async (req, res) => {
             chapter,
             grade,
             imageUrl: finalImageUrl,
+            pdfUrl: finalPdfUrl,
+            audioUrl: finalAudioUrl,
+            translation: translation || '',
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
@@ -61,9 +79,13 @@ router.post('/', upload.single('image'), async (req, res) => {
 });
 
 // Update hadith
-router.put('/:id', upload.single('image'), async (req, res) => {
+router.put('/:id', upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'pdf', maxCount: 1 },
+    { name: 'audio', maxCount: 1 }
+]), async (req, res) => {
     try {
-        const { title, content, narrator, book, chapter, grade, imageUrl } = req.body;
+        const { title, content, narrator, book, chapter, grade, imageUrl, pdfUrl, audioUrl, translation } = req.body;
 
         const updateData = {
             updatedAt: new Date().toISOString()
@@ -76,9 +98,20 @@ router.put('/:id', upload.single('image'), async (req, res) => {
         if (chapter) updateData.chapter = chapter;
         if (grade) updateData.grade = grade;
         if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+        if (pdfUrl !== undefined) updateData.pdfUrl = pdfUrl;
+        if (audioUrl !== undefined) updateData.audioUrl = audioUrl;
+        if (translation !== undefined) updateData.translation = translation;
 
-        if (req.file) {
-            updateData.imageUrl = await uploadImage(req.file);
+        if (req.files) {
+            if (req.files['image']) {
+                updateData.imageUrl = await uploadFile(req.files['image'][0], 'hadith-images');
+            }
+            if (req.files['pdf']) {
+                updateData.pdfUrl = await uploadFile(req.files['pdf'][0], 'hadith-pdfs');
+            }
+            if (req.files['audio']) {
+                updateData.audioUrl = await uploadFile(req.files['audio'][0], 'hadith-recitations');
+            }
         }
 
         await db.collection(collection).doc(req.params.id).update(updateData);

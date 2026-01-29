@@ -59,12 +59,12 @@ function UsersPage() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Users</h1>
-                    <p className="text-gray-500">Manage all registered users</p>
+                    <h1 className="text-2xl font-bold text-light-primary">Users</h1>
+                    <p className="text-light-muted">Manage all registered users</p>
                 </div>
                 <button
                     onClick={fetchUsers}
-                    className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-gold-primary text-dark-main font-medium rounded-lg hover:bg-gold-dark transition-all shadow-[0_0_15px_rgba(251,191,36,0.2)]"
                 >
                     <RefreshCw size={18} />
                     Refresh
@@ -72,20 +72,20 @@ function UsersPage() {
             </div>
 
             {/* Search */}
-            <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <div className="relative group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-light-muted group-focus-within:text-gold-primary transition-colors" />
                 <input
                     type="text"
                     placeholder="Search users by name or email..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 bg-dark-card border border-dark-icon text-light-primary rounded-lg focus:ring-2 focus:ring-gold-primary focus:border-transparent outline-none transition-all hover:border-gold-primary/30"
                 />
             </div>
 
             {/* Error */}
             {error && (
-                <div className="bg-red-50 text-red-600 p-4 rounded-lg">
+                <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-lg">
                     {error}
                 </div>
             )}
@@ -93,35 +93,35 @@ function UsersPage() {
             {/* Loading */}
             {loading ? (
                 <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
+                    <Loader2 className="w-8 h-8 animate-spin text-gold-primary" />
                 </div>
             ) : (
                 /* Users Table */
-                <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div className="bg-dark-card border border-dark-icon rounded-xl shadow-lg overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead className="bg-gray-50 border-b">
+                            <thead className="bg-dark-main border-b border-dark-icon">
                                 <tr>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">User</th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Email</th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Role</th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Joined</th>
-                                    <th className="px-6 py-4 text-right text-sm font-medium text-gray-500">Actions</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-light-muted uppercase tracking-wider">User</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-light-muted uppercase tracking-wider">Email</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-light-muted uppercase tracking-wider">Role</th>
+                                    <th className="px-6 py-4 text-left text-sm font-semibold text-light-muted uppercase tracking-wider">Joined</th>
+                                    <th className="px-6 py-4 text-right text-sm font-semibold text-light-muted uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y">
+                            <tbody className="divide-y divide-dark-icon">
                                 {filteredUsers.length === 0 ? (
                                     <tr>
-                                        <td colSpan="5" className="px-6 py-8 text-center text-gray-500">
+                                        <td colSpan="5" className="px-6 py-8 text-center text-light-muted">
                                             No users found
                                         </td>
                                     </tr>
                                 ) : (
                                     filteredUsers.map((user) => (
-                                        <tr key={user.id} className="hover:bg-gray-50">
+                                        <tr key={user.id} className="hover:bg-gold-primary/[0.02] transition-colors group">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                                                    <div className="w-10 h-10 bg-gold-primary/10 border border-gold-primary/20 rounded-full flex items-center justify-center overflow-hidden">
                                                         {user.imageUrl ? (
                                                             <img
                                                                 src={user.imageUrl}
@@ -129,30 +129,30 @@ function UsersPage() {
                                                                 className="w-10 h-10 rounded-full object-cover"
                                                             />
                                                         ) : (
-                                                            <User className="w-5 h-5 text-primary-600" />
+                                                            <User className="w-5 h-5 text-gold-primary" />
                                                         )}
                                                     </div>
                                                     <div>
-                                                        <p className="font-medium text-gray-800">{user.name || 'No name'}</p>
-                                                        <p className="text-xs text-gray-400">{user.id.slice(0, 8)}...</p>
+                                                        <p className="font-medium text-light-primary">{user.name || 'No name'}</p>
+                                                        <p className="text-xs text-light-muted">{user.id.slice(0, 8)}...</p>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 text-gray-600">{user.email}</td>
+                                            <td className="px-6 py-4 text-light-primary/80">{user.email}</td>
                                             <td className="px-6 py-4">
                                                 <select
                                                     value={user.role || 'user'}
                                                     onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                                                    className={`px-3 py-1 rounded-full text-sm font-medium ${user.role === 'admin'
-                                                            ? 'bg-purple-100 text-purple-700'
-                                                            : 'bg-gray-100 text-gray-700'
+                                                    className={`px-3 py-1 rounded-full text-xs font-semibold border-none cursor-pointer outline-none transition-all ${user.role === 'admin'
+                                                        ? 'bg-purple-500/20 text-purple-400'
+                                                        : 'bg-dark-main text-light-muted hover:bg-dark-icon'
                                                         }`}
                                                 >
-                                                    <option value="user">User</option>
-                                                    <option value="admin">Admin</option>
+                                                    <option value="user" className="bg-dark-card">User</option>
+                                                    <option value="admin" className="bg-dark-card">Admin</option>
                                                 </select>
                                             </td>
-                                            <td className="px-6 py-4 text-gray-500 text-sm">
+                                            <td className="px-6 py-4 text-light-muted text-sm">
                                                 {user.createdAt
                                                     ? new Date(user.createdAt).toLocaleDateString()
                                                     : 'N/A'}
@@ -161,7 +161,7 @@ function UsersPage() {
                                                 <button
                                                     onClick={() => handleDelete(user.id, user.name || user.email)}
                                                     disabled={deleting === user.id}
-                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                                                    className="p-2 text-light-muted hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
                                                 >
                                                     {deleting === user.id ? (
                                                         <Loader2 className="w-5 h-5 animate-spin" />
@@ -180,7 +180,7 @@ function UsersPage() {
             )}
 
             {/* Stats */}
-            <div className="flex items-center justify-between text-sm text-gray-500">
+            <div className="flex items-center justify-between text-sm text-light-muted">
                 <span>Showing {filteredUsers.length} users</span>
             </div>
         </div>

@@ -5,6 +5,7 @@ class AppUser {
   final String? phone;
   final String? imageUrl;
   final String? region;
+  final DateTime? lastRegionUpdate;
   final String role;
 
   AppUser({
@@ -14,6 +15,7 @@ class AppUser {
     this.phone,
     this.imageUrl,
     this.region,
+    this.lastRegionUpdate,
     this.role = 'user',
   });
 
@@ -25,6 +27,9 @@ class AppUser {
       'phone': phone,
       'imageUrl': imageUrl,
       'region': region,
+      'lastRegionUpdate': lastRegionUpdate != null
+          ? lastRegionUpdate!.toIso8601String()
+          : null,
       'role': role,
     };
   }
@@ -37,6 +42,9 @@ class AppUser {
       phone: map['phone'],
       imageUrl: map['imageUrl'],
       region: map['region'],
+      lastRegionUpdate: map['lastRegionUpdate'] != null
+          ? DateTime.tryParse(map['lastRegionUpdate'].toString())
+          : null,
       role: map['role'] ?? 'user',
     );
   }

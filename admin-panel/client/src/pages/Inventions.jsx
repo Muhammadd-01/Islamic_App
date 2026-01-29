@@ -130,8 +130,8 @@ function InventionsPage() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Inventions</h1>
-                    <p className="text-gray-500">Manage Muslim inventions and discoveries</p>
+                    <h1 className="text-2xl font-bold text-light-primary">Inventions</h1>
+                    <p className="text-light-muted">Manage Muslim inventions and discoveries</p>
                 </div>
                 <div className="flex gap-3">
                     <button
@@ -140,49 +140,58 @@ function InventionsPage() {
                             resetForm();
                             setShowForm(true);
                         }}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 bg-gold-primary text-dark-main font-medium rounded-lg hover:bg-gold-dark transition-all shadow-[0_0_15px_rgba(251,191,36,0.2)]"
                     >
                         <Plus size={18} /> Add Invention
                     </button>
-                    <button onClick={fetchInventions} className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200">
+                    <button
+                        onClick={fetchInventions}
+                        className="p-2 bg-dark-card border border-dark-icon text-light-primary rounded-lg hover:bg-dark-icon transition-all shadow-sm"
+                    >
                         <RefreshCw size={18} />
                     </button>
                 </div>
             </div>
 
             {loading ? (
-                <div className="flex justify-center h-64 items-center"><Loader2 className="animate-spin text-primary-500 w-8 h-8" /></div>
+                <div className="flex justify-center h-64 items-center">
+                    <Loader2 className="animate-spin text-gold-primary w-8 h-8" />
+                </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {inventions.map(item => (
-                        <div key={item.id} className="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col group">
-                            <div className="h-48 bg-gray-100 overflow-hidden relative">
+                        <div key={item.id} className="bg-dark-card border border-dark-icon rounded-xl overflow-hidden flex flex-col group hover:border-gold-primary/30 transition-all shadow-lg hover:shadow-gold-primary/5">
+                            <div className="h-48 bg-dark-main overflow-hidden relative">
                                 {item.imageUrl ? (
-                                    <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                    <img
+                                        src={item.imageUrl}
+                                        alt={item.title}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    />
                                 ) : (
-                                    <div className="flex items-center justify-center h-full text-gray-400"><ImageIcon size={48} /></div>
+                                    <div className="flex items-center justify-center h-full text-dark-icon"><ImageIcon size={48} /></div>
                                 )}
                                 <div className="absolute top-2 right-2 flex gap-2">
-                                    <span className={`px-2 py-1 rounded text-xs font-medium ${item.contentType === 'video' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'}`}>
-                                        {item.contentType === 'video' ? 'Video' : 'Doc'}
+                                    <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${item.contentType === 'video' ? 'bg-red-500 text-white' : 'bg-gold-primary text-dark-main'}`}>
+                                        {item.contentType === 'video' ? 'Video' : 'Document'}
                                     </span>
                                 </div>
                             </div>
                             <div className="p-4 flex-1">
-                                <h3 className="text-lg font-bold text-gray-800">{item.title}</h3>
-                                <p className="text-sm text-primary-600 mb-2">{item.discoveredBy} ({item.year})</p>
-                                <p className="text-gray-600 text-sm line-clamp-3">{item.description}</p>
+                                <h3 className="text-lg font-bold text-light-primary group-hover:text-gold-primary transition-colors">{item.title}</h3>
+                                <p className="text-sm text-gold-primary/80 font-medium mb-2">{item.discoveredBy} ({item.year})</p>
+                                <p className="text-light-muted text-sm line-clamp-3 leading-relaxed">{item.description}</p>
                             </div>
-                            <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
+                            <div className="p-4 border-t border-dark-icon bg-dark-main/50 flex justify-end gap-2">
                                 <button
                                     onClick={() => handleEdit(item)}
-                                    className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                    className="p-2 text-gold-primary hover:bg-gold-primary/10 rounded-lg transition-all"
                                 >
                                     <Edit size={18} />
                                 </button>
                                 <button
                                     onClick={() => handleDelete(item.id)}
-                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                    className="p-2 text-light-muted hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                                     disabled={deletingId === item.id}
                                 >
                                     {deletingId === item.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 size={18} />}
@@ -190,7 +199,11 @@ function InventionsPage() {
                             </div>
                         </div>
                     ))}
-                    {inventions.length === 0 && <p className="col-span-full text-center text-gray-500 py-10">No inventions found.</p>}
+                    {inventions.length === 0 && (
+                        <div className="col-span-full bg-dark-card border border-dark-icon rounded-xl p-12 text-center text-light-muted">
+                            No inventions found.
+                        </div>
+                    )}
                 </div>
             )}
 

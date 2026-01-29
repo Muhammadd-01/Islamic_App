@@ -226,12 +226,21 @@ final prayerDisplayInfoProvider = StreamProvider<Map<String, String>>((ref) {
       return '$h:$m:$s';
     }
 
+    double calculateProgress(DateTime? start, DateTime? end) {
+      if (start == null || end == null) return 0.0;
+      final total = end.difference(start).inSeconds;
+      if (total <= 0) return 0.0;
+      final elapsed = now.difference(start).inSeconds;
+      return (elapsed / total).clamp(0.0, 1.0);
+    }
+
     return {
       'currentName': currentName,
       'currentStartTime': formatAMPM(currentStartTime),
       'currentRemaining': formatRemaining(currentEndsAt),
       'nextName': nextName,
       'nextStartTime': formatAMPM(nextStartTime),
+      'progress': calculateProgress(currentStartTime, currentEndsAt).toString(),
     };
   });
 });

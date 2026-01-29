@@ -15,4 +15,5 @@ abstract class AuthRepository {
   // Future methods for social logins (to be implemented by specific repos)
   Future<AppUser?> signInWithGoogle();
   Future<AppUser?> signInWithFacebook();
+  Future<void> sendPasswordResetEmail(String email);
 }

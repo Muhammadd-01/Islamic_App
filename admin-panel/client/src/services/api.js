@@ -164,4 +164,20 @@ export const regionsApi = {
     delete: (id) => api.delete(`/regions/${id}`),
 };
 
+// Reciters API
+export const reciterApi = {
+    getAll: () => api.get('/reciters'),
+    create: (data) => api.post('/reciters', data),
+    update: (id, data) => api.put(`/reciters/${id}`, data),
+    delete: (id) => api.delete(`/reciters/${id}`),
+};
+
+// Adhans API
+export const adhanApi = {
+    getAll: () => api.get('/adhans'),
+    create: (data) => api.post('/adhans', data),
+    update: (id, data) => api.put(`/adhans/${id}`, data),
+    delete: (id) => api.delete(`/adhans/${id}`),
+};
+
 export default api;

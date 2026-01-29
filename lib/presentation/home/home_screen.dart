@@ -13,6 +13,7 @@ import 'package:islamic_app/data/repositories/questions_repository.dart';
 import 'package:islamic_app/data/repositories/cart_repository.dart';
 import 'package:islamic_app/domain/entities/hadith.dart';
 import 'package:islamic_app/core/localization/app_localizations.dart';
+import 'package:islamic_app/data/repositories/tasbeeh_repository.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -576,33 +577,28 @@ class _EnhancedPrayerCard extends ConsumerWidget {
 
   const _EnhancedPrayerCard({required this.nextPrayerAsync});
 
-  // Get gradient colors based on prayer time
-  List<Color> _getPrayerGradient(WidgetRef ref) {
-    final prayerName = ref.watch(nextPrayerNameProvider);
+  // Get gradient colors based on prayer name
+  List<Color> _getPrayerColors(String prayerName) {
     switch (prayerName) {
       case 'Fajr':
-        // Dawn - deep purple to soft blue
         return const [
           Color(0xFF4C1D95), // Deep violet
           Color(0xFF6366F1), // Soft indigo
           Color(0xFF818CF8), // Light purple
         ];
       case 'Dhuhr':
-        // Midday - warm amber to gold
         return const [
           Color(0xFFF59E0B), // Amber
           Color(0xFFFBBF24), // Yellow
           Color(0xFFD97706), // Deep amber
         ];
       case 'Asr':
-        // Afternoon - soft orange to muted gold
         return const [
           Color(0xFFEA580C), // Orange
           Color(0xFFF97316), // Light orange
           Color(0xFFD97706), // Amber
         ];
       case 'Maghrib':
-        // Sunset - deep orange to dark purple
         return const [
           Color(0xFFDC2626), // Red-orange
           Color(0xFFEA580C), // Deep orange
@@ -610,13 +606,23 @@ class _EnhancedPrayerCard extends ConsumerWidget {
         ];
       case 'Isha':
       default:
-        // Night - deep navy to soft purple
         return const [
           Color(0xFF1E1B4B), // Deep navy
           Color(0xFF312E81), // Indigo
           Color(0xFF4C1D95), // Purple
         ];
     }
+  }
+
+  List<Color> _interpolateGradients(
+    List<Color> current,
+    List<Color> next,
+    double progress,
+  ) {
+    if (current.length != next.length) return current;
+    return List.generate(current.length, (i) {
+      return Color.lerp(current[i], next[i], progress)!;
+    });
   }
 
   // Get icon based on prayer time
@@ -639,150 +645,203 @@ class _EnhancedPrayerCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final gradientColors = _getPrayerGradient(ref);
-    final prayerIcon = _getPrayerIcon(ref);
     final prayerInfoAsync = ref.watch(prayerDisplayInfoProvider);
 
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: gradientColors[0].withValues(alpha: 0.4),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: prayerInfoAsync.when(
-            data: (info) => Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: gradientColors,
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  width: 1.5,
-                ),
+    return prayerInfoAsync.when(
+      data: (info) {
+        final currentPrayerName = info['currentName'] ?? 'Isha';
+        final nextPrayerName = info['nextName'] ?? 'Fajr';
+        final progress = double.tryParse(info['progress'] ?? '0.0') ?? 0.0;
+
+        final currentColors = _getPrayerColors(currentPrayerName);
+        final nextColors = _getPrayerColors(nextPrayerName);
+        final gradientColors = _interpolateGradients(
+          currentColors,
+          nextColors,
+          progress,
+        );
+
+        final prayerIcon = _getPrayerIcon(ref);
+
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(28),
+            boxShadow: [
+              BoxShadow(
+                color: gradientColors[0].withValues(alpha: 0.4),
+                blurRadius: 30,
+                offset: const Offset(0, 15),
               ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.access_time_filled,
-                                  color: Colors.white,
-                                  size: 14,
-                                ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: gradientColors,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    // Top Row: Current Prayer Info
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Current Prayer',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
                               ),
-                              const SizedBox(width: 8),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              currentPrayerName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.access_time,
+                                color: Colors.white,
+                                size: 14,
+                              ),
+                              const SizedBox(width: 6),
                               Text(
-                                '${info['currentName']} entered at ${info['currentStartTime']}',
+                                info['currentStartTime'] ?? '--:--',
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            info['nextName']!,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: -1,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Next Prayer',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.7),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              prayerIcon,
-                              color: Colors.white,
-                              size: 36,
-                            ),
-                          )
-                          .animate(onPlay: (c) => c.repeat(reverse: true))
-                          .scale(
-                            duration: 2.seconds,
-                            begin: const Offset(1, 1),
-                            end: const Offset(1.1, 1.1),
-                          ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _TimerBox(
-                          label: 'Ends In',
-                          time: info['currentRemaining']!,
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _TimerBox(
-                          label: 'Starts At',
-                          time: info['nextStartTime']!,
-                          highlight: true,
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Middle Row: Next Prayer Focus
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Next Prayer',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              nextPrayerName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 40,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -1,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            loading: () => Container(
-              height: 200,
-              alignment: Alignment.center,
-              child: const CupertinoActivityIndicator(color: Colors.white),
-            ),
-            error: (_, __) => Container(
-              height: 200,
-              alignment: Alignment.center,
-              child: const Text(
-                'Error loading prayer info',
-                style: TextStyle(color: Colors.white),
+                        Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                prayerIcon,
+                                color: Colors.white,
+                                size: 42,
+                              ),
+                            )
+                            .animate(onPlay: (c) => c.repeat(reverse: true))
+                            .scale(
+                              duration: 2.seconds,
+                              begin: const Offset(1, 1),
+                              end: const Offset(1.1, 1.1),
+                            ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Bottom Row: Stats/Counters
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _TimerBox(
+                            label: 'Ends In',
+                            time: info['currentRemaining']!,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _TimerBox(
+                            label: 'Starts At',
+                            time: info['nextStartTime']!,
+                            highlight: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
+        );
+      },
+      loading: () => Container(
+        height: 200,
+        alignment: Alignment.center,
+        child: const CupertinoActivityIndicator(color: Colors.white),
+      ),
+      error: (_, __) => Container(
+        height: 200,
+        alignment: Alignment.center,
+        child: const Text(
+          'Error loading prayer info',
+          style: TextStyle(color: Colors.white),
         ),
       ),
     );
@@ -1006,6 +1065,7 @@ class _QuickStatsRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Watch prayer tracking for today
     final prayerTrackingAsync = ref.watch(todayPrayerTrackingProvider);
+    final tasbeehStatsAsync = ref.watch(tasbeehStatsProvider);
 
     final prayerStats = prayerTrackingAsync.when(
       data: (tracking) {
@@ -1016,14 +1076,20 @@ class _QuickStatsRow extends ConsumerWidget {
       error: (_, __) => '0/5',
     );
 
+    final dailyStreak = tasbeehStatsAsync.when(
+      data: (stats) => stats.streakCount.toString(),
+      loading: () => '...',
+      error: (_, __) => '0',
+    );
+
     return Row(
       children: [
         Expanded(
           child: _StatCard(
             icon: Icons.local_fire_department,
             iconColor: Colors.orange,
-            value: '7',
-            label: 'Day Streak',
+            value: dailyStreak,
+            label: 'Tasbeeh Streak',
           ),
         ),
         const SizedBox(width: 12),

@@ -236,11 +236,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            child: ListTile(
-              title: const Text('Reciter Selection'),
-              leading: const Icon(Icons.mic, color: AppColors.primary),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () => context.push('/reciters'),
+            child: Column(
+              children: [
+                ListTile(
+                  title: const Text('Reciter Selection'),
+                  leading: const Icon(Icons.mic, color: AppColors.primary),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () => context.push('/reciters'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  title: const Text('Adhan Selection'),
+                  leading: const Icon(
+                    Icons.notifications_active,
+                    color: AppColors.primary,
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () => context.push('/adhan-selection'),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 24),

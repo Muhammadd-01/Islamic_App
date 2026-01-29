@@ -95,6 +95,11 @@ class HybridAuthRepository implements AuthRepository {
     _authStateController.add(null);
   }
 
+  @override
+  Future<void> sendPasswordResetEmail(String email) {
+    return _firebaseAuth.sendPasswordResetEmail(email);
+  }
+
   void dispose() {
     _fbSub?.cancel();
     _sbSub?.cancel();

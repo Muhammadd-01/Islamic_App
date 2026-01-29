@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
-import 'package:islamic_app/data/repositories/auth_repository_impl.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
 import 'package:islamic_app/presentation/widgets/glassmorphism_alert.dart';
 
@@ -31,8 +30,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
-        final authRepo =
-            ref.read(authRepositoryProvider) as FirebaseAuthRepository;
+        final authRepo = ref.read(authRepositoryProvider);
         await authRepo.sendPasswordResetEmail(_emailController.text.trim());
 
         if (mounted) {

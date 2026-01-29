@@ -27,6 +27,7 @@ import 'package:islamic_app/presentation/auth/forgot_password_screen.dart';
 import 'package:islamic_app/presentation/settings/settings_screen.dart';
 import 'package:islamic_app/presentation/notifications/notifications_screen.dart';
 import 'package:islamic_app/presentation/quran_audio/reciter_selection_screen.dart';
+import 'package:islamic_app/presentation/settings/adhan_selection_screen.dart';
 import 'package:islamic_app/presentation/quran_audio/surah_audio_screen.dart';
 import 'package:islamic_app/presentation/splash/splash_screen.dart';
 import 'package:islamic_app/presentation/onboarding/onboarding_screen.dart';
@@ -224,6 +225,14 @@ final goRouter = GoRouter(
           path: '/religions',
           builder: (context, state) => const StudyReligionsScreen(),
         ),
+        GoRoute(
+          path: '/reciters',
+          builder: (context, state) => const ReciterSelectionScreen(),
+        ),
+        GoRoute(
+          path: '/adhan-selection',
+          builder: (context, state) => const AdhanSelectionScreen(),
+        ),
       ],
     ),
     GoRoute(path: '/', redirect: (_, __) => '/home'),
@@ -244,10 +253,6 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/notifications',
       builder: (context, state) => const NotificationsScreen(),
-    ),
-    GoRoute(
-      path: '/reciters',
-      builder: (context, state) => const ReciterSelectionScreen(),
     ),
     GoRoute(
       path: '/scholars',

@@ -583,8 +583,11 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                   onSelected: (val) {
                     ref.read(selectedRegionProvider.notifier).setRegion(val);
                   },
-                  constraints: const BoxConstraints(minWidth: 200),
-                  offset: const Offset(0, 50), // Position below the trigger
+                  offset: const Offset(0, 50),
+                  position: PopupMenuPosition.under,
+                  constraints: BoxConstraints(
+                    minWidth: MediaQuery.of(context).size.width - 70,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
@@ -597,7 +600,10 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                           value: r,
                           child: Text(
                             '$r Ranking',
-                            style: const TextStyle(fontWeight: FontWeight.w600),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       )

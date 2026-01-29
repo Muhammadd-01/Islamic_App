@@ -14,6 +14,14 @@ export default function DailyInspiration() {
     const [showModal, setShowModal] = useState(false);
     const [todayInspiration, setTodayInspiration] = useState(null);
     const [todayLoading, setTodayLoading] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
+    const [formData, setFormData] = useState({
+        type: 'quote',
+        arabic: '',
+        translation: '',
+        source: '',
+        author: ''
+    });
 
     const tabs = [
         { id: 'all', label: 'All', icon: Star },

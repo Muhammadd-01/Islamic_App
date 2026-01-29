@@ -100,6 +100,11 @@ class SupabaseAuthRepository implements AuthRepository {
     await _supabase.auth.signOut();
   }
 
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _supabase.auth.resetPasswordForEmail(email);
+  }
+
   AppUser _mapSupabaseUserToAppUser(User user) {
     return AppUser(
       uid: user.id,

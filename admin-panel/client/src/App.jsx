@@ -3,7 +3,7 @@ import {
     LayoutDashboard, Users, ShoppingCart, BookOpen, MessageCircle,
     Menu, X, LogOut, Lightbulb, Newspaper, Landmark, GraduationCap,
     History, FlaskConical, Star, Heart, ChevronLeft, ChevronRight, User, Settings,
-    Scroll, BookOpenText, Globe, Activity
+    Scroll, BookOpenText, Globe, Activity, Music
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
@@ -30,6 +30,8 @@ import ReligionsPage from './pages/Religions';
 import TasbeehPage from './pages/Tasbeeh';
 import AzkarPage from './pages/Azkar';
 import RegionsPage from './pages/Regions';
+import RecitersPage from './pages/Reciters';
+import AdhansPage from './pages/Adhans';
 import Login from './pages/Login';
 import { NotificationProvider } from './components/NotificationSystem';
 
@@ -90,6 +92,8 @@ function App() {
         { to: '/regions', icon: Globe, label: 'Regions Management' },
         { to: '/tasbeeh', icon: Activity, label: 'Tasbeeh Analytics' },
         { to: '/azkar', icon: Heart, label: 'Azkar Management' },
+        { to: '/reciters', icon: User, label: 'Reciters' },
+        { to: '/adhans', icon: Music, label: 'Adhans' },
         { to: '/profile', icon: Settings, label: 'Admin Profile' },
     ];
 
@@ -215,6 +219,8 @@ function App() {
                                     <Route path="/regions" element={<RegionsPage />} />
                                     <Route path="/tasbeeh" element={<TasbeehPage />} />
                                     <Route path="/azkar" element={<AzkarPage />} />
+                                    <Route path="/reciters" element={<RecitersPage />} />
+                                    <Route path="/adhans" element={<AdhansPage />} />
                                     <Route path="/profile" element={<AdminProfilePage />} />
                                 </Routes>
                             </div>

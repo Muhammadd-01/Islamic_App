@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:geocoding/geocoding.dart';
@@ -52,35 +54,110 @@ class LocationService {
     }
   }
 
-  /// Get location as formatted string (Street, City, Country)
+  /// Get location as formatted string (House #, Street, Sector, City, Country)
   Future<String> getLocationString() async {
     final position = await getCurrentLocation();
     if (position == null) {
       return 'Location not available';
     }
 
+    // 1. Try native geocoding first (with a failsafe)
     try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
+      final List<Placemark> placemarks = await placemarkFromCoordinates(
         position.latitude,
         position.longitude,
-      );
+      ).timeout(const Duration(seconds: 5));
 
       if (placemarks.isNotEmpty) {
         final place = placemarks.first;
+        final name = place.name ?? '';
         final street = place.street ?? '';
         final subLocality = place.subLocality ?? '';
         final locality = place.locality ?? '';
         final country = place.country ?? '';
 
-        // Construct full address: "Street, Sector/Area, City, Country"
-        List<String> parts = [street, subLocality, locality, country];
-        return parts.where((p) => p.isNotEmpty).join(', ');
+        String streetLine = name;
+        if (street.isNotEmpty && street != name) {
+          streetLine = street;
+        }
+
+        // Return if we got meaningful data
+        if (streetLine.isNotEmpty || subLocality.isNotEmpty) {
+          List<String> parts = [streetLine, subLocality, locality, country];
+          final distinctParts = <String>[];
+          for (var part in parts) {
+            if (part.isNotEmpty && !distinctParts.contains(part)) {
+              distinctParts.add(part);
+            }
+          }
+          if (distinctParts.isNotEmpty) return distinctParts.join(', ');
+        }
       }
     } catch (e) {
-      print('Geocoding error: $e');
+      print('Native geocoding failed/timed out: $e');
     }
 
-    // Fallback to coordinates if geocoding fails
+    // 2. Robust Fallback to Nominatim (OpenStreetMap)
+    try {
+      final url = Uri.parse(
+        'https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.latitude}&lon=${position.longitude}&zoom=18&addressdetails=1',
+      );
+
+      final response = await http
+          .get(
+            url,
+            headers: {'User-Agent': 'IslamicApp/1.0', 'Accept-Language': 'en'},
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final address = data['address'];
+        if (address != null) {
+          // Precise mapping for "House No, Street, Sector/Area"
+          final house =
+              address['house_number'] ??
+              address['house_name'] ??
+              address['building'] ??
+              '';
+          final road = address['road'] ?? address['pedestrian'] ?? '';
+
+          // Sector/Area mapping
+          final sectorArea =
+              address['neighbourhood'] ??
+              address['suburb'] ??
+              address['quarter'] ??
+              address['residential'] ??
+              address['city_district'] ??
+              address['sector'] ??
+              '';
+
+          final city =
+              address['city'] ?? address['town'] ?? address['village'] ?? '';
+          final country = address['country'] ?? '';
+
+          String streetPart = road;
+          if (house.isNotEmpty) {
+            streetPart = road.isNotEmpty
+                ? 'House $house, $road'
+                : 'House $house';
+          }
+
+          final parts = [streetPart, sectorArea, city, country]
+              .where((p) => p.toString().trim().isNotEmpty)
+              .map((p) => p.toString().trim())
+              .toList();
+
+          if (parts.isNotEmpty) {
+            return parts.join(', ');
+          }
+        }
+      }
+    } catch (e) {
+      print('Nominatim fallback failed: $e');
+    }
+
+    // 3. Absolute last resort: Formatted coordinates
     return '${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}';
   }
 

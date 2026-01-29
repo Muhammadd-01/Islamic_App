@@ -154,7 +154,7 @@ class FirebaseAuthRepository implements AuthRepository {
     await FacebookAuth.instance.logOut();
   }
 
-  /// Send password reset email
+  @override
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email);

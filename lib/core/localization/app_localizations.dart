@@ -36,6 +36,7 @@ class AppLocalizations {
       'good_evening': 'Good Evening',
       'welcome': 'Welcome',
       'next_prayer': 'Next Prayer',
+      'good_night': 'Good Night',
     },
     'ar': {
       'app_name': 'دين سفير',
@@ -63,6 +64,7 @@ class AppLocalizations {
       'good_evening': 'مساء الخير',
       'welcome': 'مرحباً',
       'next_prayer': 'الصلاة القادمة',
+      'good_night': 'تصبح على خير',
     },
     'ur': {
       'app_name': 'دین سفیر',
@@ -90,6 +92,7 @@ class AppLocalizations {
       'good_evening': 'شام بخیر',
       'welcome': 'خوش آمدید',
       'next_prayer': 'اگلی نماز',
+      'good_night': 'شب بخیر',
     },
     'tr': {
       'app_name': 'DeenSphere',
@@ -117,6 +120,7 @@ class AppLocalizations {
       'good_evening': 'İyi Akşamlar',
       'welcome': 'Hoş Geldiniz',
       'next_prayer': 'Sıradaki Namaz',
+      'good_night': 'İyi Geceler',
     },
     'id': {
       'app_name': 'DeenSphere',
@@ -144,6 +148,7 @@ class AppLocalizations {
       'good_evening': 'Selamat Sore',
       'welcome': 'Selamat Datang',
       'next_prayer': 'Shalat Berikutnya',
+      'good_night': 'Selamat Malam',
     },
     'fr': {
       'app_name': 'DeenSphere',
@@ -171,6 +176,7 @@ class AppLocalizations {
       'good_evening': 'Bonsoir',
       'welcome': 'Bienvenue',
       'next_prayer': 'Prochaine prière',
+      'good_night': 'Bonne nuit',
     },
     'es': {
       'app_name': 'DeenSphere',
@@ -198,6 +204,7 @@ class AppLocalizations {
       'good_evening': 'Buenas noches',
       'welcome': 'Bienvenido',
       'next_prayer': 'Próxima oración',
+      'good_night': 'Buenas noches',
     },
     'bn': {
       'app_name': 'দ্বীনস্ফিয়ার',
@@ -225,6 +232,7 @@ class AppLocalizations {
       'good_evening': 'শুভ সন্ধ্যা',
       'welcome': 'স্বাগতম',
       'next_prayer': 'পরবর্তী নামাজ',
+      'good_night': 'শুভ রাত্রি',
     },
     'hi': {
       'app_name': 'दीनस्फीयर',
@@ -252,6 +260,7 @@ class AppLocalizations {
       'good_evening': 'शुभ संध्या',
       'welcome': 'स्वागत है',
       'next_prayer': 'अगली नमाज़',
+      'good_night': 'शुभ रात्रि',
     },
     'ru': {
       'app_name': 'DeenSphere',
@@ -279,6 +288,7 @@ class AppLocalizations {
       'good_evening': 'Добрый вечер',
       'welcome': 'Добро пожаловать',
       'next_prayer': 'Следующая молитва',
+      'good_night': 'Спокойной ночи',
     },
   };
 

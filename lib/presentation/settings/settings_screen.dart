@@ -100,53 +100,132 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ),
                 const Divider(height: 1),
-                ListTile(
-                  title: const Text('Region'),
-                  leading: const Icon(Icons.public, color: AppColors.primary),
-                  trailing: Consumer(
-                    builder: (context, ref, child) {
-                      final regionsAsync = ref.watch(regionsStreamProvider);
-                      final selectedRegion = ref.watch(selectedRegionProvider);
+                Consumer(
+                  builder: (context, ref, child) {
+                    final regionsAsync = ref.watch(regionsStreamProvider);
+                    final selectedRegion = ref.watch(selectedRegionProvider);
+                    final userProfile = ref.watch(userProfileProvider).value;
+                    final lockStatus = ref.watch(regionLockProvider);
 
-                      return regionsAsync.when(
-                        data: (regions) {
-                          final items = ['Global', ...regions];
-                          final currentValue = items.contains(selectedRegion)
-                              ? selectedRegion
-                              : 'Global';
+                    final String officialRegion =
+                        userProfile?.region ?? 'Global';
+                    final bool isDifferent = selectedRegion != officialRegion;
+                    final bool isLocked = !lockStatus.canChange;
 
-                          return DropdownButton<String>(
-                            value: currentValue,
-                            underline: const SizedBox(),
-                            items: items.map((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(value),
+                    return Column(
+                      children: [
+                        ListTile(
+                          title: const Text('Region'),
+                          leading: const Icon(
+                            Icons.public,
+                            color: AppColors.primary,
+                          ),
+                          subtitle: isLocked
+                              ? Text(
+                                  'Region lock: ${lockStatus.remainingDays} days left',
+                                  style: const TextStyle(
+                                    color: Colors.orange,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                )
+                              : null,
+                          trailing: regionsAsync.when(
+                            data: (regions) {
+                              final items = ['Global', ...regions];
+                              final currentValue =
+                                  items.contains(selectedRegion)
+                                  ? selectedRegion
+                                  : 'Global';
+
+                              return DropdownButton<String>(
+                                value: currentValue,
+                                underline: const SizedBox(),
+                                onChanged: isLocked
+                                    ? null
+                                    : (newValue) {
+                                        if (newValue != null) {
+                                          ref
+                                              .read(
+                                                selectedRegionProvider.notifier,
+                                              )
+                                              .setRegion(newValue);
+                                        }
+                                      },
+                                items: items.map((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                }).toList(),
                               );
-                            }).toList(),
-                            onChanged: (newValue) async {
-                              if (newValue != null) {
-                                ref
-                                    .read(selectedRegionProvider.notifier)
-                                    .setRegion(newValue);
-
-                                // Update Firestore profile
-                                await ref
-                                    .read(userRepositoryProvider)
-                                    .updateUserProfile(region: newValue);
-                              }
                             },
-                          );
-                        },
-                        loading: () => const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                            loading: () => const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                            error: (_, __) => const Icon(Icons.error_outline),
+                          ),
                         ),
-                        error: (_, __) => const Icon(Icons.error_outline),
-                      );
-                    },
-                  ),
+                        if (isDifferent && !isLocked)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  try {
+                                    await ref
+                                        .read(userRepositoryProvider)
+                                        .updateUserProfile(
+                                          region: selectedRegion,
+                                        );
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Region updated successfully',
+                                          ),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Failed: $e'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                child: const Text('Save Selection'),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
               ],
             ),

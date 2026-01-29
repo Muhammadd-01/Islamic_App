@@ -5,7 +5,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/core/providers/region_provider.dart';
-import 'package:islamic_app/core/providers/user_provider.dart';
 import 'package:islamic_app/data/repositories/tasbeeh_repository.dart';
 
 class TasbeehScreen extends ConsumerStatefulWidget {
@@ -561,134 +560,74 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
     final leaderboardAsync = ref.watch(leaderboardProvider);
     final selectedRegion = ref.watch(selectedRegionProvider);
     final regionsAsync = ref.watch(regionsStreamProvider);
-    final userProfile = ref.watch(userProfileProvider).value;
-    final lockStatus = ref.watch(regionLockProvider);
-
-    final String officialRegion = userProfile?.region ?? 'Global';
-    final bool isDifferent = selectedRegion != officialRegion;
-    final bool isLocked = !lockStatus.canChange;
 
     return Column(
       children: [
         const SizedBox(height: 10),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: regionsAsync.when(
-                    data: (regions) {
-                      final items = ['Global', ...regions];
-                      return DropdownButton<String>(
-                        value: items.contains(selectedRegion)
-                            ? selectedRegion
-                            : 'Global',
-                        isExpanded: true,
-                        // Selection is disabled if locked
-                        onChanged: isLocked
-                            ? null
-                            : (val) {
-                                if (val != null) {
-                                  ref
-                                      .read(selectedRegionProvider.notifier)
-                                      .setRegion(val);
-                                }
-                              },
-                        items: items
-                            .map<DropdownMenuItem<String>>(
-                              (r) => DropdownMenuItem<String>(
-                                value: r,
-                                child: Text('$r Ranking'),
-                              ),
-                            )
-                            .toList(),
-                      );
-                    },
-                    loading: () => const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    ),
-                    error: (_, __) => const Text('Error loading regions'),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: regionsAsync.when(
+              data: (regions) {
+                final items = ['Global', ...regions];
+                final currentDisplay = items.contains(selectedRegion)
+                    ? selectedRegion
+                    : 'Global';
+
+                return PopupMenuButton<String>(
+                  onSelected: (val) {
+                    ref.read(selectedRegionProvider.notifier).setRegion(val);
+                  },
+                  constraints: const BoxConstraints(minWidth: 200),
+                  offset: const Offset(0, 50), // Position below the trigger
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF1A1A1A)
+                      : Colors.white,
+                  itemBuilder: (context) => items
+                      .map(
+                        (r) => PopupMenuItem(
+                          value: r,
+                          child: Text(
+                            '$r Ranking',
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '$currentDisplay Ranking',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Icon(Icons.keyboard_arrow_down_rounded),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 ),
               ),
-              if (isLocked)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8, left: 4),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.timer_outlined,
-                        size: 14,
-                        color: AppColors.primaryGold,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Region lock active: ${lockStatus.remainingDays} days remaining',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.primaryGold,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              if (isDifferent && !isLocked) ...[
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryGold,
-                      foregroundColor: Colors.black,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    onPressed: () async {
-                      try {
-                        await ref
-                            .read(userRepositoryProvider)
-                            .updateUserProfile(region: selectedRegion);
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Region updated to $selectedRegion',
-                              ),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Update failed: $e'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      }
-                    },
-                    child: const Text(
-                      'Save Region Selection',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-              ],
-            ],
+              error: (_, __) => const Text('Error loading regions'),
+            ),
           ),
         ),
         Expanded(

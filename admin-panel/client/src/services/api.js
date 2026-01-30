@@ -189,4 +189,11 @@ export const donationsApi = {
     updateSettings: (data) => api.post('/donations/settings', data),
 };
 
+// Bookings API
+export const bookingsApi = {
+    getAll: () => api.get('/bookings'),
+    getByScholar: (scholarId) => api.get(`/bookings/scholar/${scholarId}`),
+    create: (data) => api.post('/bookings', data),
+};
+
 export default api;

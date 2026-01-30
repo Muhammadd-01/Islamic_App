@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, Loader2, Image as ImageIcon, X } from 'lucide-react';
-import { scholarsApi } from '../services/api';
+import { Plus, Edit, Trash2, Search, Loader2, Image as ImageIcon, X, CalendarDays, ExternalLink, Mail, Phone } from 'lucide-react';
+import { scholarsApi, bookingsApi } from '../services/api';
 import ImageUpload from '../components/ImageUpload';
 import { useNotification } from '../components/NotificationSystem';
 
@@ -14,6 +14,10 @@ export default function Scholars() {
     const [submitting, setSubmitting] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
     const [imageFile, setImageFile] = useState(null);
+    const [showBookings, setShowBookings] = useState(false);
+    const [selectedScholarForBookings, setSelectedScholarForBookings] = useState(null);
+    const [bookings, setBookings] = useState([]);
+    const [loadingBookings, setLoadingBookings] = useState(false);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -124,6 +128,21 @@ export default function Scholars() {
         setShowModal(true);
     };
 
+    const openBookings = async (scholar) => {
+        setSelectedScholarForBookings(scholar);
+        setShowBookings(true);
+        setLoadingBookings(true);
+        try {
+            const { data } = await bookingsApi.getByScholar(scholar.id);
+            setBookings(data.bookings || []);
+        } catch (error) {
+            console.error('Error fetching bookings:', error);
+            notify.error('Failed to fetch bookings');
+        } finally {
+            setLoadingBookings(false);
+        }
+    };
+
     const closeModal = () => {
         setShowModal(false);
         setEditingScholar(null);
@@ -191,22 +210,26 @@ export default function Scholars() {
                                 <h3 className="text-lg font-semibold text-light-primary mb-1">{scholar.name}</h3>
                                 <p className="text-gold-primary text-sm mb-2">{scholar.specialty}</p>
                                 <p className="text-light-muted text-sm mb-4 line-clamp-2">{scholar.bio}</p>
-                                <div className="flex justify-between items-center text-sm text-light-muted mb-4">
-                                    <span>Consultation:</span>
-                                    <span className="text-gold-primary font-bold">${scholar.consultationFee}</span>
-                                </div>
                                 <div className="flex gap-2">
                                     <button
+                                        onClick={() => openBookings(scholar)}
+                                        className="flex-1 flex items-center justify-center gap-1 bg-gold-primary/10 text-gold-primary py-2 rounded-lg hover:bg-gold-primary/20"
+                                    >
+                                        <CalendarDays size={16} />
+                                        Bookings
+                                    </button>
+                                    <button
                                         onClick={() => openModal(scholar)}
-                                        className="flex-1 flex items-center justify-center gap-1 bg-dark-icon text-gold-primary py-2 rounded-lg hover:bg-dark-icon/80"
+                                        className="flex items-center justify-center p-2 bg-dark-icon text-gold-primary rounded-lg hover:bg-dark-icon/80"
+                                        title="Edit Scholar"
                                     >
                                         <Edit size={16} />
-                                        Edit
                                     </button>
                                     <button
                                         onClick={() => handleDelete(scholar.id)}
-                                        className="flex-1 flex items-center justify-center gap-1 bg-red-500/10 text-red-400 py-2 rounded-lg hover:bg-red-500/20"
+                                        className="flex items-center justify-center p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20"
                                         disabled={deletingId === scholar.id}
+                                        title="Delete Scholar"
                                     >
                                         {deletingId === scholar.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 size={16} />}
                                     </button>
@@ -328,6 +351,82 @@ export default function Scholars() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {showBookings && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-dark-card border border-dark-icon rounded-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+                        <div className="flex items-center justify-between p-6 border-b border-dark-icon">
+                            <div>
+                                <h2 className="text-xl font-bold text-light-primary">Bookings for {selectedScholarForBookings?.name}</h2>
+                                <p className="text-sm text-light-muted">View all consultation sessions</p>
+                            </div>
+                            <button onClick={() => setShowBookings(false)} className="text-light-muted hover:text-light-primary">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+                            {loadingBookings ? (
+                                <div className="flex items-center justify-center py-12">
+                                    <Loader2 className="w-8 h-8 animate-spin text-gold-primary" />
+                                </div>
+                            ) : bookings.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <CalendarDays size={48} className="mx-auto text-dark-icon mb-4" />
+                                    <p className="text-light-muted">No bookings found for this scholar yet.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {bookings.map((booking) => (
+                                        <div key={booking.id} className="bg-dark-main border border-dark-icon rounded-lg p-4 hover:border-gold-primary/30 transition-colors">
+                                            <div className="flex flex-wrap justify-between items-start gap-4">
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <h4 className="font-bold text-light-primary">{booking.userName}</h4>
+                                                        <span className="bg-gold-primary/10 text-gold-primary text-[10px] px-2 py-0.5 rounded-full uppercase font-bold">
+                                                            {booking.status}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="flex items-center gap-2 text-sm text-light-muted">
+                                                            <Mail size={14} className="text-gold-primary" />
+                                                            {booking.userEmail}
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-sm text-light-muted">
+                                                            <Phone size={14} className="text-gold-primary" />
+                                                            {booking.userPhone}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-gold-primary font-bold text-lg mb-1">
+                                                        ${booking.fee}
+                                                    </div>
+                                                    <div className="text-sm text-light-primary">
+                                                        {booking.dateTime}
+                                                    </div>
+                                                    <div className="text-[10px] text-light-muted mt-1 uppercase tracking-wider">
+                                                        Ref: {booking.id.slice(-8)}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-6 border-t border-dark-icon bg-dark-main/50">
+                            <button
+                                onClick={() => setShowBookings(false)}
+                                className="w-full px-4 py-2 bg-dark-icon text-light-primary rounded-lg hover:bg-dark-icon/80 transition"
+                            >
+                                Close View
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

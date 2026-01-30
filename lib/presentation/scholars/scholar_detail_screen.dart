@@ -5,9 +5,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/domain/entities/scholar.dart';
 import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:islamic_app/core/providers/user_provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class ScholarDetailScreen extends ConsumerStatefulWidget {
   final Scholar scholar;
@@ -151,16 +152,16 @@ class _ScholarDetailScreenState extends ConsumerState<ScholarDetailScreen> {
   }
 }
 
-class _BookingSheet extends StatefulWidget {
+class _BookingSheet extends ConsumerStatefulWidget {
   final Scholar scholar;
 
   const _BookingSheet({required this.scholar});
 
   @override
-  State<_BookingSheet> createState() => _BookingSheetState();
+  ConsumerState<_BookingSheet> createState() => _BookingSheetState();
 }
 
-class _BookingSheetState extends State<_BookingSheet> {
+class _BookingSheetState extends ConsumerState<_BookingSheet> {
   DateTime? _selectedDate;
   String? _selectedTime;
   String _paymentMethod = 'card';
@@ -180,6 +181,24 @@ class _BookingSheetState extends State<_BookingSheet> {
     '07:00 PM',
     '08:00 PM',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill user details if available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final userProfile = ref.read(userProfileProvider).value;
+      if (userProfile != null) {
+        setState(() {
+          _nameController.text = userProfile.name ?? '';
+          _emailController.text = userProfile.email;
+          if (userProfile.phone != null && userProfile.phone!.isNotEmpty) {
+            _phoneController.text = userProfile.phone!;
+          }
+        });
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -233,32 +252,36 @@ class _BookingSheetState extends State<_BookingSheet> {
     setState(() => _isProcessing = true);
 
     try {
-      // 1. Mark as booked in Firestore
-      await FirebaseFirestore.instance
-          .collection('scholars')
-          .doc(widget.scholar.id)
-          .update({'isBooked': true});
+      final userProfile = ref.read(userProfileProvider).value;
+      final userId = userProfile?.uid ?? 'anonymous_user';
 
-      // 2. Prepare WhatsApp messages
+      // 1. Call Backend API for Booking
+      // Note: Use your actual server URL. Localhost:5000 is used for development.
+      const baseUrl = 'http://localhost:5000/api';
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/bookings'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'scholarId': widget.scholar.id,
+          'scholarName': widget.scholar.name,
+          'userId': userId,
+          'userName': _nameController.text,
+          'userEmail': _emailController.text,
+          'userPhone': _phoneController.text,
+          'dateTime':
+              '${DateFormat('yyyy-MM-dd').format(_selectedDate!)} at $_selectedTime',
+          'fee': widget.scholar.consultationFee,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to create booking: ${response.body}');
+      }
+
       final formattedDate = DateFormat(
         'EEEE, MMMM d, yyyy',
       ).format(_selectedDate!);
-
-      // Message for User (Reminder)
-      final userMessage = Uri.encodeComponent(
-        'Assalamu Alaikum! Your session with ${widget.scholar.name} is confirmed for $formattedDate at $_selectedTime. DeenSphere Team',
-      );
-      final userWhatsappUrl =
-          'https://wa.me/${_phoneController.text.replaceAll('+', '')}?text=$userMessage';
-      print('User reminder URL: $userWhatsappUrl'); // Log for debugging
-
-      // Message for Scholar (Notification)
-      final scholarMessage = Uri.encodeComponent(
-        'Assalam-o-Alaikum ${widget.scholar.name}, a new session has been booked for $formattedDate at $_selectedTime.\n\nUser: ${_nameController.text}\nEmail: ${_emailController.text}\nWhatsApp: ${_phoneController.text}',
-      );
-      final scholarWhatsappUrl =
-          'https://wa.me/${widget.scholar.whatsappNumber.replaceAll('+', '')}?text=$scholarMessage';
-
       final sessionDetails =
           '''
 📅 Session Booked Successfully!
@@ -267,14 +290,14 @@ Scholar: ${widget.scholar.name}
 Date: $formattedDate
 Time: $_selectedTime
 
-Your session is confirmed. We have notified ${widget.scholar.name} of your booking.
+Your session is confirmed. Our backend has automatically notified ${widget.scholar.name}.
 ''';
 
       setState(() => _isProcessing = false);
 
       if (mounted) {
         Navigator.pop(context);
-        _showConfirmationDialog(sessionDetails, scholarWhatsappUrl);
+        _showConfirmationDialog(sessionDetails);
       }
     } catch (e) {
       setState(() => _isProcessing = false);
@@ -284,7 +307,7 @@ Your session is confirmed. We have notified ${widget.scholar.name} of your booki
     }
   }
 
-  void _showConfirmationDialog(String details, String whatsappUrl) {
+  void _showConfirmationDialog(String details) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -308,18 +331,12 @@ Your session is confirmed. We have notified ${widget.scholar.name} of your booki
           children: [
             Text(details, style: const TextStyle(height: 1.5)),
             const SizedBox(height: 16),
-            OutlinedButton.icon(
-              onPressed: () async {
-                final uri = Uri.parse(whatsappUrl);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
-              },
-              icon: const Icon(Icons.chat_bubble_outline, color: Colors.green),
-              label: const Text('Send Message to Scholar'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.green,
-                side: const BorderSide(color: Colors.green),
+            const Text(
+              'A notification has been sent to the scholar via WhatsApp.',
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                color: Colors.green,
+                fontSize: 12,
               ),
             ),
           ],
@@ -335,7 +352,7 @@ Your session is confirmed. We have notified ${widget.scholar.name} of your booki
               backgroundColor: AppColors.primaryGold,
               foregroundColor: Colors.black,
             ),
-            child: const Text('Copy Details'),
+            child: const Text('Done & Copy Details'),
           ),
         ],
       ),

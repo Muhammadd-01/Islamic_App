@@ -1,0 +1,28 @@
+2026/01/30-20:25:36.290 48cc Reusing MANIFEST C:\Users\muham\OneDrive\Desktop\Coding\Islamic_App\admin-panel\server\.wwebjs_auth\session-system-messenger\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/MANIFEST-000001
+2026/01/30-20:25:36.290 48cc Recovering log #206
+2026/01/30-20:25:36.381 48cc Reusing old log C:\Users\muham\OneDrive\Desktop\Coding\Islamic_App\admin-panel\server\.wwebjs_auth\session-system-messenger\Default\IndexedDB\https_web.whatsapp.com_0.indexeddb.leveldb/000206.log 
+2026/01/30-20:25:42.311 4f30 Level-0 table #219: started
+2026/01/30-20:25:42.400 4f30 Level-0 table #219: 1088599 bytes OK
+2026/01/30-20:25:42.415 4f30 Delete type=0 #206
+2026/01/30-20:25:42.686 48cc Compacting 1@1 + 9@2 files
+2026/01/30-20:25:42.937 48cc Generated table #220@1: 52215 keys, 2219332 bytes
+2026/01/30-20:25:43.040 48cc Generated table #221@1: 1535 keys, 2136570 bytes
+2026/01/30-20:25:43.204 48cc Generated table #222@1: 2406 keys, 2149822 bytes
+2026/01/30-20:25:43.446 48cc Generated table #223@1: 2010 keys, 2145130 bytes
+2026/01/30-20:25:43.710 48cc Generated table #224@1: 19487 keys, 2203717 bytes
+2026/01/30-20:25:43.914 48cc Generated table #225@1: 29929 keys, 2230496 bytes
+2026/01/30-20:25:44.064 48cc Generated table #226@1: 45526 keys, 2179142 bytes
+2026/01/30-20:25:44.227 48cc Generated table #227@1: 104297 keys, 2256354 bytes
+2026/01/30-20:25:44.284 48cc Generated table #228@1: 34767 keys, 864253 bytes
+2026/01/30-20:25:44.284 48cc Compacted 1@1 + 9@2 files => 18384816 bytes
+2026/01/30-20:25:44.286 48cc compacted to: files[ 0 0 9 0 0 0 0 ]
+2026/01/30-20:25:44.286 48cc Delete type=2 #208
+2026/01/30-20:25:44.286 48cc Delete type=2 #209
+2026/01/30-20:25:44.286 48cc Delete type=2 #210
+2026/01/30-20:25:44.286 48cc Delete type=2 #211
+2026/01/30-20:25:44.286 48cc Delete type=2 #212
+2026/01/30-20:25:44.286 48cc Delete type=2 #213
+2026/01/30-20:25:44.287 48cc Delete type=2 #214
+2026/01/30-20:25:44.287 48cc Delete type=2 #215
+2026/01/30-20:25:44.287 48cc Delete type=2 #216
+2026/01/30-20:25:44.287 48cc Delete type=2 #219

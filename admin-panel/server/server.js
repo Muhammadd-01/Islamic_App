@@ -31,6 +31,8 @@ import azkarRoutes from './routes/azkar.js';
 import regionsRoutes from './routes/regions.js';
 import donationsRoutes from './routes/donations.js';
 import bookingsRoutes from './routes/bookings.js';
+import settingsRoutes from './routes/settings.js';
+import whatsappService from './utils/whatsappService.js';
 import { seedSuperAdmin } from './utils/seed_admin.js';
 
 seedSuperAdmin();
@@ -88,6 +90,7 @@ app.use('/api/azkar', azkarRoutes);
 app.use('/api/regions', regionsRoutes);
 app.use('/api/donations', donationsRoutes);
 app.use('/api/bookings', bookingsRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -104,7 +107,7 @@ app.use((req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`
   ╔════════════════════════════════════════════╗
   ║    Islamic App Admin Panel - Server        ║
@@ -114,4 +117,11 @@ app.listen(PORT, () => {
   ║  🏥 Health: http://localhost:${PORT}/api/health║
   ╚════════════════════════════════════════════╝
   `);
+
+    // Initialize System WhatsApp
+    try {
+        await whatsappService.initialize();
+    } catch (err) {
+        console.error('Initial WhatsApp startup failed:', err);
+    }
 });

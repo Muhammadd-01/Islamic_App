@@ -196,4 +196,11 @@ export const bookingsApi = {
     create: (data) => api.post('/bookings', data),
 };
 
+// Settings API
+export const settingsApi = {
+    getWhatsApp: () => api.get('/settings/whatsapp'),
+    updateWhatsApp: (data) => api.post('/settings/whatsapp', data),
+    resetWhatsApp: () => api.post('/settings/whatsapp/reset'),
+};
+
 export default api;

@@ -1,5 +1,6 @@
 import express from 'express';
 import admin from 'firebase-admin';
+import whatsappService from '../utils/whatsappService.js';
 
 const router = express.Router();
 const db = admin.firestore();
@@ -74,19 +75,36 @@ router.post('/', async (req, res) => {
             isBooked: true
         });
 
-        // 3. Simulate Backend Notification (e.g., WhatsApp Notification Log)
-        console.log(`\n--- [AUTOMATED CONSULTATION ALERT] ---`);
-        console.log(`To Scholar: ${scholarName} (ID: ${scholarId})`);
-        console.log(`Booking for: ${dateTime}`);
-        console.log(`\nUSER DETAILS FOR CONTACT:`);
-        console.log(`Name:  ${userName}`);
-        console.log(`Email: ${userEmail}`);
-        console.log(`Phone: ${userPhone}`);
-        console.log(`---------------------------------------\n`);
+        // 3. Send Real WhatsApp Notification via System Admin Number
+        try {
+            const scholarDoc = await db.collection('scholars').doc(scholarId).get();
+            const scholarData = scholarDoc.data();
+            const scholarWhatsApp = scholarData?.whatsappNumber;
+
+            if (scholarWhatsApp) {
+                const message = `Assalam-o-Alaikum ${scholarName},\n\nNew consultation booking from DeenSphere System:\n\n` +
+                    `👤 User: ${userName}\n` +
+                    `📧 Email: ${userEmail}\n` +
+                    `📱 Phone: ${userPhone}\n` +
+                    `📅 Date/Time: ${dateTime}\n\n` +
+                    `Please contact the user for the session.`;
+
+                const success = await whatsappService.sendMessage(scholarWhatsApp, message);
+                if (success) {
+                    console.log(`[SYSTEM] WhatsApp Notification sent to scholar ${scholarName}`);
+                } else {
+                    console.error(`[SYSTEM] WhatsApp Notification FAILED to reach scholar ${scholarName}`);
+                }
+            } else {
+                console.warn(`[SYSTEM] No WhatsApp number found for scholar ${scholarName}`);
+            }
+        } catch (waError) {
+            console.error('[SYSTEM] Failed to send WhatsApp notification:', waError);
+        }
 
         res.json({
             success: true,
-            message: 'Booking completed successfully and scholar notified.',
+            message: 'Booking completed successfully and scholar notified via system WhatsApp.',
             bookingId: bookingRef.id
         });
     } catch (error) {

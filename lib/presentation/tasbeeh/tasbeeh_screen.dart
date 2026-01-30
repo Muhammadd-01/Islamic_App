@@ -1371,6 +1371,3 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
         );
   }
 }
-
-  }
-}

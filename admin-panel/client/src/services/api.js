@@ -201,6 +201,12 @@ export const settingsApi = {
     getWhatsApp: () => api.get('/settings/whatsapp'),
     updateWhatsApp: (data) => api.post('/settings/whatsapp', data),
     resetWhatsApp: () => api.post('/settings/whatsapp/reset'),
+
+    getAdminData: () => api.get('/settings/admin/profile-data'),
+    updateAdminData: (data) => api.post('/settings/admin/profile-data', data),
+    updateAdminProfileImage: (formData) => api.post('/settings/admin/profile-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }),
 };
 
 export default api;

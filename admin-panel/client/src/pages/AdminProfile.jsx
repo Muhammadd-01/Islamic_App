@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { User, Lock, Camera, Save, Eye, EyeOff, MessageSquare, RefreshCw } from 'lucide-react';
 import { auth } from '../config/firebase';
 import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { settingsApi } from '../services/api';
 import { useNotification } from '../components/NotificationSystem';
 
@@ -19,6 +18,8 @@ function AdminProfile() {
 
     const [whatsappNumber, setWhatsappNumber] = useState('');
     const [waData, setWaData] = useState({ status: 'DISCONNECTED', qrCode: null });
+    const [adminData, setAdminData] = useState({ password: '' });
+    const [showAdminPassword, setShowAdminPassword] = useState(false);
     const [waLoading, setWaLoading] = useState(false);
     const { notify } = useNotification();
 
@@ -29,14 +30,23 @@ function AdminProfile() {
             setImagePreview(user.photoURL);
         }
         fetchWhatsAppStatus();
+        fetchAdminData();
 
-        // Poll for status if QR is being shown
-        const interval = setInterval(() => {
-            fetchWhatsAppStatus();
-        }, 5000);
-
+        // Poll for WhatsApp status
+        const interval = setInterval(fetchWhatsAppStatus, 5000);
         return () => clearInterval(interval);
     }, [user]);
+
+    const fetchAdminData = async () => {
+        try {
+            const { data } = await settingsApi.getAdminData();
+            if (data.success) {
+                setAdminData(data.data);
+            }
+        } catch (error) {
+            console.error('Error fetching admin data:', error);
+        }
+    };
 
     const fetchWhatsAppStatus = async () => {
         try {
@@ -97,19 +107,23 @@ function AdminProfile() {
             const credential = EmailAuthProvider.credential(user.email, currentPassword);
             await reauthenticateWithCredential(user, credential);
 
-            // Update password
+            // 1. Update Firebase Auth Password
             await updatePassword(user, newPassword);
 
-            setMessage({ type: 'success', text: 'Password updated successfully!' });
+            // 2. Sync with Firestore for display
+            await settingsApi.updateAdminData({ password: newPassword });
+            setAdminData(prev => ({ ...prev, password: newPassword }));
+
+            notify.success('Password updated successfully!');
             setCurrentPassword('');
             setNewPassword('');
             setConfirmPassword('');
         } catch (error) {
             console.error('Error updating password:', error);
             if (error.code === 'auth/wrong-password') {
-                setMessage({ type: 'error', text: 'Current password is incorrect!' });
+                notify.error('Current password is incorrect!');
             } else {
-                setMessage({ type: 'error', text: 'Failed to update password. Please try again.' });
+                notify.error('Failed to update password.');
             }
         } finally {
             setLoading(false);
@@ -129,19 +143,26 @@ function AdminProfile() {
 
         setLoading(true);
         try {
-            const storage = getStorage();
-            const storageRef = ref(storage, `admin-profiles/${user.uid}`);
-            await uploadBytes(storageRef, profileImage);
-            const downloadURL = await getDownloadURL(storageRef);
+            const formData = new FormData();
+            formData.append('image', profileImage);
 
-            // Update user profile
-            await user.updateProfile({ photoURL: downloadURL });
+            const res = await settingsApi.updateAdminProfileImage(formData);
 
-            setMessage({ type: 'success', text: 'Profile image updated successfully!' });
+            if (res.data.success) {
+                const downloadURL = res.data.url;
+                // Update Firebase Auth Profile
+                await user.updateProfile({ photoURL: downloadURL });
+
+                // Also update Firestore admin_profile with the image URL
+                await settingsApi.updateAdminData({ photoURL: downloadURL });
+
+                setImagePreview(downloadURL);
+                notify.success('Profile image updated successfully!');
+            }
             setProfileImage(null);
         } catch (error) {
             console.error('Error uploading image:', error);
-            setMessage({ type: 'error', text: 'Failed to upload image. Please try again.' });
+            notify.error('Failed to upload image. Please check your Supabase connection.');
         } finally {
             setLoading(false);
         }
@@ -208,6 +229,45 @@ function AdminProfile() {
                     </div>
                 </div>
 
+                {/* Admin Panel Login Info (Firestore Sync) */}
+                <div className="bg-dark-card rounded-xl border border-dark-icon p-6">
+                    <h2 className="text-lg font-semibold text-light-primary mb-6 flex items-center gap-2">
+                        <Lock size={20} className="text-gold-primary" />
+                        Admin Panel Login Info
+                    </h2>
+
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm text-light-muted mb-1">Email</label>
+                            <div className="p-3 bg-dark-icon rounded-lg text-light-primary border border-dark-icon">
+                                {user?.email}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm text-light-muted mb-1 flex justify-between items-center">
+                                <span>Current Password (from Firestore)</span>
+                                <button
+                                    onClick={() => setShowAdminPassword(!showAdminPassword)}
+                                    className="text-gold-primary hover:text-gold-dark transition-colors flex items-center gap-1 text-xs"
+                                >
+                                    {showAdminPassword ? (
+                                        <><EyeOff size={14} /> Hide</>
+                                    ) : (
+                                        <><Eye size={14} /> Show</>
+                                    )}
+                                </button>
+                            </label>
+                            <div className="p-3 bg-dark-icon rounded-lg text-light-primary border border-dark-icon font-mono">
+                                {showAdminPassword ? adminData.password : '••••••••'}
+                            </div>
+                            <p className="mt-2 text-[10px] text-light-muted italic">
+                                * This is the password stored in Firestore for your reference.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 {/* System WhatsApp Settings */}
                 <div className="bg-dark-card rounded-xl border border-dark-icon p-6">
                     <h2 className="text-lg font-semibold text-light-primary mb-6 flex items-center gap-2">
@@ -259,6 +319,12 @@ function AdminProfile() {
                                     </div>
                                     <p className="text-blue-400 font-medium">Authenticated!</p>
                                     <p className="text-light-muted text-sm">Finishing sync... Ready in a moment.</p>
+                                    <button
+                                        onClick={handleWAReset}
+                                        className="mt-4 text-xs text-red-400 hover:text-red-300 flex items-center gap-1"
+                                    >
+                                        <RefreshCw size={12} /> Force Reset
+                                    </button>
                                 </div>
                             )}
 

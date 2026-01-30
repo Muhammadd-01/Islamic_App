@@ -2,6 +2,8 @@ import pkg from 'whatsapp-web.js';
 const { Client, LocalAuth } = pkg;
 import qrcode from 'qrcode';
 import admin from 'firebase-admin';
+import fs from 'fs';
+import path from 'path';
 
 const db = admin.firestore();
 
@@ -16,14 +18,24 @@ class WhatsAppService {
     async initialize() {
         if (this.client) return;
 
-        console.log('Initializing WhatsApp Client...');
+        console.log('Initializing WhatsApp Client (Optimized)...');
         this.status = 'INITIALIZING';
 
         this.client = new Client({
             authStrategy: new LocalAuth({ clientId: "system-messenger" }),
             puppeteer: {
                 handleSIGINT: false,
-                args: ['--no-sandbox', '--disable-setuid-sandbox']
+                executablePath: process.env.CHROME_PATH || undefined, // Use system chrome if available
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--disable-gpu',
+                    '--js-flags="--max-old-space-size=512"' // Limit memory
+                ]
             }
         });
 
@@ -34,13 +46,13 @@ class WhatsAppService {
         });
 
         this.client.on('ready', () => {
-            console.log('--- WHATSAPP READY ---');
+            console.log(`--- WHATSAPP READY [${this.client.info.wid.user}] ---`);
             this.status = 'CONNECTED';
             this.qrCode = null;
         });
 
         this.client.on('authenticated', () => {
-            console.log('WhatsApp Authenticated. Finalizing setup...');
+            console.log('WhatsApp Authenticated. Syncing session...');
             this.status = 'AUTHENTICATED';
         });
 
@@ -54,7 +66,6 @@ class WhatsAppService {
             console.log('Client was logged out', reason);
             this.status = 'DISCONNECTED';
             this.qrCode = null;
-            // No auto-initialize here to prevent loops, user can reset via Admin Panel
         });
 
         try {
@@ -96,12 +107,35 @@ class WhatsAppService {
     }
 
     async logout() {
+        console.log('[SYSTEM] Aggressive Logout: Destroying all WhatsApp sessions...');
         if (this.client) {
-            await this.client.logout();
+            try {
+                await this.client.destroy(); // More thorough than logout()
+            } catch (e) {
+                console.warn('Error during client destroy:', e.message);
+            }
             this.client = null;
-            this.status = 'DISCONNECTED';
-            this.initialize();
         }
+
+        this.status = 'DISCONNECTED';
+        this.qrCode = null;
+
+        // Physical deletion of session folders
+        const folders = ['.wwebjs_auth', '.wwebjs_cache'];
+        folders.forEach(folder => {
+            const folderPath = path.resolve(folder);
+            if (fs.existsSync(folderPath)) {
+                try {
+                    fs.rmSync(folderPath, { recursive: true, force: true });
+                    console.log(`[SYSTEM] Deleted folder: ${folder}`);
+                } catch (err) {
+                    console.error(`[SYSTEM] Failed to delete ${folder}:`, err.message);
+                }
+            }
+        });
+
+        console.log('[SYSTEM] Sessions destroyed. Restarting client for fresh login...');
+        this.initialize();
     }
 }
 

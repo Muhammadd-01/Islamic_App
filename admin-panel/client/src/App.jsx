@@ -33,6 +33,7 @@ import RegionsPage from './pages/Regions';
 import RecitersPage from './pages/Reciters';
 import AdhansPage from './pages/Adhans';
 import Login from './pages/Login';
+import DonationsPage from './pages/Donations';
 import { NotificationProvider } from './components/NotificationSystem';
 
 function AuthGuard({ children }) {
@@ -74,6 +75,7 @@ function App() {
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { to: '/users', icon: Users, label: 'Users' },
         { to: '/orders', icon: ShoppingCart, label: 'Orders' },
+        { to: '/donations', icon: Heart, label: 'Donations' },
         { to: '/books', icon: BookOpen, label: 'Books' },
         { to: '/quran', icon: BookOpenText, label: 'Quran' },
         { to: '/hadith', icon: Scroll, label: 'Hadith' },
@@ -201,6 +203,7 @@ function App() {
                                     <Route path="/" element={<Dashboard />} />
                                     <Route path="/users" element={<UsersPage />} />
                                     <Route path="/orders" element={<OrdersPage />} />
+                                    <Route path="/donations" element={<DonationsPage />} />
                                     <Route path="/books" element={<BooksPage />} />
                                     <Route path="/quran" element={<QuranPage />} />
                                     <Route path="/hadith" element={<HadithPage />} />

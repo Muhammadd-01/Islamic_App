@@ -836,42 +836,28 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
     final iconSizes = [28.0, 22.0, 18.0];
 
     return Container(
-          width: badgeSizes[index],
-          height: badgeSizes[index],
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
-            shape: BoxShape.circle,
-            border: Border.all(color: color.withOpacity(0.5), width: 2),
-            boxShadow: [
-              BoxShadow(
-                color: color.withOpacity(0.2),
-                blurRadius: 10,
-                spreadRadius: 2,
-              ),
-            ],
+      width: badgeSizes[index],
+      height: badgeSizes[index],
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        shape: BoxShape.circle,
+        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+      ),
+      child: Center(
+        child: Text(
+          '👑', // Literal Crown Emoji as requested
+          style: TextStyle(
+            fontSize: iconSizes[index],
           ),
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.workspace_premium, // Premium Crown icon
-                color: color,
-                size: iconSizes[index],
-              ),
-            ),
-          ),
-        )
-        .animate(onPlay: (controller) => controller.repeat(reverse: true))
-        .scale(
-          duration: 2.seconds,
-          begin: const Offset(1, 1),
-          end: const Offset(1.05, 1.05),
-        )
-        .shimmer(duration: 3.seconds, color: Colors.white.withOpacity(0.4));
+        ),
+      ),
+    )
+    .animate(onPlay: (controller) => controller.repeat(reverse: true))
+    .scale(
+      duration: 2.seconds,
+      begin: const Offset(1, 1),
+      end: const Offset(1.1, 1.1),
+    );
   }
 
   Widget _buildStatItem(String label, String value, IconData icon) {
@@ -1111,15 +1097,17 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                   ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
+                      horizontal: 16,
                       vertical: 8,
                     ),
                     leading: SizedBox(
-                      width: 80,
+                      width: 105, // More space for crown + avatar
                       child: Row(
                         children: [
                           _buildRankBadge(index, colors[index], isTopThree),
-                          const Spacer(),
+                          const SizedBox(
+                            width: 12,
+                          ), // Explicit spacing between crown and avatar
                           Container(
                             width: 36,
                             height: 36,
@@ -1381,5 +1369,8 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
           duration: 2.seconds,
           color: AppColors.primaryGold.withValues(alpha: 0.1),
         );
+  }
+}
+
   }
 }

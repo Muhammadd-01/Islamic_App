@@ -180,4 +180,13 @@ export const adhanApi = {
     delete: (id) => api.delete(`/adhans/${id}`),
 };
 
+// Donations API
+export const donationsApi = {
+    getAll: () => api.get('/donations'),
+    updateStatus: (id, status) => api.patch(`/donations/${id}/status`, { status }),
+    delete: (id) => api.delete(`/donations/${id}`),
+    getSettings: () => api.get('/donations/settings'),
+    updateSettings: (data) => api.post('/donations/settings', data),
+};
+
 export default api;

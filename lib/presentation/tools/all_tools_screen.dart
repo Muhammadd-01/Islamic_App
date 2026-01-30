@@ -80,6 +80,12 @@ class AllToolsScreen extends StatelessWidget {
         '/politics',
       ),
       _ToolItem('News', Icons.newspaper, const Color(0xFF059669), '/news'),
+      _ToolItem(
+        'Support Us',
+        Icons.volunteer_activism,
+        const Color(0xFFFFD700),
+        '/donation',
+      ),
     ];
 
     return Scaffold(

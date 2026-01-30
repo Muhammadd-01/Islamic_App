@@ -31,6 +31,7 @@ import 'package:islamic_app/presentation/settings/adhan_selection_screen.dart';
 import 'package:islamic_app/presentation/quran_audio/surah_audio_screen.dart';
 import 'package:islamic_app/presentation/splash/splash_screen.dart';
 import 'package:islamic_app/presentation/onboarding/onboarding_screen.dart';
+import 'package:islamic_app/presentation/donation/donation_screen.dart';
 import 'package:islamic_app/domain/entities/surah.dart';
 import 'package:islamic_app/domain/entities/hadith.dart';
 import 'package:islamic_app/domain/entities/article.dart';
@@ -245,6 +246,10 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: '/donation',
+      builder: (context, state) => const DonationScreen(),
     ),
     GoRoute(
       path: '/edit-profile',

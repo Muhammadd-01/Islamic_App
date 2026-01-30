@@ -1624,10 +1624,10 @@ class _QuickActionsGrid extends StatelessWidget {
         '/politics',
       ),
       _ActionData(
-        'Settings',
-        Icons.settings,
-        const Color(0xFF6B7280),
-        '/settings',
+        'Support Us',
+        Icons.volunteer_activism,
+        AppColors.primaryGold,
+        '/donation',
       ),
     ];
 

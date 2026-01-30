@@ -469,7 +469,7 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                               ),
                               Icons.calendar_today_outlined,
                             ),
-                            const SizedBox(width: 8),
+                            const Spacer(),
                             _buildStatItem(
                               'TOTAL',
                               statsAsync.when(
@@ -694,15 +694,13 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 24),
-                            _buildWisdomCard(isDark),
                           ],
                         ),
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
 
-                      // Controls
+                      // Controls (Age Group & Targets) - Moved Above Hadith
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
@@ -716,7 +714,7 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                                 letterSpacing: 1,
                               ),
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 8),
                             SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: Row(
@@ -767,38 +765,48 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                                 }).toList(),
                               ),
                             ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                ...[
+                                  33,
+                                  99,
+                                  9999,
+                                ].map((t) => _buildTargetButton(t)),
+                                const SizedBox(width: 12),
+                                Tooltip(
+                                  message: 'Reset Counter',
+                                  child: _buildCircleAction(
+                                    Icons.refresh,
+                                    _reset,
+                                    Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Tooltip(
+                                  message: 'Save Progress to Cloud',
+                                  child: _buildCircleAction(
+                                    Icons.save_outlined,
+                                    _saveProgress,
+                                    AppColors.primaryGold,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 20),
 
-                      // Controls
+                      const SizedBox(height: 16),
+
+                      // Wisdom Card - Moved to Bottom
                       Padding(
-                        padding: const EdgeInsets.only(bottom: 30),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            ...[33, 99, 9999].map((t) => _buildTargetButton(t)),
-                            const SizedBox(width: 12),
-                            Tooltip(
-                              message: 'Reset Counter',
-                              child: _buildCircleAction(
-                                Icons.refresh,
-                                _reset,
-                                Colors.grey,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Tooltip(
-                              message: 'Save Progress to Cloud',
-                              child: _buildCircleAction(
-                                Icons.save_outlined,
-                                _saveProgress,
-                                AppColors.primaryGold,
-                              ),
-                            ),
-                          ],
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 8,
                         ),
+                        child: _buildWisdomCard(isDark),
                       ),
                     ],
                   ),
@@ -824,8 +832,8 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
     }
 
     // Sizes for 1st, 2nd, 3rd (Decreasing size as requested)
-    final badgeSizes = [40.0, 34.0, 28.0];
-    final iconSizes = [24.0, 20.0, 16.0];
+    final badgeSizes = [42.0, 36.0, 30.0];
+    final iconSizes = [28.0, 22.0, 18.0];
 
     return Container(
           width: badgeSizes[index],
@@ -842,28 +850,19 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
               ),
             ],
           ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              // Islamic-style "Crown/Turban" representation
-              // Combining architecture icon with premium badge
-              Positioned(
-                top: 2,
-                child: Icon(
-                  Icons.architecture, // Looks like a dome/turban ornament
-                  color: color,
-                  size: iconSizes[index] * 0.7,
-                ),
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                shape: BoxShape.circle,
               ),
-              Positioned(
-                top: index == 0 ? 10 : 8,
-                child: Icon(
-                  Icons.workspace_premium,
-                  color: color,
-                  size: iconSizes[index],
-                ),
+              child: Icon(
+                Icons.workspace_premium, // Premium Crown icon
+                color: color,
+                size: iconSizes[index],
               ),
-            ],
+            ),
           ),
         )
         .animate(onPlay: (controller) => controller.repeat(reverse: true))
@@ -1112,11 +1111,11 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                   ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
+                      horizontal: 12,
                       vertical: 8,
                     ),
                     leading: SizedBox(
-                      width: 70,
+                      width: 80,
                       child: Row(
                         children: [
                           _buildRankBadge(index, colors[index], isTopThree),
@@ -1166,6 +1165,8 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                     ),
                     title: Text(
                       entry.userName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontWeight: FontWeight.w800,
                         fontSize: 16,

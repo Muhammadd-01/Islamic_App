@@ -49,6 +49,7 @@ final isPrayerCompleteProvider = Provider.family<bool, String>((
         case 'fajr':
           return data.fajr;
         case 'dhuhr':
+        case 'jummah':
           return data.dhuhr;
         case 'asr':
           return data.asr;

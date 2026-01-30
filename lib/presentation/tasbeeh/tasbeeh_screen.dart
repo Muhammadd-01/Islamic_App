@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/core/providers/region_provider.dart';
 import 'package:islamic_app/data/repositories/tasbeeh_repository.dart';
+import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
+
+enum AgeGroup { child, teenager, adult, elderly }
+
+enum DhikrType { simple, medium, long, ultraShort, unknown }
 
 class TasbeehScreen extends ConsumerStatefulWidget {
   const TasbeehScreen({super.key});
@@ -28,28 +34,71 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
   int _totalUnsaved = 0;
 
   // Speed analytics
-  DateTime? _lastTapTime;
   double _currentRPM = 0.0;
+  final List<DateTime> _recentTaps = [];
+  AgeGroup _selectedAgeGroup = AgeGroup.adult;
+  bool _isSpeedWarningActive = false;
+  bool _isSavingProgress = false;
+  int _steadyCount = 0;
+  bool _isEncouragementActive = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _loadDhikr();
-    // Periodically decay speed if no taps
-    Stream.periodic(const Duration(seconds: 1)).listen((_) {
-      if (mounted && _currentRPM > 0) {
-        setState(() {
-          _currentRPM *= 0.8; // Decay speed
-          if (_currentRPM < 1) _currentRPM = 0;
-        });
+    _loadSettings();
+    // Faster decay logic: Check every 500ms
+    _decayTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+      if (!mounted) return;
+
+      final now = DateTime.now();
+      final lastTap = _recentTaps.isEmpty ? null : _recentTaps.last;
+
+      if (lastTap != null) {
+        final silenceDuration = now.difference(lastTap).inMilliseconds;
+
+        if (silenceDuration > 1500) {
+          // Immediate drop if silent for > 1.5s
+          if (_currentRPM > 0) {
+            setState(() {
+              _currentRPM = 0;
+              _recentTaps.clear();
+              _steadyCount = 0;
+              _isSpeedWarningActive = false;
+            });
+          }
+        } else if (silenceDuration > 800) {
+          // Faster decay
+          setState(() {
+            _currentRPM *= 0.7;
+          });
+        }
       }
     });
+  }
+
+  late Timer _decayTimer;
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    final ageIndex = prefs.getInt('selected_age_group') ?? 2; // Default Adult
+    if (mounted) {
+      setState(() {
+        _selectedAgeGroup = AgeGroup.values[ageIndex];
+      });
+    }
+  }
+
+  Future<void> _saveAgeGroup(AgeGroup group) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('selected_age_group', group.index);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _decayTimer.cancel();
     super.dispose();
   }
 
@@ -71,6 +120,101 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
     await prefs.setString('selected_dhikr_arabic', arabic);
   }
 
+  DhikrType _getDhikrType() {
+    final name = _selectedDhikr.toLowerCase();
+    final arabic = _dhikrArabic;
+
+    // Ultra-Short Dhikr (Single Word / Phrase)
+    if (name == 'allah' || name == 'ya allah' || name == 'hu') {
+      return DhikrType.ultraShort;
+    }
+
+    // Long Adhkār / Duʿāʾ-Based Dhikr
+    if (arabic.length > 40 ||
+        name.contains('la ilaha illallah') ||
+        name.contains('wahdahu la') ||
+        name.contains('sharika lah') ||
+        name.contains('salawat') ||
+        name.contains('sallallahu') ||
+        name.contains('sayyidul istighfar')) {
+      return DhikrType.long;
+    }
+
+    // Medium-Length Adhkār
+    if (name.contains('astaghfirullah') ||
+        name.contains('bihamdih') ||
+        name.contains('la hawla')) {
+      return DhikrType.medium;
+    }
+
+    // Simple Tasbīḥ (Short Adhkār)
+    if (name.contains('subhanallah') ||
+        name.contains('alhamdulillah') ||
+        name.contains('allahu akbar')) {
+      return DhikrType.simple;
+    }
+
+    return DhikrType.unknown;
+  }
+
+  Map<String, int> _getThresholds() {
+    final type = _getDhikrType();
+
+    // Default safe limits (Option 5)
+    if (type == DhikrType.unknown) {
+      return {'warn': 65, 'tooFast': 75};
+    }
+
+    switch (type) {
+      case DhikrType.simple:
+        switch (_selectedAgeGroup) {
+          case AgeGroup.child:
+            return {'warn': 41, 'tooFast': 50};
+          case AgeGroup.teenager:
+            return {'warn': 56, 'tooFast': 65};
+          case AgeGroup.adult:
+            return {'warn': 61, 'tooFast': 70};
+          case AgeGroup.elderly:
+            return {'warn': 46, 'tooFast': 55};
+        }
+      case DhikrType.medium:
+        switch (_selectedAgeGroup) {
+          case AgeGroup.child:
+            return {'warn': 31, 'tooFast': 40};
+          case AgeGroup.teenager:
+            return {'warn': 41, 'tooFast': 50};
+          case AgeGroup.adult:
+            return {'warn': 46, 'tooFast': 55};
+          case AgeGroup.elderly:
+            return {'warn': 31, 'tooFast': 40};
+        }
+      case DhikrType.long:
+        switch (_selectedAgeGroup) {
+          case AgeGroup.child:
+            return {'warn': 16, 'tooFast': 20};
+          case AgeGroup.teenager:
+            return {'warn': 21, 'tooFast': 25};
+          case AgeGroup.adult:
+            return {'warn': 26, 'tooFast': 30};
+          case AgeGroup.elderly:
+            return {'warn': 16, 'tooFast': 20};
+        }
+      case DhikrType.ultraShort:
+        switch (_selectedAgeGroup) {
+          case AgeGroup.child:
+            return {'warn': 46, 'tooFast': 55};
+          case AgeGroup.teenager:
+            return {'warn': 61, 'tooFast': 70};
+          case AgeGroup.adult:
+            return {'warn': 66, 'tooFast': 75};
+          case AgeGroup.elderly:
+            return {'warn': 46, 'tooFast': 55};
+        }
+      default:
+        return {'warn': 65, 'tooFast': 75};
+    }
+  }
+
   void _increment() {
     final now = DateTime.now();
     HapticFeedback.lightImpact();
@@ -80,17 +224,54 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
       _sessionIncrement++;
       _totalUnsaved++;
 
-      // Calculate Speed (RPM)
-      if (_lastTapTime != null) {
-        final difference = now.difference(_lastTapTime!).inMilliseconds;
-        if (difference > 0) {
-          double instantRPM = 60000 / difference;
-          // Apply some smoothing
-          _currentRPM = (_currentRPM * 0.6) + (instantRPM * 0.4);
-          if (_currentRPM > 300) _currentRPM = 300; // Cap realistic speed
+      // Manage recent taps for smoother average RPM calculation (Design Advice 6)
+      _recentTaps.add(now);
+      if (_recentTaps.length > 10) {
+        _recentTaps.removeAt(0);
+      }
+
+      // Calculate Speed (RPM) over last few taps
+      if (_recentTaps.length >= 2) {
+        final duration = now.difference(_recentTaps.first).inMilliseconds;
+        if (duration > 0) {
+          // Average RPM over the sliding window
+          double averageRPM = ((_recentTaps.length - 1) * 60000) / duration;
+          _currentRPM = averageRPM;
+          if (_currentRPM > 300) _currentRPM = 300; // Cap
         }
       }
-      _lastTapTime = now;
+
+      // Detect Bursts (5 taps in < 2 sec) - only if we have enough data
+      if (_recentTaps.length >= 5) {
+        final burstDuration = now
+            .difference(_recentTaps[_recentTaps.length - 5])
+            .inSeconds;
+        if (burstDuration < 2) {
+          _triggerSpeedWarning("Too fast! Calm your heart.");
+        }
+      }
+
+      // Dynamic Speed Monitoring - Skip warnings for the first 3 taps of a sequence
+      // to allow the average to stabilize and prevent "immediate exceed" on tap 2
+      final thresholds = _getThresholds();
+      if (_recentTaps.length >= 3) {
+        if (_currentRPM > thresholds['tooFast']!) {
+          _triggerSpeedWarning(_getWarningMessage());
+          _steadyCount = 0;
+        } else if (_currentRPM > thresholds['warn']!) {
+          _isSpeedWarningActive = true;
+          _steadyCount = 0;
+        } else if (_currentRPM > 0) {
+          // Normal range
+          _isSpeedWarningActive = false;
+          _steadyCount++;
+          // Show encouragement every 7 steady taps for ALL age groups
+          if (_steadyCount >= 7) {
+            _triggerEncouragement(_getEncouragementMessage());
+            _steadyCount = 0;
+          }
+        }
+      }
 
       if (_count > _target && _target != 9999) {
         _count = 1;
@@ -105,8 +286,79 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
     }
   }
 
+  String _getWarningMessage() {
+    switch (_selectedAgeGroup) {
+      case AgeGroup.child:
+        return "Slow down, little one. Talk to Allah beautifully! ✨";
+      case AgeGroup.teenager:
+        return "Stay focused! Quality over speed. 🚀";
+      case AgeGroup.adult:
+        return "Slow down. Dhikr is for the heart, not the counter. ❤️";
+      case AgeGroup.elderly:
+        return "Patience is key. Take your time with your Rabb. 🤲";
+    }
+  }
+
+  String _getEncouragementMessage() {
+    switch (_selectedAgeGroup) {
+      case AgeGroup.child:
+        return "Mashallah! You are doing great! 🌟✨";
+      case AgeGroup.teenager:
+        return "Keep it up! This is the perfect pace. 💪🔥";
+      case AgeGroup.adult:
+        return "Excellent focus. May Allah accept your dhikr. ✨🤲";
+      case AgeGroup.elderly:
+        return "Beautifully recited. May Allah reward you. 🤲📿";
+    }
+  }
+
+  void _triggerSpeedWarning(String message) {
+    if (_isSpeedWarningActive) return; // Prevent spam
+
+    if (mounted) {
+      setState(() {
+        _isSpeedWarningActive = true;
+      });
+    }
+
+    HapticFeedback.vibrate();
+    AppSnackbar.showError(context, message);
+
+    // Reset warning status after a short delay to allow re-triggering
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _isSpeedWarningActive = false;
+        });
+      }
+    });
+  }
+
+  void _triggerEncouragement(String message) {
+    if (_isEncouragementActive || !mounted) return;
+
+    setState(() {
+      _isEncouragementActive = true;
+    });
+
+    AppSnackbar.showSuccess(context, message);
+
+    Future.delayed(const Duration(seconds: 10), () {
+      if (mounted) {
+        setState(() {
+          _isEncouragementActive = false;
+        });
+      }
+    });
+  }
+
   Future<void> _saveProgress() async {
-    if (_sessionIncrement == 0) return;
+    if (_sessionIncrement == 0 || _isSavingProgress) return;
+
+    setState(() {
+      _isSavingProgress = true;
+    });
+
     final increment = _sessionIncrement;
     _sessionIncrement = 0;
     try {
@@ -124,6 +376,12 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
           _sessionIncrement += increment;
         });
       }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSavingProgress = false;
+        });
+      }
     }
   }
 
@@ -132,7 +390,7 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
     setState(() {
       _count = 0;
       _currentRPM = 0;
-      _lastTapTime = null;
+      _recentTaps.clear();
     });
   }
 
@@ -258,148 +516,258 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                         ],
                       ),
 
-                      const SizedBox(height: 50),
+                      const SizedBox(height: 10),
 
                       // Speed Indicator & Main Counter
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // RPM Ring
-                          SizedBox(
-                            width: 280,
-                            height: 280,
-                            child: CircularProgressIndicator(
-                              value: _currentRPM / 200, // Max 200 RPM scale
-                              strokeWidth: 4,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                AppColors.primaryGold.withOpacity(0.5),
-                              ),
-                              backgroundColor: Colors.grey.withOpacity(0.1),
-                            ),
-                          ),
-
-                          // Main Button
-                          GestureDetector(
-                                onTap: _increment,
-                                child: Container(
-                                  width: 240,
-                                  height: 240,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: const RadialGradient(
-                                      center: Alignment(-0.2, -0.2),
-                                      colors: [
-                                        Color(0xFFFFD700),
-                                        Color(0xFFB8860B),
-                                      ],
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: AppColors.primaryGold
-                                            .withOpacity(0.4),
-                                        spreadRadius: 2,
-                                        blurRadius: 40,
-                                        offset: const Offset(0, 15),
-                                      ),
-                                    ],
+                      TweenAnimationBuilder<double>(
+                        duration: const Duration(milliseconds: 400),
+                        curve: Curves.easeOutCubic,
+                        tween: Tween<double>(
+                          begin: 0,
+                          end: (_currentRPM / 200).clamp(0.0, 1.0),
+                        ),
+                        builder: (context, value, child) {
+                          return Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // RPM Ring
+                              SizedBox(
+                                width: 280,
+                                height: 280,
+                                child: CircularProgressIndicator(
+                                  value: value,
+                                  strokeWidth: 6,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    _isSpeedWarningActive
+                                        ? Colors.red
+                                        : AppColors.primaryGold.withOpacity(
+                                            0.6,
+                                          ),
                                   ),
-                                  child: Center(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          '$_count',
-                                          style: TextStyle(
-                                            fontSize: 90,
-                                            fontWeight: FontWeight.w900,
-                                            color: isDark
-                                                ? AppColors.mainBackground
-                                                : Colors.white,
-                                            height: 1,
-                                          ),
-                                        ),
-                                        Text(
-                                          'CYCLE $_cycle',
-                                          style: const TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF475569),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                  backgroundColor: Colors.white.withOpacity(
+                                    0.05,
                                   ),
                                 ),
-                              )
-                              .animate(target: _count.toDouble())
-                              .scale(
-                                duration: 100.ms,
-                                curve: Curves.easeOutBack,
-                                begin: const Offset(0.95, 0.95),
-                                end: const Offset(1, 1),
                               ),
-                        ],
+
+                              // Main Button - Centered within ring
+                              GestureDetector(
+                                    onTap: _increment,
+                                    behavior: HitTestBehavior
+                                        .opaque, // Ensure it catches all taps
+                                    child: Container(
+                                      width: 260, // Slightly larger hit area
+                                      height: 260,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors
+                                            .transparent, // Background to catch taps
+                                      ),
+                                      child: Center(
+                                        child: Container(
+                                          width: 220,
+                                          height: 220,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            gradient: const RadialGradient(
+                                              center: Alignment(-0.2, -0.2),
+                                              colors: [
+                                                Color(0xFFFFD700),
+                                                Color(0xFFB8860B),
+                                              ],
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: AppColors.primaryGold
+                                                    .withOpacity(0.4),
+                                                spreadRadius: 2,
+                                                blurRadius: 40,
+                                                offset: const Offset(0, 15),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Center(
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  '$_count',
+                                                  style: TextStyle(
+                                                    fontSize: 84,
+                                                    fontWeight: FontWeight.w900,
+                                                    color: isDark
+                                                        ? AppColors
+                                                              .mainBackground
+                                                        : Colors.white,
+                                                    height: 1,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  'CYCLE $_cycle',
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Color(0xFF475569),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                  .animate(target: _count.toDouble())
+                                  .scale(
+                                    duration: 100.ms,
+                                    curve: Curves.easeOutBack,
+                                    begin: const Offset(0.95, 0.95),
+                                    end: const Offset(1, 1),
+                                  ),
+                            ],
+                          );
+                        },
                       ),
+                      const SizedBox(height: 40), // Separation from analytics
+                      const Spacer(flex: 3),
 
-                      const Spacer(),
-
-                      // Performance Analytics
+                      // Performance Analytics & Wisdom Card
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 20,
-                            horizontal: 24,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? Colors.white.withOpacity(0.05)
-                                : Colors.black.withOpacity(0.03),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: AppColors.primaryGold.withOpacity(0.1),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceAround,
-                            children: [
-                              _buildPerformanceMetric(
-                                'SPEED',
-                                '${_currentRPM.toInt()}',
-                                'RPM',
-                                Icons.speed,
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 20,
+                                horizontal: 24,
                               ),
-                              Container(
-                                width: 1,
-                                height: 40,
-                                color: Colors.grey.withOpacity(0.2),
-                              ),
-                              _buildPerformanceMetric(
-                                'TARGET',
-                                _target == 9999 ? '∞' : '$_target',
-                                'COUNT',
-                                Icons.flag_outlined,
-                              ),
-                              Container(
-                                width: 1,
-                                height: 40,
-                                color: Colors.grey.withOpacity(0.2),
-                              ),
-                              _buildPerformanceMetric(
-                                'STREAK',
-                                statsAsync.when(
-                                  data: (s) => s.streakCount.toString(),
-                                  loading: () => '0',
-                                  error: (_, __) => '0',
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? Colors.white.withOpacity(0.05)
+                                    : Colors.black.withOpacity(0.03),
+                                borderRadius: BorderRadius.circular(24),
+                                border: Border.all(
+                                  color: AppColors.primaryGold.withOpacity(0.1),
                                 ),
-                                'DAYS',
-                                Icons.local_fire_department_outlined,
                               ),
-                            ],
-                          ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  _buildPerformanceMetric(
+                                    'SPEED',
+                                    '${_currentRPM.toInt()}',
+                                    'RPM',
+                                    Icons.speed,
+                                    color: _isSpeedWarningActive
+                                        ? Colors.red
+                                        : null,
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    height: 40,
+                                    color: Colors.grey.withOpacity(0.2),
+                                  ),
+                                  _buildPerformanceMetric(
+                                    'TARGET',
+                                    _target == 9999 ? '∞' : '$_target',
+                                    'COUNT',
+                                    Icons.flag_outlined,
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    height: 40,
+                                    color: Colors.grey.withOpacity(0.2),
+                                  ),
+                                  _buildPerformanceMetric(
+                                    'STREAK',
+                                    statsAsync.when(
+                                      data: (s) => s.streakCount.toString(),
+                                      loading: () => '0',
+                                      error: (_, __) => '0',
+                                    ),
+                                    'DAYS',
+                                    Icons.local_fire_department_outlined,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            _buildWisdomCard(isDark),
+                          ],
                         ),
                       ),
 
+                      const SizedBox(height: 20),
+
+                      // Controls
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          children: [
+                            const Text(
+                              'YOUR AGE GROUP',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: AgeGroup.values.map((group) {
+                                  final isSelected = _selectedAgeGroup == group;
+                                  return GestureDetector(
+                                    onTap: () {
+                                      HapticFeedback.selectionClick();
+                                      setState(() {
+                                        _selectedAgeGroup = group;
+                                      });
+                                      _saveAgeGroup(group);
+                                    },
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? AppColors.primaryGold.withOpacity(
+                                                0.2,
+                                              )
+                                            : Colors.transparent,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? AppColors.primaryGold
+                                              : Colors.grey.withOpacity(0.3),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        group.name.toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: isSelected
+                                              ? AppColors.primaryGold
+                                              : Colors.grey,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       const SizedBox(height: 20),
 
                       // Controls
@@ -410,16 +778,22 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                           children: [
                             ...[33, 99, 9999].map((t) => _buildTargetButton(t)),
                             const SizedBox(width: 12),
-                            _buildCircleAction(
-                              Icons.refresh,
-                              _reset,
-                              Colors.grey,
+                            Tooltip(
+                              message: 'Reset Counter',
+                              child: _buildCircleAction(
+                                Icons.refresh,
+                                _reset,
+                                Colors.grey,
+                              ),
                             ),
                             const SizedBox(width: 8),
-                            _buildCircleAction(
-                              Icons.save_outlined,
-                              _saveProgress,
-                              AppColors.primaryGold,
+                            Tooltip(
+                              message: 'Save Progress to Cloud',
+                              child: _buildCircleAction(
+                                Icons.save_outlined,
+                                _saveProgress,
+                                AppColors.primaryGold,
+                              ),
                             ),
                           ],
                         ),
@@ -470,11 +844,13 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
     String label,
     String value,
     String unit,
-    IconData icon,
-  ) {
+    IconData icon, {
+    Color? color,
+  }) {
+    final displayColor = color ?? AppColors.primaryGold;
     return Column(
       children: [
-        Icon(icon, size: 18, color: AppColors.primaryGold),
+        Icon(icon, size: 18, color: displayColor),
         const SizedBox(height: 8),
         Row(
           crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -482,7 +858,11 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
           children: [
             Text(
               value,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: color,
+              ),
             ),
             const SizedBox(width: 2),
             Text(
@@ -878,6 +1258,93 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
           fontWeight: FontWeight.bold,
         ),
       ),
+    );
+  }
+
+  Widget _buildWisdomCard(bool isDark) {
+    return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.03),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: AppColors.primaryGold.withValues(alpha: 0.2),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primaryGold.withValues(alpha: 0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.format_quote_rounded,
+                color: AppColors.primaryGold.withValues(alpha: 0.6),
+                size: 32,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                "Look at those who are beneath you and do not look at those who are above you, for it is more suitable that you should not consider as less the blessing of Allah.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontStyle: FontStyle.italic,
+                  height: 1.5,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white70,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                "— Sahih Muslim 2963",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primaryGold.withValues(alpha: 0.8),
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        )
+        .animate()
+        .fadeIn(duration: 800.ms, curve: Curves.easeOut)
+        .slideY(begin: 0.2, end: 0, duration: 800.ms, curve: Curves.easeOut)
+        .shimmer(
+          delay: 2.seconds,
+          duration: 2.seconds,
+          color: AppColors.primaryGold.withValues(alpha: 0.1),
+        );
+  }
+
+  Widget _buildStatItem(String label, String value, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, color: AppColors.primaryGold, size: 20),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 10,
+            color: Colors.grey,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 }

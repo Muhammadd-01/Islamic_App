@@ -134,8 +134,11 @@ class PrayerTrackerRepository {
     final date = _getTodayDate();
     final docRef = _getCollection().doc(date);
 
+    final normalizedName = prayerName.toLowerCase() == 'jummah'
+        ? 'dhuhr'
+        : prayerName.toLowerCase();
     await docRef.set({
-      prayerName.toLowerCase(): completed,
+      normalizedName: completed,
       'lastUpdated': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
@@ -149,6 +152,7 @@ class PrayerTrackerRepository {
         newValue = !current.fajr;
         break;
       case 'dhuhr':
+      case 'jummah':
         newValue = !current.dhuhr;
         break;
       case 'asr':

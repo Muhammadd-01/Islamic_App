@@ -44,12 +44,35 @@ final selectedRegionProvider = NotifierProvider<SelectedRegionNotifier, String>(
   SelectedRegionNotifier.new,
 );
 
+/// A ticker provider that emits a value every second to trigger UI refreshes.
+final _countdownTickerProvider = StreamProvider<int>((ref) {
+  return Stream.periodic(
+    const Duration(seconds: 1),
+    (_) => DateTime.now().second,
+  );
+});
+
 /// Provider to check if the user is currently allowed to change their region
 final regionLockProvider = Provider<({bool canChange, int remainingDays})>((
   ref,
 ) {
-  final user = ref.watch(userProfileProvider).value;
+  // Watch the ticker to trigger periodic refreshes
+  ref.watch(_countdownTickerProvider);
+
+  final userAsync = ref.watch(userProfileProvider);
+
+  // If still loading, default to allowed (prevents UI flicker)
+  if (userAsync.isLoading) return (canChange: true, remainingDays: 0);
+
+  final user = userAsync.value;
   if (user == null) return (canChange: false, remainingDays: 0);
+
+  // EXCEPTION: If the user's current region is 'Global' or null,
+  // allow them to change it once, even if they have a lastUpdate timestamp.
+  // This fixes the bug where new users were auto-locked at creation.
+  if (user.region == null || user.region == 'Global') {
+    return (canChange: true, remainingDays: 0);
+  }
 
   final lastUpdate = user.lastRegionUpdate;
   if (lastUpdate == null) return (canChange: true, remainingDays: 0);

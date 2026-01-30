@@ -120,7 +120,10 @@ class TasbeehRepository {
       });
 
       // Also update the main user document for easy leaderboard fetching
-      transaction.update(userDoc, {'total_tasbeeh_count': total});
+      // Use set with merge: true to ensure it works even if doc is somehow missing
+      transaction.set(userDoc, {
+        'total_tasbeeh_count': total,
+      }, SetOptions(merge: true));
     });
   }
 

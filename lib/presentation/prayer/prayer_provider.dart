@@ -87,6 +87,9 @@ final nextPrayerNameProvider = Provider<String>((ref) {
   for (final prayer in orderedPrayers) {
     final prayerTime = prayerTimes[prayer];
     if (prayerTime != null && prayerTime.isAfter(now)) {
+      if (prayer == 'Dhuhr' && now.weekday == DateTime.friday) {
+        return 'Jummah';
+      }
       return prayer;
     }
   }
@@ -113,6 +116,9 @@ final currentPrayerNameProvider = Provider<String>((ref) {
 
     if (start != null && now.isAfter(start)) {
       if (next == null || now.isBefore(next)) {
+        if (ordered[i] == 'Dhuhr' && now.weekday == DateTime.friday) {
+          return 'Jummah';
+        }
         return ordered[i] == 'Sunrise' ? 'Ishraq' : ordered[i];
       }
     }
@@ -161,7 +167,11 @@ final prayerDisplayInfoProvider = StreamProvider<Map<String, String>>((ref) {
       final event = allEvents[i];
       final time = prayerTimes[event];
       if (time != null && now.isAfter(time)) {
-        currentName = event == 'Sunrise' ? 'Ishraq' : event;
+        if (event == 'Dhuhr' && now.weekday == DateTime.friday) {
+          currentName = 'Jummah';
+        } else {
+          currentName = event == 'Sunrise' ? 'Ishraq' : event;
+        }
         currentStartTime = time;
       }
     }
@@ -196,7 +206,11 @@ final prayerDisplayInfoProvider = StreamProvider<Map<String, String>>((ref) {
     for (final prayer in obligatory) {
       final time = prayerTimes[prayer];
       if (time != null && time.isAfter(now)) {
-        nextName = prayer;
+        if (prayer == 'Dhuhr' && now.weekday == DateTime.friday) {
+          nextName = 'Jummah';
+        } else {
+          nextName = prayer;
+        }
         nextStartTime = time;
         break;
       }

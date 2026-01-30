@@ -587,6 +587,7 @@ class _EnhancedPrayerCard extends ConsumerWidget {
           Color(0xFF818CF8), // Light purple
         ];
       case 'Dhuhr':
+      case 'Jummah':
         return const [
           Color(0xFFF59E0B), // Amber
           Color(0xFFFBBF24), // Yellow
@@ -632,6 +633,7 @@ class _EnhancedPrayerCard extends ConsumerWidget {
       case 'Fajr':
         return Icons.wb_twilight;
       case 'Dhuhr':
+      case 'Jummah':
         return Icons.wb_sunny;
       case 'Asr':
         return Icons.sunny_snowing;

@@ -348,7 +348,12 @@ class _PrayerTrackerHistoryScreenState
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   _buildPrayerChip('Fajr', data?.fajr ?? false),
-                  _buildPrayerChip('Dhuhr', data?.dhuhr ?? false),
+                  _buildPrayerChip(
+                    _selectedDate!.weekday == DateTime.friday
+                        ? 'Jummah'
+                        : 'Dhuhr',
+                    data?.dhuhr ?? false,
+                  ),
                   _buildPrayerChip('Asr', data?.asr ?? false),
                   _buildPrayerChip('Maghrib', data?.maghrib ?? false),
                   _buildPrayerChip('Isha', data?.isha ?? false),

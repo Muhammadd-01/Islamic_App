@@ -35,7 +35,6 @@ class UserRepository {
           'location': '',
           'imageUrl': imageUrl ?? '',
           'region': region ?? 'Global',
-          'lastRegionUpdate': FieldValue.serverTimestamp(),
           'role': role,
           'total_tasbeeh_count': 0,
           'createdAt': FieldValue.serverTimestamp(),

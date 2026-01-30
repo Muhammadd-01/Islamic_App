@@ -445,11 +445,13 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
+              physics: const BouncingScrollPhysics(),
               child: ConstrainedBox(
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const SizedBox(height: 10),
                       // Header Stats Row
@@ -467,7 +469,7 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                               ),
                               Icons.calendar_today_outlined,
                             ),
-                            const Spacer(),
+                            const SizedBox(width: 8),
                             _buildStatItem(
                               'TOTAL',
                               statsAsync.when(
@@ -482,7 +484,7 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                         ),
                       ),
 
-                      const Spacer(),
+                      const SizedBox(height: 12),
 
                       // Dhikr Display
                       Column(
@@ -491,7 +493,7 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                             _dhikrArabic,
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 42,
+                              fontSize: 34,
                               fontFamily: 'Arabic',
                               fontWeight: FontWeight.bold,
                               color: AppColors.primaryGold,
@@ -503,7 +505,7 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                               ],
                             ),
                           ).animate().fade().slideY(begin: 0.2, end: 0),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 8),
                           Text(
                             _selectedDhikr.toUpperCase(),
                             style: TextStyle(
@@ -532,8 +534,8 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                             children: [
                               // RPM Ring
                               SizedBox(
-                                width: 280,
-                                height: 280,
+                                width: 240,
+                                height: 240,
                                 child: CircularProgressIndicator(
                                   value: value,
                                   strokeWidth: 6,
@@ -556,8 +558,8 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                                     behavior: HitTestBehavior
                                         .opaque, // Ensure it catches all taps
                                     child: Container(
-                                      width: 260, // Slightly larger hit area
-                                      height: 260,
+                                      width: 220, // Slightly larger hit area
+                                      height: 220,
                                       decoration: const BoxDecoration(
                                         shape: BoxShape.circle,
                                         color: Colors
@@ -565,8 +567,8 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                                       ),
                                       child: Center(
                                         child: Container(
-                                          width: 220,
-                                          height: 220,
+                                          width: 200,
+                                          height: 200,
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
                                             gradient: const RadialGradient(
@@ -593,7 +595,7 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                                                 Text(
                                                   '$_count',
                                                   style: TextStyle(
-                                                    fontSize: 84,
+                                                    fontSize: 68,
                                                     fontWeight: FontWeight.w900,
                                                     color: isDark
                                                         ? AppColors
@@ -605,7 +607,7 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                                                 Text(
                                                   'CYCLE $_cycle',
                                                   style: const TextStyle(
-                                                    fontSize: 12,
+                                                    fontSize: 10,
                                                     fontWeight: FontWeight.bold,
                                                     color: Color(0xFF475569),
                                                   ),
@@ -628,8 +630,8 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                           );
                         },
                       ),
-                      const SizedBox(height: 40), // Separation from analytics
-                      const Spacer(flex: 3),
+                      const SizedBox(height: 24),
+                      const SizedBox(height: 12),
 
                       // Performance Analytics & Wisdom Card
                       Padding(
@@ -807,6 +809,70 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildRankBadge(int index, Color color, bool isTopThree) {
+    if (!isTopThree) {
+      return Text(
+        '${index + 1}',
+        style: const TextStyle(
+          fontWeight: FontWeight.w900,
+          fontSize: 16,
+          color: Colors.grey,
+        ),
+      );
+    }
+
+    // Sizes for 1st, 2nd, 3rd (Decreasing size as requested)
+    final badgeSizes = [40.0, 34.0, 28.0];
+    final iconSizes = [24.0, 20.0, 16.0];
+
+    return Container(
+          width: badgeSizes[index],
+          height: badgeSizes[index],
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.15),
+            shape: BoxShape.circle,
+            border: Border.all(color: color.withOpacity(0.5), width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.2),
+                blurRadius: 10,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Islamic-style "Crown/Turban" representation
+              // Combining architecture icon with premium badge
+              Positioned(
+                top: 2,
+                child: Icon(
+                  Icons.architecture, // Looks like a dome/turban ornament
+                  color: color,
+                  size: iconSizes[index] * 0.7,
+                ),
+              ),
+              Positioned(
+                top: index == 0 ? 10 : 8,
+                child: Icon(
+                  Icons.workspace_premium,
+                  color: color,
+                  size: iconSizes[index],
+                ),
+              ),
+            ],
+          ),
+        )
+        .animate(onPlay: (controller) => controller.repeat(reverse: true))
+        .scale(
+          duration: 2.seconds,
+          begin: const Offset(1, 1),
+          end: const Offset(1.05, 1.05),
+        )
+        .shimmer(duration: 3.seconds, color: Colors.white.withOpacity(0.4));
   }
 
   Widget _buildStatItem(String label, String value, IconData icon) {
@@ -1053,14 +1119,7 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
                       width: 70,
                       child: Row(
                         children: [
-                          Text(
-                            index == 0 ? '👑' : '${index + 1}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 18,
-                              color: isTopThree ? colors[index] : Colors.grey,
-                            ),
-                          ),
+                          _buildRankBadge(index, colors[index], isTopThree),
                           const Spacer(),
                           Container(
                             width: 36,
@@ -1264,7 +1323,7 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
   Widget _buildWisdomCard(bool isDark) {
     return Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.05)
@@ -1286,25 +1345,25 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
               Icon(
                 Icons.format_quote_rounded,
                 color: AppColors.primaryGold.withValues(alpha: 0.6),
-                size: 32,
+                size: 24,
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               const Text(
                 "Look at those who are beneath you and do not look at those who are above you, for it is more suitable that you should not consider as less the blessing of Allah.",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 15,
+                  fontSize: 13,
                   fontStyle: FontStyle.italic,
-                  height: 1.5,
+                  height: 1.4,
                   fontWeight: FontWeight.w500,
                   color: Colors.white70,
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Text(
                 "— Sahih Muslim 2963",
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primaryGold.withValues(alpha: 0.8),
                   letterSpacing: 0.5,
@@ -1321,30 +1380,5 @@ class _TasbeehScreenState extends ConsumerState<TasbeehScreen>
           duration: 2.seconds,
           color: AppColors.primaryGold.withValues(alpha: 0.1),
         );
-  }
-
-  Widget _buildStatItem(String label, String value, IconData icon) {
-    return Column(
-      children: [
-        Icon(icon, color: AppColors.primaryGold, size: 20),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 10,
-            color: Colors.grey,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
   }
 }

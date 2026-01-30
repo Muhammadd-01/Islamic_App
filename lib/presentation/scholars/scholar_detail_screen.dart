@@ -7,6 +7,7 @@ import 'package:islamic_app/domain/entities/scholar.dart';
 import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ScholarDetailScreen extends ConsumerStatefulWidget {
   final Scholar scholar;
@@ -103,12 +104,24 @@ class _ScholarDetailScreenState extends ConsumerState<ScholarDetailScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton.icon(
-                        onPressed: () => _showBookingDialog(context),
-                        icon: const Icon(Icons.calendar_today),
-                        label: const Text('Book Live Session'),
+                        onPressed: widget.scholar.isBooked
+                            ? null
+                            : () => _showBookingDialog(context),
+                        icon: Icon(
+                          widget.scholar.isBooked
+                              ? Icons.lock_clock
+                              : Icons.calendar_today,
+                        ),
+                        label: Text(
+                          widget.scholar.isBooked
+                              ? 'Session Fully Booked'
+                              : 'Book Live Session',
+                        ),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          backgroundColor: AppColors.primaryGold,
+                          backgroundColor: widget.scholar.isBooked
+                              ? Colors.grey
+                              : AppColors.primaryGold,
                           foregroundColor: Colors.black,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -219,40 +232,55 @@ class _BookingSheetState extends State<_BookingSheet> {
 
     setState(() => _isProcessing = true);
 
-    // Simulate payment processing
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // 1. Mark as booked in Firestore
+      await FirebaseFirestore.instance
+          .collection('scholars')
+          .doc(widget.scholar.id)
+          .update({'isBooked': true});
 
-    final formattedDate = DateFormat(
-      'EEEE, MMMM d, yyyy',
-    ).format(_selectedDate!);
-    final sessionDetails =
-        '''
+      // 2. Prepare WhatsApp messages
+      final formattedDate = DateFormat(
+        'EEEE, MMMM d, yyyy',
+      ).format(_selectedDate!);
+
+      // Message for User (Reminder)
+      final userMessage = Uri.encodeComponent(
+        'Assalamu Alaikum! Your session with ${widget.scholar.name} is confirmed for $formattedDate at $_selectedTime. DeenSphere Team',
+      );
+      final userWhatsappUrl =
+          'https://wa.me/${_phoneController.text.replaceAll('+', '')}?text=$userMessage';
+      print('User reminder URL: $userWhatsappUrl'); // Log for debugging
+
+      // Message for Scholar (Notification)
+      final scholarMessage = Uri.encodeComponent(
+        'Assalam-o-Alaikum ${widget.scholar.name}, a new session has been booked for $formattedDate at $_selectedTime.\n\nUser: ${_nameController.text}\nEmail: ${_emailController.text}\nWhatsApp: ${_phoneController.text}',
+      );
+      final scholarWhatsappUrl =
+          'https://wa.me/${widget.scholar.whatsappNumber.replaceAll('+', '')}?text=$scholarMessage';
+
+      final sessionDetails =
+          '''
 📅 Session Booked Successfully!
 
 Scholar: ${widget.scholar.name}
 Date: $formattedDate
 Time: $_selectedTime
 
-Your session will be held via video call.
-You will receive a confirmation email at ${_emailController.text}
-And a WhatsApp message at ${_phoneController.text}
-
-Session Fee: \$${widget.scholar.consultationFee.toInt()}
-Payment Method: ${_paymentMethod == 'card' ? 'Credit/Debit Card' : 'PayPal'}
+Your session is confirmed. We have notified ${widget.scholar.name} of your booking.
 ''';
 
-    // Send WhatsApp confirmation (opens WhatsApp with pre-filled message)
-    final whatsappMessage = Uri.encodeComponent(
-      'Assalamu Alaikum! Your session with ${widget.scholar.name} is confirmed for $formattedDate at $_selectedTime. DeenSphere Team',
-    );
-    final whatsappUrl =
-        'https://wa.me/${_phoneController.text.replaceAll('+', '')}?text=$whatsappMessage';
+      setState(() => _isProcessing = false);
 
-    setState(() => _isProcessing = false);
-
-    if (mounted) {
-      Navigator.pop(context);
-      _showConfirmationDialog(sessionDetails, whatsappUrl);
+      if (mounted) {
+        Navigator.pop(context);
+        _showConfirmationDialog(sessionDetails, scholarWhatsappUrl);
+      }
+    } catch (e) {
+      setState(() => _isProcessing = false);
+      if (mounted) {
+        AppSnackbar.showError(context, 'Failed to book session: $e');
+      }
     }
   }
 
@@ -287,8 +315,8 @@ Payment Method: ${_paymentMethod == 'card' ? 'Credit/Debit Card' : 'PayPal'}
                   await launchUrl(uri, mode: LaunchMode.externalApplication);
                 }
               },
-              icon: const Icon(Icons.message, color: Colors.green),
-              label: const Text('Send WhatsApp Reminder'),
+              icon: const Icon(Icons.chat_bubble_outline, color: Colors.green),
+              label: const Text('Send Message to Scholar'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.green,
                 side: const BorderSide(color: Colors.green),

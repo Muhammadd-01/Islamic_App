@@ -339,31 +339,38 @@ class _DonationScreenState extends ConsumerState<DonationScreen> {
                           ),
                           const SizedBox(height: 16),
                           Center(
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(15),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.05),
-                                    blurRadius: 10,
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(15),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 10,
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                              child: Image.network(
-                                'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${Uri.encodeComponent(_paymentDetails[_selectedMethod]?['Number']?.toString() ?? _paymentDetails[_selectedMethod]?['IBAN']?.toString() ?? 'No Details')}',
-                                width: 150,
-                                height: 150,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(
-                                      Icons.qr_code,
-                                      size: 100,
-                                      color: Colors.grey,
-                                    ),
-                              ),
-                            ),
-                          ),
+                                  child: Image.network(
+                                    'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${Uri.encodeComponent('$_selectedMethod: ' + (_paymentDetails[_selectedMethod]?['Number']?.toString() ?? _paymentDetails[_selectedMethod]?['IBAN']?.toString() ?? 'No Details'))}',
+                                    width: 150,
+                                    height: 150,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Icon(
+                                              Icons.qr_code,
+                                              size: 100,
+                                              color: Colors.grey,
+                                            ),
+                                  ),
+                                ),
+                              )
+                              .animate(key: ValueKey(_selectedMethod))
+                              .scale(
+                                duration: 400.ms,
+                                curve: Curves.easeOutBack,
+                              )
+                              .fadeIn(duration: 400.ms),
                         ],
                       ],
                     ),

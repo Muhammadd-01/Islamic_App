@@ -21,7 +21,9 @@ export default function Scholars() {
         bio: '',
         imageUrl: '',
         isAvailableFor1on1: false,
-        consultationFee: 0
+        consultationFee: 0,
+        whatsappNumber: '',
+        isBooked: false
     });
 
     useEffect(() => {
@@ -51,6 +53,8 @@ export default function Scholars() {
             data.append('bio', formData.bio);
             data.append('isAvailableFor1on1', formData.isAvailableFor1on1);
             data.append('consultationFee', formData.consultationFee);
+            data.append('whatsappNumber', formData.whatsappNumber);
+            data.append('isBooked', formData.isBooked);
             if (formData.imageUrl) data.append('imageUrl', formData.imageUrl);
 
             if (imageFile) {
@@ -99,7 +103,9 @@ export default function Scholars() {
                 bio: scholar.bio || '',
                 imageUrl: scholar.imageUrl || '',
                 isAvailableFor1on1: scholar.isAvailableFor1on1 || false,
-                consultationFee: scholar.consultationFee || 0
+                consultationFee: scholar.consultationFee || 0,
+                whatsappNumber: scholar.whatsappNumber || '',
+                isBooked: scholar.isBooked || false
             });
         } else {
             setEditingScholar(null);
@@ -109,7 +115,9 @@ export default function Scholars() {
                 bio: '',
                 imageUrl: '',
                 isAvailableFor1on1: false,
-                consultationFee: 0
+                consultationFee: 0,
+                whatsappNumber: '',
+                isBooked: false
             });
         }
         setImageFile(null);
@@ -171,8 +179,11 @@ export default function Scholars() {
                                     </div>
                                 )}
                                 {scholar.isAvailableFor1on1 && (
-                                    <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                                        Available
+                                    <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
+                                        <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full shadow-lg"> Available </div>
+                                        {scholar.isBooked && (
+                                            <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-full shadow-lg font-bold animate-pulse"> BOOKED </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -256,40 +267,64 @@ export default function Scholars() {
                                 bucket="scholar-images"
                             />
 
-                            <div className="flex items-center gap-3">
+                            <div>
+                                <label className="block text-sm font-medium text-light-muted mb-1">WhatsApp Number (with country code)</label>
                                 <input
-                                    type="checkbox"
-                                    id="isAvailable"
-                                    checked={formData.isAvailableFor1on1}
-                                    onChange={(e) => setFormData({ ...formData, isAvailableFor1on1: e.target.checked })}
-                                    className="w-5 h-5 rounded text-gold-primary bg-dark-main border-dark-icon"
+                                    type="text"
+                                    value={formData.whatsappNumber}
+                                    onChange={(e) => setFormData({ ...formData, whatsappNumber: e.target.value })}
+                                    className="w-full px-4 py-2 bg-dark-main border border-dark-icon text-light-primary rounded-lg focus:ring-2 focus:ring-gold-primary"
+                                    placeholder="e.g. +923XXXXXXXXX"
                                 />
-                                <label htmlFor="isAvailable" className="text-light-muted">Available for 1-on-1 Consultation</label>
                             </div>
 
-                            {formData.isAvailableFor1on1 && (
-                                <div>
-                                    <label className="block text-sm font-medium text-light-muted mb-1">Consultation Fee ($)</label>
+                            <div className="space-y-4 pt-2">
+                                <div className="flex items-center gap-3">
                                     <input
-                                        type="number"
-                                        value={formData.consultationFee}
-                                        onChange={(e) => setFormData({ ...formData, consultationFee: parseFloat(e.target.value) || 0 })}
-                                        className="w-full px-4 py-2 bg-dark-main border border-dark-icon text-light-primary rounded-lg focus:ring-2 focus:ring-gold-primary"
-                                        min="0"
+                                        type="checkbox"
+                                        id="isAvailable"
+                                        checked={formData.isAvailableFor1on1}
+                                        onChange={(e) => setFormData({ ...formData, isAvailableFor1on1: e.target.checked })}
+                                        className="w-5 h-5 rounded text-gold-primary bg-dark-main border-dark-icon"
                                     />
+                                    <label htmlFor="isAvailable" className="text-light-muted">Available for 1-on-1 Consultation</label>
                                 </div>
-                            )}
 
-                            <div className="flex gap-3 pt-4">
+                                {formData.isAvailableFor1on1 && (
+                                    <div className="pl-8 anim-slide-down">
+                                        <label className="block text-sm font-medium text-light-muted mb-1">Consultation Fee ($)</label>
+                                        <input
+                                            type="number"
+                                            value={formData.consultationFee}
+                                            onChange={(e) => setFormData({ ...formData, consultationFee: parseFloat(e.target.value) || 0 })}
+                                            className="w-full px-4 py-2 bg-dark-main border border-dark-icon text-light-primary rounded-lg focus:ring-2 focus:ring-gold-primary"
+                                            min="0"
+                                        />
+                                    </div>
+                                )}
+
+                                <div className="flex items-center gap-3 bg-red-500/5 p-3 rounded-lg border border-red-500/10">
+                                    <input
+                                        type="checkbox"
+                                        id="isBooked"
+                                        checked={formData.isBooked}
+                                        onChange={(e) => setFormData({ ...formData, isBooked: e.target.checked })}
+                                        className="w-5 h-5 rounded text-red-500 bg-dark-main border-dark-icon"
+                                    />
+                                    <label htmlFor="isBooked" className="text-red-400 font-bold">Mark as BOOKED (Force)</label>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 pt-6">
                                 <button type="button" onClick={closeModal} className="flex-1 px-4 py-2 border border-dark-icon text-light-muted rounded-lg hover:bg-dark-icon">
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gold-primary text-dark-main rounded-lg hover:bg-gold-dark disabled:opacity-50"
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-gold-primary text-dark-main rounded-lg hover:bg-gold-dark disabled:opacity-50 font-bold"
                                 >
-                                    {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingScholar ? 'Update' : 'Create')}
+                                    {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingScholar ? 'Update Scholar' : 'Create Scholar')}
                                 </button>
                             </div>
                         </form>

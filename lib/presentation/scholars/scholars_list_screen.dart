@@ -179,42 +179,81 @@ class ScholarsListScreen extends ConsumerWidget {
                                     Row(
                                       children: [
                                         if (scholar.isAvailableFor1on1) ...[
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 8,
-                                              vertical: 3,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.green.withValues(
-                                                alpha: 0.15,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Container(
-                                                  width: 6,
-                                                  height: 6,
-                                                  decoration:
-                                                      const BoxDecoration(
-                                                        color: Colors.green,
-                                                        shape: BoxShape.circle,
-                                                      ),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                const Text(
-                                                  'Available',
-                                                  style: TextStyle(
-                                                    color: Colors.green,
-                                                    fontSize: 11,
-                                                    fontWeight: FontWeight.w600,
+                                          if (scholar.isBooked)
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 3,
                                                   ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.red.withValues(
+                                                  alpha: 0.15,
                                                 ),
-                                              ],
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                              child: const Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons.event_busy,
+                                                    color: Colors.red,
+                                                    size: 10,
+                                                  ),
+                                                  SizedBox(width: 4),
+                                                  Text(
+                                                    'BOOKED',
+                                                    style: TextStyle(
+                                                      color: Colors.red,
+                                                      fontSize: 10,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            )
+                                          else
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 8,
+                                                    vertical: 3,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.green.withValues(
+                                                  alpha: 0.15,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Container(
+                                                    width: 6,
+                                                    height: 6,
+                                                    decoration:
+                                                        const BoxDecoration(
+                                                          color: Colors.green,
+                                                          shape:
+                                                              BoxShape.circle,
+                                                        ),
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  const Text(
+                                                    'Available',
+                                                    style: TextStyle(
+                                                      color: Colors.green,
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                          ),
                                           const SizedBox(width: 8),
                                           Text(
                                             '\$${scholar.consultationFee.toInt()}/hr',
@@ -251,9 +290,13 @@ class ScholarsListScreen extends ConsumerWidget {
                                 ),
                               ),
                               Icon(
-                                Icons.arrow_forward_ios,
+                                scholar.isBooked
+                                    ? Icons.lock_outline
+                                    : Icons.arrow_forward_ios,
                                 size: 16,
-                                color: Colors.grey[400],
+                                color: scholar.isBooked
+                                    ? Colors.red.withOpacity(0.5)
+                                    : Colors.grey[400],
                               ),
                             ],
                           ),

@@ -51,7 +51,7 @@ router.get('/:id', async (req, res) => {
 // POST create scholar
 router.post('/', upload.single('image'), async (req, res) => {
     try {
-        const { name, specialty, bio, imageUrl, isAvailableFor1on1, consultationFee } = req.body;
+        const { name, specialty, bio, imageUrl, isAvailableFor1on1, consultationFee, whatsappNumber } = req.body;
 
         let finalImageUrl = imageUrl || '';
         if (req.file) {
@@ -65,6 +65,8 @@ router.post('/', upload.single('image'), async (req, res) => {
             imageUrl: finalImageUrl,
             isAvailableFor1on1: isAvailableFor1on1 === 'true' || isAvailableFor1on1 === true,
             consultationFee: parseFloat(consultationFee) || 0,
+            whatsappNumber: whatsappNumber || '',
+            isBooked: false,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         };
@@ -80,7 +82,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 // PUT update scholar
 router.put('/:id', upload.single('image'), async (req, res) => {
     try {
-        const { name, specialty, bio, imageUrl, isAvailableFor1on1, consultationFee } = req.body;
+        const { name, specialty, bio, imageUrl, isAvailableFor1on1, consultationFee, whatsappNumber, isBooked } = req.body;
 
         const updateData = {
             updatedAt: new Date().toISOString()
@@ -92,6 +94,8 @@ router.put('/:id', upload.single('image'), async (req, res) => {
         if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
         if (isAvailableFor1on1 !== undefined) updateData.isAvailableFor1on1 = isAvailableFor1on1 === 'true' || isAvailableFor1on1 === true;
         if (consultationFee !== undefined) updateData.consultationFee = parseFloat(consultationFee);
+        if (whatsappNumber !== undefined) updateData.whatsappNumber = whatsappNumber;
+        if (isBooked !== undefined) updateData.isBooked = isBooked === 'true' || isBooked === true;
 
         if (req.file) {
             updateData.imageUrl = await uploadImage(req.file);

@@ -20,6 +20,8 @@ class ScholarsRepositoryImpl implements ScholarsRepository {
           imageUrl: data['imageUrl'] ?? '',
           isAvailableFor1on1: data['isAvailableFor1on1'] ?? false,
           consultationFee: (data['consultationFee'] ?? 0.0).toDouble(),
+          whatsappNumber: data['whatsappNumber'] ?? '',
+          isBooked: data['isBooked'] ?? false,
         );
       }).toList();
     } catch (e) {
@@ -44,6 +46,8 @@ class ScholarsRepositoryImpl implements ScholarsRepository {
         imageUrl: data['imageUrl'] ?? '',
         isAvailableFor1on1: data['isAvailableFor1on1'] ?? false,
         consultationFee: (data['consultationFee'] ?? 0.0).toDouble(),
+        whatsappNumber: data['whatsappNumber'] ?? '',
+        isBooked: data['isBooked'] ?? false,
       );
     } catch (e) {
       print('Error fetching scholar detail: $e');
@@ -63,6 +67,8 @@ class ScholarsRepositoryImpl implements ScholarsRepository {
           imageUrl: data['imageUrl'] ?? '',
           isAvailableFor1on1: data['isAvailableFor1on1'] ?? false,
           consultationFee: (data['consultationFee'] ?? 0.0).toDouble(),
+          whatsappNumber: data['whatsappNumber'] ?? '',
+          isBooked: data['isBooked'] ?? false,
         );
       }).toList();
     });

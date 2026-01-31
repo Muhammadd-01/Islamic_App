@@ -18,14 +18,26 @@ class WhatsAppService {
     async initialize() {
         if (this.client) return;
 
-        console.log('Initializing WhatsApp Client (Optimized)...');
-        this.status = 'INITIALIZING';
+        const sessionPath = path.resolve('.wwebjs_auth');
+        const sessionExists = fs.existsSync(path.join(sessionPath, 'session-system-messenger'));
+
+        console.log(`Initializing WhatsApp Client (Optimized)... Session exists: ${sessionExists}`);
+        this.status = sessionExists ? 'RESUMING' : 'INITIALIZING';
 
         this.client = new Client({
-            authStrategy: new LocalAuth({ clientId: "system-messenger" }),
+            authStrategy: new LocalAuth({
+                clientId: "system-messenger",
+                dataPath: sessionPath
+            }),
+            authTimeoutMs: 90000,
+            webVersion: '2.3000.1018911977', // Use a stable web version
+            webVersionCache: {
+                type: 'remote',
+                remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-js/main/dist/wppconnect-wa.js'
+            },
             puppeteer: {
                 handleSIGINT: false,
-                executablePath: process.env.CHROME_PATH || undefined, // Use system chrome if available
+                executablePath: process.env.CHROME_PATH || undefined,
                 args: [
                     '--no-sandbox',
                     '--disable-setuid-sandbox',
@@ -34,7 +46,8 @@ class WhatsAppService {
                     '--no-first-run',
                     '--no-zygote',
                     '--disable-gpu',
-                    '--js-flags="--max-old-space-size=512"' // Limit memory
+                    '--disable-extensions',
+                    '--js-flags="--max-old-space-size=2048"'
                 ]
             }
         });
@@ -54,6 +67,29 @@ class WhatsAppService {
         this.client.on('authenticated', () => {
             console.log('WhatsApp Authenticated. Syncing session...');
             this.status = 'AUTHENTICATED';
+
+            // Periodically check if client.info becomes available before 'ready' fires
+            const readyChecker = setInterval(() => {
+                if (this.client?.info?.wid) {
+                    console.log('Client Info found! Forcing READY state.');
+                    this.status = 'CONNECTED';
+                    this.qrCode = null;
+                    clearInterval(readyChecker);
+                }
+            }, 2000);
+
+            // Safety timeout for the checker
+            setTimeout(() => clearInterval(readyChecker), 60000);
+        });
+
+        this.client.on('loading_screen', (percent, message) => {
+            console.log(`WhatsApp loading: ${percent}% - ${message}`);
+            this.syncProgress = { percent, message };
+            if (percent === 100) {
+                this.status = 'CONNECTED';
+            } else if (this.status !== 'CONNECTED') {
+                this.status = 'SYNCING';
+            }
         });
 
         this.client.on('auth_failure', (msg) => {
@@ -83,7 +119,8 @@ class WhatsAppService {
         }
         return {
             status: this.status,
-            qrCode: qrDataUrl
+            qrCode: qrDataUrl,
+            syncProgress: this.syncProgress
         };
     }
 
@@ -97,7 +134,8 @@ class WhatsAppService {
             // Ensure number is in correct format (remove plus, add @c.us)
             const cleanNumber = to.replace(/\+/g, '').replace(/\D/g, '');
             const chatId = `${cleanNumber}@c.us`;
-            await this.client.sendMessage(chatId, message);
+            // sendSeen: false prevents the 'markedUnread' TypeError in many cases
+            await this.client.sendMessage(chatId, message, { sendSeen: false });
             console.log(`Message sent to ${to}`);
             return true;
         } catch (error) {
@@ -134,8 +172,10 @@ class WhatsAppService {
             }
         });
 
-        console.log('[SYSTEM] Sessions destroyed. Restarting client for fresh login...');
-        this.initialize();
+        console.log('[SYSTEM] Sessions destroyed. Restarting client in 2s for fresh login...');
+        setTimeout(() => {
+            this.initialize();
+        }, 2000);
     }
 }
 

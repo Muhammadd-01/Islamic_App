@@ -8,6 +8,8 @@ import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 import 'package:intl/intl.dart';
 import 'package:islamic_app/core/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:islamic_app/core/constants/api_constants.dart';
+import 'package:islamic_app/data/services/api_config_service.dart';
 import 'dart:convert';
 
 class ScholarDetailScreen extends ConsumerStatefulWidget {
@@ -254,13 +256,11 @@ class _BookingSheetState extends ConsumerState<_BookingSheet> {
     try {
       final userProfile = ref.read(userProfileProvider).value;
       final userId = userProfile?.uid ?? 'anonymous_user';
+      final dynamicBaseUrl = ref.read(apiUrlProvider);
 
       // 1. Call Backend API for Booking
-      // Note: Use your actual server URL. Localhost:5000 is used for development.
-      const baseUrl = 'http://localhost:5000/api';
-
       final response = await http.post(
-        Uri.parse('$baseUrl/bookings'),
+        Uri.parse(ApiConstants.getBookingsUrl(dynamicBaseUrl)),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'scholarId': widget.scholar.id,

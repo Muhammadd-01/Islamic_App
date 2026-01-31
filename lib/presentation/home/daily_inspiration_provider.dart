@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:islamic_app/core/constants/api_constants.dart';
+import 'package:islamic_app/data/services/api_config_service.dart';
 
 class InspirationItem {
   final String text;
@@ -44,9 +46,9 @@ class DailyInspiration {
 
 final dailyInspirationProvider = FutureProvider<DailyInspiration?>((ref) async {
   try {
-    // Replace with your actual server URL
+    final dynamicBaseUrl = ref.read(apiUrlProvider);
     final response = await http.get(
-      Uri.parse('http://localhost:5000/api/daily-inspirations/today'),
+      Uri.parse(ApiConstants.getDailyInspirationUrl(dynamicBaseUrl)),
     );
 
     if (response.statusCode == 200) {

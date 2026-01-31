@@ -28,7 +28,13 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
     // Get user data from Firestore profile
     final profile = profileAsync.value;
     final profileImageUrl = profile?.imageUrl ?? user?.imageUrl;
-    final displayName = profile?.name ?? user?.name ?? 'User';
+
+    String displayName = 'User';
+    if (profile?.name != null && profile!.name!.isNotEmpty) {
+      displayName = profile.name!;
+    } else if (user?.name != null && user!.name!.isNotEmpty) {
+      displayName = user.name!;
+    }
 
     // Real bookmark count
     final totalBookmarks = bookmarksAsync.value?.length ?? 0;

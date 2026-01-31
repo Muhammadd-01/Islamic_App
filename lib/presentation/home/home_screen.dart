@@ -498,7 +498,9 @@ class _GreetingSection extends StatelessWidget {
 
     return userProfileAsync.when(
       data: (user) {
-        final userName = user?.name ?? 'User';
+        final userName = (user?.name != null && user!.name!.isNotEmpty)
+            ? user.name!
+            : 'User';
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,

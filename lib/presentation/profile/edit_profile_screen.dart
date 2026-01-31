@@ -8,6 +8,7 @@ import 'package:islamic_app/data/services/supabase_service.dart';
 import 'package:islamic_app/data/services/location_service.dart';
 import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
+import 'package:islamic_app/presentation/widgets/country_code_picker.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -20,6 +21,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   final _nameController = TextEditingController();
   final _bioController = TextEditingController();
   final _locationController = TextEditingController();
+  final _phoneController = TextEditingController();
+  CountryCode _selectedCountry = CountryCodeDropdown.countries[0];
   XFile? _selectedImage;
   Uint8List? _selectedImageBytes;
   String? _currentImageUrl;
@@ -40,6 +43,21 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         _nameController.text = userData['name'] ?? '';
         _bioController.text = userData['bio'] ?? '';
         _locationController.text = userData['location'] ?? '';
+
+        final phone = userData['phone'] as String?;
+        if (phone != null && phone.isNotEmpty) {
+          // Attempt to match country code
+          for (var c in CountryCodeDropdown.countries) {
+            if (phone.startsWith(c.code)) {
+              _selectedCountry = c;
+              _phoneController.text = phone.substring(c.code.length);
+              break;
+            }
+          }
+          if (_phoneController.text.isEmpty) {
+            _phoneController.text = phone;
+          }
+        }
         _currentImageUrl = userData['imageUrl'];
       });
     }
@@ -152,6 +170,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
         bio: _bioController.text.trim(),
         location: _locationController.text.trim(),
         imageUrl: imageUrl,
+        phone: _phoneController.text.trim().isEmpty
+            ? null
+            : '${_selectedCountry.code}${_phoneController.text.trim()}',
       );
 
       if (mounted) {
@@ -278,6 +299,31 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       ),
               ),
             ),
+            const SizedBox(height: 16),
+            // Phone Row (Dropdown + Input)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CountryCodeDropdown(
+                  selectedCountry: _selectedCountry,
+                  onSelected: (country) =>
+                      setState(() => _selectedCountry = country),
+                  isDark: Theme.of(context).brightness == Brightness.dark,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      labelText: 'Phone Number',
+                      prefixIcon: Icon(Icons.phone_outlined),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -289,6 +335,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _nameController.dispose();
     _bioController.dispose();
     _locationController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 }

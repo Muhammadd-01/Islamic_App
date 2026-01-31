@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { User, Lock, Camera, Save, Eye, EyeOff, MessageSquare, RefreshCw } from 'lucide-react';
 import { auth } from '../config/firebase';
-import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
+import { updatePassword, EmailAuthProvider, reauthenticateWithCredential, updateProfile } from 'firebase/auth';
 import { settingsApi } from '../services/api';
 import { useNotification } from '../components/NotificationSystem';
 
@@ -26,8 +26,12 @@ function AdminProfile() {
     const user = auth.currentUser;
 
     useEffect(() => {
-        if (user?.photoURL) {
-            setImagePreview(user.photoURL);
+        // Prioritize Firestore photoURL from adminData, then user.photoURL
+        const effectivePhotoURL = adminData.photoURL || user?.photoURL;
+        console.log('[PROFILE] Effective Photo URL:', effectivePhotoURL);
+        console.log('[PROFILE] Admin Data:', adminData);
+        if (effectivePhotoURL) {
+            setImagePreview(effectivePhotoURL);
         }
         fetchWhatsAppStatus();
         fetchAdminData();
@@ -35,7 +39,7 @@ function AdminProfile() {
         // Poll for WhatsApp status
         const interval = setInterval(fetchWhatsAppStatus, 5000);
         return () => clearInterval(interval);
-    }, [user]);
+    }, [user, adminData.photoURL]);
 
     const fetchAdminData = async () => {
         try {
@@ -150,19 +154,45 @@ function AdminProfile() {
 
             if (res.data.success) {
                 const downloadURL = res.data.url;
-                // Update Firebase Auth Profile
-                await user.updateProfile({ photoURL: downloadURL });
+                // 1. Update Firebase Auth Profile (Modular SDK way)
+                await updateProfile(user, { photoURL: downloadURL });
 
-                // Also update Firestore admin_profile with the image URL
+                // 2. Update Firestore admin_profile with the image URL
                 await settingsApi.updateAdminData({ photoURL: downloadURL });
 
+                // 3. Update local state
+                setAdminData(prev => ({ ...prev, photoURL: downloadURL }));
                 setImagePreview(downloadURL);
+                setProfileImage(null);
                 notify.success('Profile image updated successfully!');
             }
-            setProfileImage(null);
         } catch (error) {
             console.error('Error uploading image:', error);
             notify.error('Failed to upload image. Please check your Supabase connection.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleImageRemove = async () => {
+        if (!window.confirm('Are you sure you want to remove your profile image?')) return;
+
+        setLoading(true);
+        try {
+            const res = await settingsApi.removeAdminProfileImage();
+            if (res.data.success) {
+                // 1. Clear Firebase Auth Profile
+                await updateProfile(user, { photoURL: '' });
+
+                // 2. Update local state
+                setAdminData(prev => ({ ...prev, photoURL: null }));
+                setImagePreview(null);
+                setProfileImage(null);
+                notify.success('Profile image removed successfully!');
+            }
+        } catch (error) {
+            console.error('Error removing image:', error);
+            notify.error('Failed to remove image.');
         } finally {
             setLoading(false);
         }
@@ -216,15 +246,37 @@ function AdminProfile() {
                             <p className="text-light-muted text-sm">{user?.email}</p>
                         </div>
 
-                        {profileImage && (
-                            <button
-                                onClick={handleImageUpload}
-                                disabled={loading}
-                                className="flex items-center gap-2 px-6 py-2 bg-gold-primary text-dark-main rounded-lg hover:bg-gold-dark transition-colors disabled:opacity-50"
-                            >
-                                <Save size={16} />
-                                {loading ? 'Uploading...' : 'Save Image'}
-                            </button>
+                        {profileImage ? (
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleImageUpload}
+                                    disabled={loading}
+                                    className="flex items-center gap-2 px-4 py-2 bg-gold-primary text-dark-main rounded-lg hover:bg-gold-dark transition-colors disabled:opacity-50"
+                                >
+                                    <Save size={16} />
+                                    {loading ? 'Uploading...' : 'Save'}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setProfileImage(null);
+                                        setImagePreview(adminData.photoURL || user?.photoURL);
+                                    }}
+                                    disabled={loading}
+                                    className="px-4 py-2 bg-dark-icon text-light-primary rounded-lg hover:bg-dark-icon/80 transition-colors disabled:opacity-50"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        ) : (
+                            (adminData.photoURL || user?.photoURL) && (
+                                <button
+                                    onClick={handleImageRemove}
+                                    disabled={loading}
+                                    className="text-xs text-red-500 hover:text-red-400 transition-colors flex items-center gap-1"
+                                >
+                                    Remove Current Image
+                                </button>
+                            )
                         )}
                     </div>
                 </div>
@@ -318,7 +370,10 @@ function AdminProfile() {
                                         <RefreshCw size={32} className="text-blue-500 animate-spin" />
                                     </div>
                                     <p className="text-blue-400 font-medium">Authenticated!</p>
-                                    <p className="text-light-muted text-sm">Finishing sync... Ready in a moment.</p>
+                                    <p className="text-light-muted text-sm">
+                                        {waData.syncProgress?.message || 'Finishing sync...'}
+                                        {waData.syncProgress?.percent ? ` (${waData.syncProgress.percent}%)` : ' Ready in a moment.'}
+                                    </p>
                                     <button
                                         onClick={handleWAReset}
                                         className="mt-4 text-xs text-red-400 hover:text-red-300 flex items-center gap-1"
@@ -328,10 +383,14 @@ function AdminProfile() {
                                 </div>
                             )}
 
-                            {(waData.status === 'DISCONNECTED' || waData.status === 'INITIALIZING') && (
+                            {(waData.status === 'DISCONNECTED' || waData.status === 'INITIALIZING' || waData.status === 'RESUMING' || waData.status === 'SYNCING') && (
                                 <div className="py-8 text-center text-light-muted">
-                                    <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2 opacity-50" />
-                                    <p className="text-sm">Initializing WhatsApp client...</p>
+                                    <RefreshCw className={`w-8 h-8 animate-spin mx-auto mb-2 opacity-50 ${(waData.status === 'RESUMING' || waData.status === 'SYNCING') ? 'text-gold-primary opacity-100' : ''}`} />
+                                    <p className="text-sm">
+                                        {waData.status === 'RESUMING' ? 'Resuming existing WhatsApp session...' :
+                                            waData.status === 'SYNCING' ? `Syncing session (${waData.syncProgress?.percent || 0}%)...` :
+                                                'Initializing WhatsApp client...'}
+                                    </p>
                                 </div>
                             )}
                         </div>

@@ -21,5 +21,17 @@
     },
     "devDependencies": {
         "nodemon": "^3.0.2"
+    },
+    "nodemonConfig": {
+        "ignore": [
+            "**/?.wwebjs_auth/**",
+            "**/?.wwebjs_cache/**",
+            "**/client/**",
+            "**/node_modules/**",
+            "session-system-messenger",
+            ".wwebjs_auth",
+            ".wwebjs_cache"
+        ],
+        "ext": "js,mjs,cjs,json"
     }
 }

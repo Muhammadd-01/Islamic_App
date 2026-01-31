@@ -1,7 +1,7 @@
 import express from 'express';
 import admin from 'firebase-admin';
 import multer from 'multer';
-import { uploadToSupabase } from '../config/supabase.js';
+import { uploadToSupabase, deleteFromSupabase } from '../config/supabase.js';
 import whatsappService from '../utils/whatsappService.js';
 
 const router = express.Router();
@@ -100,11 +100,38 @@ router.post('/admin/profile-image', upload.single('image'), async (req, res) => 
     try {
         if (!req.file) return res.status(400).json({ success: false, message: 'No image provided' });
 
-        const result = await uploadToSupabase(req.file.buffer, req.file.originalname, 'admin-profiles');
+        // 1. Fetch current profile to check for old image
+        const doc = await db.collection('settings').doc('admin_profile').get();
+        if (doc.exists && doc.data().photoURL) {
+            // 2. Delete old image
+            await deleteFromSupabase(doc.data().photoURL, 'profile-images');
+        }
+
+        // 3. Upload new image
+        const result = await uploadToSupabase(req.file.buffer, req.file.originalname, 'profile-images', 'admin');
 
         if (result.error) throw new Error(result.error);
 
         res.json({ success: true, url: result.url });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// DELETE remove admin profile image
+router.delete('/admin/profile-image', async (req, res) => {
+    try {
+        const doc = await db.collection('settings').doc('admin_profile').get();
+        if (doc.exists && doc.data().photoURL) {
+            await deleteFromSupabase(doc.data().photoURL, 'profile-images');
+        }
+
+        await db.collection('settings').doc('admin_profile').set({
+            photoURL: admin.firestore.FieldValue.delete(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        res.json({ success: true, message: 'Profile image removed' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

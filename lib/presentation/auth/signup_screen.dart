@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:islamic_app/presentation/auth/auth_provider.dart';
 import 'package:islamic_app/presentation/widgets/app_snackbar.dart';
+import 'package:islamic_app/presentation/widgets/country_code_picker.dart';
 
 /// DeenSphere Sign Up Screen
 /// Premium dark aesthetic with gold accents
@@ -24,6 +25,8 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   bool _isLoading = false;
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  CountryCode _selectedCountry =
+      CountryCodeDropdown.countries[0]; // Default to PK
 
   @override
   void dispose() {
@@ -39,15 +42,17 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
+        final fullPhone = _phoneController.text.trim().isEmpty
+            ? null
+            : '${_selectedCountry.code}${_phoneController.text.trim()}';
+
         await ref
             .read(authRepositoryProvider)
             .signUpWithEmailAndPassword(
               _emailController.text.trim(),
               _passwordController.text,
               fullName: _nameController.text.trim(),
-              phone: _phoneController.text.trim().isEmpty
-                  ? null
-                  : _phoneController.text.trim(),
+              phone: fullPhone,
             );
 
         if (mounted) {
@@ -229,15 +234,38 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                           },
                         ),
                         const SizedBox(height: 16),
-                        // Phone Field (Optional)
-                        TextFormField(
-                          controller: _phoneController,
-                          style: const TextStyle(color: AppColors.primaryWhite),
-                          decoration: _buildInputDecoration(
-                            label: 'Phone Number (Optional)',
-                            icon: Icons.phone_outlined,
-                          ),
-                          keyboardType: TextInputType.phone,
+                        const SizedBox(height: 16),
+                        // Phone Row (Dropdown + Input)
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CountryCodeDropdown(
+                              selectedCountry: _selectedCountry,
+                              onSelected: (country) =>
+                                  setState(() => _selectedCountry = country),
+                              isDark: true,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _phoneController,
+                                style: const TextStyle(
+                                  color: AppColors.primaryWhite,
+                                ),
+                                decoration: _buildInputDecoration(
+                                  label: 'Phone Number',
+                                  icon: Icons.phone_outlined,
+                                ),
+                                keyboardType: TextInputType.phone,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Please enter your phone number';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 16),
                         // Password Field

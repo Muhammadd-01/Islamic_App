@@ -207,6 +207,7 @@ export const settingsApi = {
     updateAdminProfileImage: (formData) => api.post('/settings/admin/profile-image', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
+    removeAdminProfileImage: () => api.delete('/settings/admin/profile-image'),
 };
 
 export default api;

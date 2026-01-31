@@ -59,6 +59,11 @@ class FirebaseAuthRepository implements AuthRepository {
         password: password,
       );
       if (credential.user != null) {
+        // Sync name to Firebase Auth metadata immediately
+        if (fullName != null && fullName.isNotEmpty) {
+          await credential.user!.updateDisplayName(fullName);
+        }
+
         await _userRepository.createUserProfile(
           uid: credential.user!.uid,
           email: email,

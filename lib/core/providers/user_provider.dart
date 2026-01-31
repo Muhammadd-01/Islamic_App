@@ -31,9 +31,16 @@ final userProfileProvider = StreamProvider<AppUser?>((ref) {
     return AppUser(
       uid: data['uid'] ?? authUser.uid,
       email: data['email'] ?? authUser.email,
-      name: data['name'] ?? authUser.name,
-      imageUrl: data['imageUrl'] ?? authUser.imageUrl,
-      phone: data['phone'] ?? authUser.phone,
+      name: (data['name'] != null && (data['name'] as String).isNotEmpty)
+          ? data['name']
+          : authUser.name,
+      imageUrl:
+          (data['imageUrl'] != null && (data['imageUrl'] as String).isNotEmpty)
+          ? data['imageUrl']
+          : authUser.imageUrl,
+      phone: (data['phone'] != null && (data['phone'] as String).isNotEmpty)
+          ? data['phone']
+          : authUser.phone,
       region: data['region'],
       lastRegionUpdate: data['lastRegionUpdate'] != null
           ? (data['lastRegionUpdate'] as Timestamp).toDate()

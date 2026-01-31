@@ -22,34 +22,37 @@ class LocationService {
 
   /// Get current location with permission handling
   /// Returns null if permission denied or service disabled
-  Future<Position?> getCurrentLocation() async {
+  /// Get current location with permission handling and accuracy control
+  Future<Position?> getCurrentLocation({
+    LocationAccuracy accuracy = LocationAccuracy.high,
+    Duration timeout = const Duration(seconds: 10),
+  }) async {
     try {
-      // Check if location services are enabled
       bool serviceEnabled = await isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        return null;
-      }
+      if (!serviceEnabled) return null;
 
-      // Check permission
       LocationPermission permission = await checkPermission();
-
       if (permission == LocationPermission.denied) {
         permission = await requestPermission();
-        if (permission == LocationPermission.denied) {
-          return null;
-        }
+        if (permission == LocationPermission.denied) return null;
       }
 
-      if (permission == LocationPermission.deniedForever) {
-        return null;
-      }
+      if (permission == LocationPermission.deniedForever) return null;
 
-      // Get current position
-      return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
+      // Try to get current position with timeout
+      try {
+        return await Geolocator.getCurrentPosition(
+          desiredAccuracy: accuracy,
+          timeLimit: timeout,
+        );
+      } catch (e) {
+        print(
+          'Error getting precise position: $e. Falling back to last known.',
+        );
+        return await Geolocator.getLastKnownPosition();
+      }
     } catch (e) {
-      print('Error getting location: $e');
+      print('Error in location service: $e');
       return null;
     }
   }

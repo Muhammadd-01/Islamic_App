@@ -1,6 +1,7 @@
 import 'package:adhan/adhan.dart';
 import 'package:islamic_app/data/services/aladhan_service.dart';
 import 'package:islamic_app/data/services/location_service.dart';
+import 'package:geolocator/geolocator.dart';
 
 class PrayerRepositoryImpl {
   final AladhanService _service;
@@ -39,16 +40,28 @@ class PrayerRepositoryImpl {
   }
 
   Future<double> getQiblaDirection() async {
-    final position = await _locationService.getCurrentLocation();
+    try {
+      // Use highest accuracy for Qibla
+      final position = await _locationService.getCurrentLocation(
+        accuracy: LocationAccuracy.best,
+        timeout: const Duration(seconds: 15),
+      );
 
-    if (position != null) {
-      final coordinates = Coordinates(position.latitude, position.longitude);
-      return Qibla(coordinates).direction;
+      if (position != null) {
+        final coordinates = Coordinates(position.latitude, position.longitude);
+        final qibla = Qibla(coordinates);
+        print(
+          'Qibla Direction calculated: ${qibla.direction} for lat: ${position.latitude}, long: ${position.longitude}',
+        );
+        return qibla.direction;
+      }
+
+      print('Qibla Direction: Location not available, returning 0.0');
+      return 0.0;
+    } catch (e) {
+      print('Error calculating Qibla direction: $e');
+      return 0.0;
     }
-
-    // Default to a placeholder if no location, though Qibla needs location.
-    // 0.0 or error might be better, but let's stick to a safe default for now or throw.
-    return 0.0;
   }
 
   Future<List<dynamic>> getMonthlyPrayerTimes() async {

@@ -38,7 +38,12 @@ class HomeScreen extends ConsumerWidget {
             slivers: [
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 110, 20, 20),
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    MediaQuery.paddingOf(context).top + kToolbarHeight + 10,
+                    20,
+                    20,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

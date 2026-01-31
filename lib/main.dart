@@ -10,9 +10,16 @@ import 'package:islamic_app/core/localization/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:islamic_app/data/services/supabase_service.dart';
 import 'package:islamic_app/data/services/notification_service.dart';
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Lock orientation to portrait
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   debugPrint("Initialization: Widgets Binding Initialized");
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

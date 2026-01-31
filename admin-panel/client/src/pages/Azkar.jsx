@@ -55,7 +55,13 @@ export default function Azkar() {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this azkar?')) return;
+        const confirmed = await notify.confirm({
+            title: 'Delete Azkar',
+            message: 'Are you sure you want to delete this azkar?',
+            confirmText: 'Delete',
+            cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
         try {
             await azkarApi.delete(id);
             setAzkar(azkar.filter(a => a.id !== id));

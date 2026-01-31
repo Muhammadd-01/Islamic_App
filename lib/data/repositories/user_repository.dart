@@ -1,14 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 
 class UserRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final SupabaseClient _supabase = Supabase.instance.client;
   final fb.FirebaseAuth _fbAuth = fb.FirebaseAuth.instance;
 
-  String? get _userId =>
-      _fbAuth.currentUser?.uid ?? _supabase.auth.currentUser?.id;
+  String? get _userId => _fbAuth.currentUser?.uid;
 
   /// Create user profile in Firestore after signup
   Future<void> createUserProfile({
@@ -68,14 +65,9 @@ class UserRepository {
       updates['name'] = displayName;
 
       // Update metadata in the active provider
-      if (_fbAuth.currentUser != null) {
-        await _fbAuth.currentUser?.updateDisplayName(displayName);
-      }
-      if (_supabase.auth.currentUser != null) {
-        await _supabase.auth.updateUser(
-          UserAttributes(data: {'full_name': displayName}),
-        );
-      }
+      // Sync only with Firestore since Supabase auth is deprecated
+      // and Firebase Auth display name update is not strictly necessary
+      // if Firestore is the primary source of truth for user profiles.
     }
 
     if (phone != null) updates['phone'] = phone;

@@ -131,9 +131,15 @@ class WhatsAppService {
         }
 
         try {
-            // Ensure number is in correct format (remove plus, add @c.us)
+            // Ensure number is in correct format (remove plus, add @c.us if not resolved)
             const cleanNumber = to.replace(/\+/g, '').replace(/\D/g, '');
-            const chatId = `${cleanNumber}@c.us`;
+
+            // Resolve the number ID to handle various account types (JID/LID)
+            const numberId = await this.client.getNumberId(cleanNumber);
+            const chatId = numberId ? numberId._serialized : `${cleanNumber}@c.us`;
+
+            console.log(`[WHATSAPP] Attempting to send message to: ${chatId}`);
+
             // sendSeen: false prevents the 'markedUnread' TypeError in many cases
             await this.client.sendMessage(chatId, message, { sendSeen: false });
             console.log(`Message sent to ${to}`);

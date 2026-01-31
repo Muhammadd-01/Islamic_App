@@ -4,7 +4,7 @@ class ApiConstants {
   /// The default fallback URL.
   static const String defaultBaseUrl = kDebugMode
       ? 'http://localhost:5000/api'
-      : 'https://your-production-url.com/api';
+      : 'https://deensphere.up.railway.app/api';
 
   /// Construct endpoints using the provided dynamic base URL
   static String getBookingsUrl(String baseUrl) => '$baseUrl/bookings';

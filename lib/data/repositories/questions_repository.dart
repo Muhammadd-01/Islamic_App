@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -54,22 +53,14 @@ class Question {
 /// Questions Repository
 class QuestionsRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final SupabaseClient _supabase = Supabase.instance.client;
   final FirebaseAuth _fbAuth = FirebaseAuth.instance;
 
   CollectionReference<Map<String, dynamic>> get _questionsCollection =>
       _firestore.collection('questions');
 
-  String? get _userId =>
-      _fbAuth.currentUser?.uid ?? _supabase.auth.currentUser?.id;
+  String? get _userId => _fbAuth.currentUser?.uid;
 
-  String? get _userName {
-    if (_fbAuth.currentUser != null) {
-      return _fbAuth.currentUser!.displayName;
-    }
-    return _supabase.auth.currentUser?.userMetadata?['full_name'] ??
-        _supabase.auth.currentUser?.userMetadata?['name'];
-  }
+  String? get _userName => _fbAuth.currentUser?.displayName;
 
   /// Post a new question
   Future<void> postQuestion(String question) async {
@@ -152,11 +143,9 @@ class AppNotification {
 /// Notifications Repository
 class NotificationsRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final SupabaseClient _supabase = Supabase.instance.client;
   final FirebaseAuth _fbAuth = FirebaseAuth.instance;
 
-  String? get _userId =>
-      _fbAuth.currentUser?.uid ?? _supabase.auth.currentUser?.id;
+  String? get _userId => _fbAuth.currentUser?.uid;
 
   /// Get notifications stream for current user
   Stream<List<AppNotification>> getNotificationsStream() {

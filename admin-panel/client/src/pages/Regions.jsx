@@ -48,7 +48,13 @@ export default function Regions() {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this region?')) return;
+        const confirmed = await notify.confirm({
+            title: 'Delete Region',
+            message: 'Are you sure you want to delete this region?',
+            confirmText: 'Delete',
+            cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
         setDeletingId(id);
         try {
             await regionsApi.delete(id);

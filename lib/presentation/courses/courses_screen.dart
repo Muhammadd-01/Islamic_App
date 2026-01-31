@@ -4,8 +4,11 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:islamic_app/core/constants/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:islamic_app/data/repositories/enrollment_repository.dart';
+import 'package:islamic_app/core/providers/user_provider.dart';
 
 /// Course model
+// (Course class remains same)
 class Course {
   final String id;
   final String title;
@@ -17,6 +20,9 @@ class Course {
   final String enrollUrl;
   final bool isFree;
   final double? price;
+  final int minAge;
+  final String academicCriteria;
+  final bool hasCertification;
 
   Course({
     required this.id,
@@ -29,6 +35,9 @@ class Course {
     required this.enrollUrl,
     this.isFree = false,
     this.price,
+    this.minAge = 0,
+    this.academicCriteria = '',
+    this.hasCertification = false,
   });
 
   factory Course.fromMap(Map<String, dynamic> map, String id) {
@@ -43,6 +52,9 @@ class Course {
       enrollUrl: map['enrollUrl'] ?? '',
       isFree: map['isFree'] ?? false,
       price: (map['price'] is num) ? (map['price'] as num).toDouble() : null,
+      minAge: map['minAge'] ?? 0,
+      academicCriteria: map['academicCriteria'] ?? '',
+      hasCertification: map['hasCertification'] ?? false,
     );
   }
 }
@@ -235,9 +247,530 @@ class CoursesScreen extends ConsumerWidget {
       }
     }
   }
+
+  void _showPaymentSheet(
+    BuildContext context,
+    Course course,
+    Function(String transactionId) onPaymentSuccess,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Secure Payment',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, color: Colors.blue),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'You are paying \$${course.price} for ${course.title}',
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Card Details',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              initialValue: '**** **** **** 4242',
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.credit_card),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              readOnly: true,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    initialValue: '12/25',
+                    decoration: InputDecoration(
+                      labelText: 'Expiry',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    readOnly: true,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextFormField(
+                    initialValue: '***',
+                    decoration: InputDecoration(
+                      labelText: 'CVV',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    readOnly: true,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  onPaymentSuccess(
+                    'txn_${DateTime.now().millisecondsSinceEpoch}',
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Pay Now',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEnrollmentForm(BuildContext context, Course course, WidgetRef ref) {
+    final userProfile = ref.read(userProfileProvider).value;
+
+    final nameController = TextEditingController(text: userProfile?.name ?? '');
+    final emailController = TextEditingController(
+      text: userProfile?.email ?? '',
+    );
+    final phoneController = TextEditingController(
+      text: userProfile?.phone ?? '',
+    );
+    final ageController = TextEditingController();
+    final qualificationController = TextEditingController();
+    final commentsController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    bool isSubmitting = false;
+
+    String? selectedPaymentMethod;
+    final paymentMethods = [
+      'Credit/Debit Card',
+      'Bank Transfer',
+      'JazzCash/EasyPaisa',
+      'PayPal',
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalContext) => StatefulBuilder(
+        builder: (stateContext, setState) => Container(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(stateContext).viewInsets.bottom,
+          ),
+          decoration: BoxDecoration(
+            color: Theme.of(stateContext).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Enroll in ${course.title}',
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(stateContext),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Please confirm your details to request enrollment. Our team will contact you soon.',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    const SizedBox(height: 24),
+                    TextFormField(
+                      controller: nameController,
+                      decoration: InputDecoration(
+                        labelText: 'Full Name',
+                        prefixIcon: const Icon(Icons.person),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      validator: (value) =>
+                          value?.isEmpty ?? true ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: emailController,
+                      decoration: InputDecoration(
+                        labelText: 'Email Address',
+                        prefixIcon: const Icon(Icons.email),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (value) =>
+                          value?.isEmpty ?? true ? 'Required' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: phoneController,
+                      decoration: InputDecoration(
+                        labelText: 'Phone Number',
+                        prefixIcon: const Icon(Icons.phone),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      keyboardType: TextInputType.phone,
+                      validator: (value) =>
+                          value?.isEmpty ?? true ? 'Required' : null,
+                    ),
+                    if (course.minAge > 0 ||
+                        course.academicCriteria.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 1,
+                            child: TextFormField(
+                              controller: ageController,
+                              decoration: InputDecoration(
+                                labelText: 'Age',
+                                prefixIcon: const Icon(Icons.cake),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              keyboardType: TextInputType.number,
+                              validator: (value) {
+                                if (value?.isEmpty ?? true) return 'Required';
+                                final age = int.tryParse(value!);
+                                if (age == null) return 'Invalid';
+                                if (age < 1) return 'Invalid';
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            flex: 2,
+                            child: TextFormField(
+                              controller: qualificationController,
+                              decoration: InputDecoration(
+                                labelText: 'Academic Qualification',
+                                prefixIcon: const Icon(Icons.school),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              validator: (value) =>
+                                  value?.isEmpty ?? true ? 'Required' : null,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    if (!course.isFree) ...[
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        value: selectedPaymentMethod,
+                        decoration: InputDecoration(
+                          labelText: 'Select Payment Method',
+                          prefixIcon: const Icon(Icons.payment),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        items: paymentMethods
+                            .map(
+                              (m) => DropdownMenuItem(value: m, child: Text(m)),
+                            )
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => selectedPaymentMethod = val),
+                        validator: (value) => value == null
+                            ? 'Please select a payment method'
+                            : null,
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: commentsController,
+                      decoration: InputDecoration(
+                        labelText: 'Additional Comments (Optional)',
+                        prefixIcon: const Icon(Icons.comment),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      maxLines: 2,
+                    ),
+                    if (!course.isFree) ...[
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryGold.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.primaryGold.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Total Course Fee:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              '\$${course.price}',
+                              style: const TextStyle(
+                                color: Color(0xFFB8860B),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        '* Payment is required to complete enrollment.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: isSubmitting
+                            ? null
+                            : () async {
+                                if (formKey.currentState?.validate() ?? false) {
+                                  if (!course.isFree) {
+                                    // If paid, show payment sheet first
+                                    _showPaymentSheet(stateContext, course, (
+                                      txnId,
+                                    ) async {
+                                      setState(() => isSubmitting = true);
+                                      try {
+                                        await ref
+                                            .read(enrollmentRepositoryProvider)
+                                            .submitEnrollment(
+                                              courseId: course.id,
+                                              courseTitle: course.title,
+                                              userName: nameController.text,
+                                              userEmail: emailController.text,
+                                              phone: phoneController.text,
+                                              comments: commentsController.text,
+                                              paymentStatus: 'paid',
+                                              age: int.parse(
+                                                ageController.text,
+                                              ),
+                                              qualification:
+                                                  qualificationController.text,
+                                              paymentMethod:
+                                                  selectedPaymentMethod,
+                                              amountPaid: course.price,
+                                              transactionId: txnId,
+                                            );
+                                        if (stateContext.mounted) {
+                                          Navigator.pop(
+                                            stateContext,
+                                          ); // Close form
+                                          ScaffoldMessenger.of(
+                                            stateContext,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Enrollment successful!',
+                                              ),
+                                              backgroundColor: Colors.green,
+                                            ),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        if (stateContext.mounted) {
+                                          ScaffoldMessenger.of(
+                                            stateContext,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Error: $e'),
+                                            ),
+                                          );
+                                        }
+                                      } finally {
+                                        if (stateContext.mounted) {
+                                          setState(() => isSubmitting = false);
+                                        }
+                                      }
+                                    });
+                                  } else {
+                                    // If free, submit immediately
+                                    setState(() => isSubmitting = true);
+                                    try {
+                                      await ref
+                                          .read(enrollmentRepositoryProvider)
+                                          .submitEnrollment(
+                                            courseId: course.id,
+                                            courseTitle: course.title,
+                                            userName: nameController.text,
+                                            userEmail: emailController.text,
+                                            phone: phoneController.text,
+                                            comments: commentsController.text,
+                                            paymentStatus: 'free',
+                                            age:
+                                                int.tryParse(
+                                                  ageController.text,
+                                                ) ??
+                                                0,
+                                            qualification:
+                                                qualificationController
+                                                    .text
+                                                    .isEmpty
+                                                ? 'No Criteria'
+                                                : qualificationController.text,
+                                          );
+                                      if (stateContext.mounted) {
+                                        Navigator.pop(stateContext);
+                                        ScaffoldMessenger.of(
+                                          stateContext,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Enrollment request submitted!',
+                                            ),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (stateContext.mounted) {
+                                        ScaffoldMessenger.of(
+                                          stateContext,
+                                        ).showSnackBar(
+                                          SnackBar(content: Text('Error: $e')),
+                                        );
+                                      }
+                                    } finally {
+                                      if (stateContext.mounted) {
+                                        setState(() => isSubmitting = false);
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryGold,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: isSubmitting
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.black,
+                                ),
+                              )
+                            : Text(
+                                course.isFree
+                                    ? 'Submit Request'
+                                    : 'Proceed to Payment',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _CourseCard extends StatelessWidget {
+class _CourseCard extends ConsumerWidget {
   final Course course;
   final int index;
   final bool isDark;
@@ -248,15 +781,9 @@ class _CourseCard extends StatelessWidget {
     required this.isDark,
   });
 
-  Future<void> _enrollInCourse(BuildContext context) async {
-    final Uri uri = Uri.parse(course.enrollUrl);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open enrollment page')),
-        );
-      }
-    }
+  void _enrollInCourse(BuildContext context, WidgetRef ref) {
+    (context.findAncestorWidgetOfExactType<CoursesScreen>() as CoursesScreen)
+        ._showEnrollmentForm(context, course, ref);
   }
 
   Color _getLevelColor() {
@@ -273,13 +800,13 @@ class _CourseCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
-        onTap: () => _enrollInCourse(context),
+        onTap: () => _enrollInCourse(context, ref),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -382,10 +909,15 @@ class _CourseCard extends StatelessWidget {
                             fontSize: 12,
                             color: Colors.grey[600],
                           ),
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Icon(Icons.schedule, size: 16, color: Colors.grey[500]),
+                      Icon(
+                        Icons.access_time,
+                        size: 16,
+                        color: Colors.grey[500],
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         course.duration,
@@ -393,12 +925,96 @@ class _CourseCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 12),
+                  // Criteria & Certification
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 14,
+                                  color: AppColors.primaryGold,
+                                ),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    (course.minAge <= 0 &&
+                                            course.academicCriteria.isEmpty)
+                                        ? 'No criteria'
+                                        : [
+                                            if (course.minAge > 0)
+                                              'Min Age: ${course.minAge}',
+                                            if (course
+                                                .academicCriteria
+                                                .isNotEmpty)
+                                              course.academicCriteria,
+                                          ].join(' • '),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: isDark
+                                          ? Colors.grey[400]
+                                          : Colors.grey[700],
+                                      fontStyle:
+                                          (course.minAge <= 0 &&
+                                              course.academicCriteria.isEmpty)
+                                          ? FontStyle.italic
+                                          : FontStyle.normal,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (course.hasCertification)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryGold.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: AppColors.primaryGold.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.verified,
+                                size: 10,
+                                color: AppColors.primaryGold,
+                              ),
+                              const SizedBox(width: 2),
+                              const Text(
+                                'Certified',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryGold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
                   const SizedBox(height: 16),
                   // Enroll button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () => _enrollInCourse(context),
+                      onPressed: () => _enrollInCourse(context, ref),
                       icon: const Icon(Icons.arrow_forward),
                       label: const Text('Enroll Now'),
                       style: ElevatedButton.styleFrom(

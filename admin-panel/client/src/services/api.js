@@ -196,6 +196,13 @@ export const bookingsApi = {
     create: (data) => api.post('/bookings', data),
 };
 
+// Enrollments API
+export const enrollmentsApi = {
+    getAll: () => api.get('/enrollments'),
+    updateStatus: (id, status) => api.patch(`/enrollments/${id}/status`, { status }),
+    delete: (id) => api.delete(`/enrollments/${id}`),
+};
+
 // Settings API
 export const settingsApi = {
     getWhatsApp: () => api.get('/settings/whatsapp'),

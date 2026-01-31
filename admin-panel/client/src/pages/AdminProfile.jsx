@@ -78,7 +78,13 @@ function AdminProfile() {
     };
 
     const handleWAReset = async () => {
-        if (!window.confirm('Are you sure you want to reset the WhatsApp session?')) return;
+        const confirmed = await notify.confirm({
+            title: 'Reset WhatsApp',
+            message: 'Are you sure you want to reset the WhatsApp session? You will need to scan the QR code again.',
+            confirmText: 'Reset',
+            cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
         setWaLoading(true);
         try {
             await settingsApi.resetWhatsApp();
@@ -175,7 +181,13 @@ function AdminProfile() {
     };
 
     const handleImageRemove = async () => {
-        if (!window.confirm('Are you sure you want to remove your profile image?')) return;
+        const confirmed = await notify.confirm({
+            title: 'Remove Image',
+            message: 'Are you sure you want to remove your profile image?',
+            confirmText: 'Remove',
+            cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
 
         setLoading(true);
         try {

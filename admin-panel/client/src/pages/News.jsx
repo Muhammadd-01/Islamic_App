@@ -74,7 +74,13 @@ export default function News() {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this news item?')) return;
+        const confirmed = await notify.confirm({
+            title: 'Delete News',
+            message: 'Are you sure you want to delete this news item? This action cannot be undone.',
+            confirmText: 'Delete',
+            cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
         setDeletingId(id);
         try {
             await newsApi.delete(id);

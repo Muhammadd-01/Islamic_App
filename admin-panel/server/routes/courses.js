@@ -51,7 +51,7 @@ router.get('/:id', async (req, res) => {
 // POST create course
 router.post('/', upload.single('image'), async (req, res) => {
     try {
-        const { title, description, instructor, duration, level, imageUrl, enrollUrl, isFree, price } = req.body;
+        const { title, description, instructor, duration, level, imageUrl, enrollUrl, isFree, price, minAge, academicCriteria, hasCertification } = req.body;
 
         let finalImageUrl = imageUrl || '';
         if (req.file) {
@@ -68,6 +68,9 @@ router.post('/', upload.single('image'), async (req, res) => {
             enrollUrl: enrollUrl || '',
             isFree: isFree === 'true' || isFree === true,
             price: parseFloat(price) || 0,
+            minAge: parseInt(minAge) || 0,
+            academicCriteria: academicCriteria || '',
+            hasCertification: hasCertification === 'true' || hasCertification === true,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         });
@@ -81,7 +84,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 // PUT update course
 router.put('/:id', upload.single('image'), async (req, res) => {
     try {
-        const { title, description, instructor, duration, level, imageUrl, enrollUrl, isFree, price } = req.body;
+        const { title, description, instructor, duration, level, imageUrl, enrollUrl, isFree, price, minAge, academicCriteria, hasCertification } = req.body;
 
         const updateData = {
             updatedAt: new Date().toISOString()
@@ -96,6 +99,9 @@ router.put('/:id', upload.single('image'), async (req, res) => {
         if (enrollUrl !== undefined) updateData.enrollUrl = enrollUrl;
         if (isFree !== undefined) updateData.isFree = isFree === 'true' || isFree === true;
         if (price !== undefined) updateData.price = parseFloat(price);
+        if (minAge !== undefined) updateData.minAge = parseInt(minAge);
+        if (academicCriteria !== undefined) updateData.academicCriteria = academicCriteria;
+        if (hasCertification !== undefined) updateData.hasCertification = hasCertification === 'true' || hasCertification === true;
 
         if (req.file) {
             updateData.imageUrl = await uploadImage(req.file);

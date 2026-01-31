@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback } from 'react';
-import { X, CheckCircle, AlertCircle, AlertTriangle, Info } from 'lucide-react';
+import { X, CheckCircle, AlertCircle, AlertTriangle, Info, HelpCircle } from 'lucide-react';
 
 // Notification types
 const NOTIFICATION_TYPES = {
@@ -30,6 +30,13 @@ const NOTIFICATION_TYPES = {
         borderColor: 'border-blue-500',
         textColor: 'text-blue-400',
         iconColor: 'text-blue-400'
+    },
+    confirm: {
+        icon: HelpCircle,
+        bgColor: 'bg-gold-500/20',
+        borderColor: 'border-gold-primary',
+        textColor: 'text-gold-primary',
+        iconColor: 'text-gold-primary'
     }
 };
 
@@ -73,6 +80,44 @@ function NotificationToast({ notification, onClose }) {
     );
 }
 
+// Confirmation Dialog Component
+function ConfirmationDialog({ isOpen, options, onResolve }) {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+            <div className="bg-dark-card border border-dark-icon rounded-2xl max-w-md w-full shadow-2xl overflow-hidden animate-scale-in">
+                <div className="p-6">
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="p-3 rounded-full bg-gold-primary/10 text-gold-primary">
+                            <HelpCircle size={24} />
+                        </div>
+                        <h3 className="text-xl font-bold text-light-primary">{options.title || 'Confirm Action'}</h3>
+                    </div>
+                    <p className="text-light-muted text-base leading-relaxed">
+                        {options.message || 'Are you sure you want to proceed?'}
+                    </p>
+                </div>
+
+                <div className="flex gap-3 p-4 bg-dark-icon/20">
+                    <button
+                        onClick={() => onResolve(false)}
+                        className="flex-1 px-4 py-2.5 rounded-xl border border-dark-icon text-light-primary hover:bg-dark-icon/50 transition-all font-medium"
+                    >
+                        {options.cancelText || 'Cancel'}
+                    </button>
+                    <button
+                        onClick={() => onResolve(true)}
+                        className="flex-1 px-4 py-2.5 rounded-xl bg-gold-primary text-dark-main hover:bg-gold-dark transition-all font-bold shadow-lg shadow-gold-primary/20"
+                    >
+                        {options.confirmText || 'Confirm'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // Notification Container
 function NotificationContainer({ notifications, removeNotification }) {
     return (
@@ -92,6 +137,7 @@ function NotificationContainer({ notifications, removeNotification }) {
 // Notification Provider
 export function NotificationProvider({ children }) {
     const [notifications, setNotifications] = useState([]);
+    const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, options: {}, resolve: null });
 
     const addNotification = useCallback(({ type = 'info', title, message, duration = 5000 }) => {
         const id = Date.now() + Math.random();
@@ -113,12 +159,30 @@ export function NotificationProvider({ children }) {
         setNotifications((prev) => prev.filter((n) => n.id !== id));
     }, []);
 
+    const confirm = useCallback((options = {}) => {
+        return new Promise((resolve) => {
+            setConfirmDialog({
+                isOpen: true,
+                options,
+                resolve
+            });
+        });
+    }, []);
+
+    const handleConfirmResolve = (result) => {
+        if (confirmDialog.resolve) {
+            confirmDialog.resolve(result);
+        }
+        setConfirmDialog({ isOpen: false, options: {}, resolve: null });
+    };
+
     // Convenience methods
     const notify = {
         success: (message, title) => addNotification({ type: 'success', title, message }),
         error: (message, title) => addNotification({ type: 'error', title, message }),
         warning: (message, title) => addNotification({ type: 'warning', title, message }),
         info: (message, title) => addNotification({ type: 'info', title, message }),
+        confirm: (options) => confirm(options)
     };
 
     return (
@@ -128,13 +192,12 @@ export function NotificationProvider({ children }) {
                 notifications={notifications}
                 removeNotification={removeNotification}
             />
+            <ConfirmationDialog
+                isOpen={confirmDialog.isOpen}
+                options={confirmDialog.options}
+                onResolve={handleConfirmResolve}
+            />
         </NotificationContext.Provider>
     );
 }
 
-// CSS for animation (add to your global CSS or tailwind config)
-// @keyframes slide-in {
-//   from { transform: translateX(100%); opacity: 0; }
-//   to { transform: translateX(0); opacity: 1; }
-// }
-// .animate-slide-in { animation: slide-in 0.3s ease-out; }

@@ -87,7 +87,13 @@ export default function Hadith() {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this hadith?')) return;
+        const confirmed = await notify.confirm({
+            title: 'Delete Hadith',
+            message: 'Are you sure you want to delete this hadith? This action cannot be undone.',
+            confirmText: 'Delete',
+            cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
         setDeletingId(id);
         try {
             await hadithsApi.delete(id);

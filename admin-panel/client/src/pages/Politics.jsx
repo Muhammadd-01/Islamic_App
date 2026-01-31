@@ -80,7 +80,13 @@ export default function Politics() {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this content?')) return;
+        const confirmed = await notify.confirm({
+            title: 'Delete Content',
+            message: 'Are you sure you want to delete this content? This action cannot be undone.',
+            confirmText: 'Delete',
+            cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
         setDeletingId(id);
         try {
             await politicsApi.delete(id);

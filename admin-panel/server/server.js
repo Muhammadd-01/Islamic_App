@@ -32,6 +32,7 @@ import regionsRoutes from './routes/regions.js';
 import donationsRoutes from './routes/donations.js';
 import bookingsRoutes from './routes/bookings.js';
 import settingsRoutes from './routes/settings.js';
+import enrollmentsRoutes from './routes/enrollments.js';
 import whatsappService from './utils/whatsappService.js';
 import { seedSuperAdmin } from './utils/seed_admin.js';
 
@@ -91,6 +92,7 @@ app.use('/api/regions', regionsRoutes);
 app.use('/api/donations', donationsRoutes);
 app.use('/api/bookings', bookingsRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/enrollments', enrollmentsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

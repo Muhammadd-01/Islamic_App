@@ -59,7 +59,13 @@ export default function Reciters() {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure?')) return;
+        const confirmed = await notify.confirm({
+            title: 'Delete Reciter',
+            message: 'Are you sure you want to delete this reciter?',
+            confirmText: 'Delete',
+            cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
         setDeletingId(id);
         try {
             await reciterApi.delete(id);

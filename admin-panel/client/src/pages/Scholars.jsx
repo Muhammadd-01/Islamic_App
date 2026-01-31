@@ -84,7 +84,13 @@ export default function Scholars() {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this scholar?')) return;
+        const confirmed = await notify.confirm({
+            title: 'Delete Scholar',
+            message: 'Are you sure you want to delete this scholar? This action cannot be undone.',
+            confirmText: 'Delete',
+            cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
         setDeletingId(id);
         try {
             await scholarsApi.delete(id);

@@ -191,13 +191,15 @@ class _BookingSheetState extends ConsumerState<_BookingSheet> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userProfile = ref.read(userProfileProvider).value;
       if (userProfile != null) {
-        setState(() {
-          _nameController.text = userProfile.name ?? '';
-          _emailController.text = userProfile.email;
-          if (userProfile.phone != null && userProfile.phone!.isNotEmpty) {
-            _phoneController.text = userProfile.phone!;
-          }
-        });
+        if (mounted) {
+          setState(() {
+            _nameController.text = userProfile.name ?? _nameController.text;
+            _emailController.text = userProfile.email;
+            if (userProfile.phone != null && userProfile.phone!.isNotEmpty) {
+              _phoneController.text = userProfile.phone!;
+            }
+          });
+        }
       }
     });
   }

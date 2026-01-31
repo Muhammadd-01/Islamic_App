@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { db } from '../config/firebase';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import { Search, Plus, Edit, Trash2, X, Play, FileText, Check } from 'lucide-react';
+import { useNotification } from '../components/NotificationSystem';
 
 export default function Beliefs() {
+    const { notify } = useNotification();
     const [beliefs, setBeliefs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -63,19 +65,29 @@ export default function Beliefs() {
             closeModal();
         } catch (error) {
             console.error('Error saving belief:', error);
+            notify.error('Failed to save content');
         }
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this item?')) {
-            try {
-                await deleteDoc(doc(db, 'beliefs', id));
-                fetchBeliefs();
-            } catch (error) {
-                console.error('Error deleting belief:', error);
-            }
+        const confirmed = await notify.confirm({
+            title: 'Delete Content',
+            message: 'Are you sure you want to delete this item? This action cannot be undone.',
+            confirmText: 'Delete',
+            cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
+
+        try {
+            await deleteDoc(doc(db, 'beliefs', id));
+            notify.success('Content deleted successfully');
+            fetchBeliefs();
+        } catch (error) {
+            console.error('Error deleting belief:', error);
+            notify.error('Failed to delete content');
         }
     };
+
 
     const openEditModal = (item) => {
         setEditingBelief(item);

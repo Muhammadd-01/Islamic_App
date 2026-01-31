@@ -25,6 +25,14 @@ service cloud.firestore {
       allow read, write: if isAdmin();
     }
 
+    // --- PRAYER TRACKING ---
+    match /prayer_tracking/{docId} {
+      // Allows user to manage their own prayer completion progress
+      // The docId format is 'userId_date', so we check if it starts with the UID
+      allow read: if isAuthenticated() && (docId.startsWith(request.auth.uid) || resource.data.user_id == request.auth.uid);
+      allow write: if isAuthenticated() && (docId.startsWith(request.auth.uid) || request.resource.data.user_id == request.auth.uid);
+    }
+
     // --- TASBEEH & SPIRITUAL TOOLS ---
     match /tasbeeh_stats/{userId} {
       // Allows user to manage their own streaks and daily counts
@@ -118,6 +126,12 @@ service cloud.firestore {
     match /inventions/{inventionId} { allow read: if true; allow write: if isAdmin(); }
     match /scientists/{scientistId} { allow read: if true; allow write: if isAdmin(); }
     match /articles/{articleId} { allow read: if true; allow write: if isAdmin(); }
+
+    match /course_enrollments/{enrollmentId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
 
     // --- APP MAINTENANCE & FEEDBACK ---
     match /notifications/{notificationId} {

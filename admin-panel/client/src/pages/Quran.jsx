@@ -85,7 +85,13 @@ export default function Quran() {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this entry?')) return;
+        const confirmed = await notify.confirm({
+            title: 'Delete Entry',
+            message: 'Are you sure you want to delete this entry? This action cannot be undone.',
+            confirmText: 'Delete',
+            cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
         setDeletingId(id);
         try {
             await quranApi.delete(id);

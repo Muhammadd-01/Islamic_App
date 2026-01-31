@@ -1,3 +1,6 @@
-2026/01/31-13:17:40.169 4a58 Reusing MANIFEST C:\Users\muham\OneDrive\Desktop\Coding\Islamic_App\admin-panel\server\.wwebjs_auth\session-system-messenger\Default\Local Storage\leveldb/MANIFEST-000001
-2026/01/31-13:17:40.188 4a58 Recovering log #3
-2026/01/31-13:17:40.193 4a58 Reusing old log C:\Users\muham\OneDrive\Desktop\Coding\Islamic_App\admin-panel\server\.wwebjs_auth\session-system-messenger\Default\Local Storage\leveldb/000003.log 
+2026/01/31-17:12:23.219 4c84 Reusing MANIFEST C:\Users\muham\OneDrive\Desktop\Coding\Islamic_App\admin-panel\server\.wwebjs_auth\session-system-messenger\Default\Local Storage\leveldb/MANIFEST-000001
+2026/01/31-17:12:23.247 4c84 Recovering log #4
+2026/01/31-17:12:23.255 4c84 Reusing old log C:\Users\muham\OneDrive\Desktop\Coding\Islamic_App\admin-panel\server\.wwebjs_auth\session-system-messenger\Default\Local Storage\leveldb/000004.log 
+2026/01/31-17:13:23.289 3dfc Level-0 table #8: started
+2026/01/31-17:13:23.297 3dfc Level-0 table #8: 14670 bytes OK
+2026/01/31-17:13:23.302 3dfc Delete type=0 #4

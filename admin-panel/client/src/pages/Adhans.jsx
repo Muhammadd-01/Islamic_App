@@ -75,7 +75,13 @@ export default function Adhans() {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Delete this adhan?')) return;
+        const confirmed = await notify.confirm({
+            title: 'Delete Adhan',
+            message: 'Delete this adhan?',
+            confirmText: 'Delete',
+            cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
         try {
             await adhanApi.delete(id);
             setAdhans(adhans.filter(a => a.id !== id));

@@ -82,7 +82,13 @@ export default function Duas() {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this dua?')) return;
+        const confirmed = await notify.confirm({
+            title: 'Delete Dua',
+            message: 'Are you sure you want to delete this dua? This action cannot be undone.',
+            confirmText: 'Delete',
+            cancelText: 'Cancel'
+        });
+        if (!confirmed) return;
         setDeletingId(id);
         try {
             await duasApi.delete(id);
